@@ -1,17 +1,3 @@
-// Victor Goossens
-// 425554
-
-
-#include <vector>
-#include <iostream>
-#include <chrono>
-
-using std::cout;
-using std::endl;
-using std::vector;
-
-#include "Edge.hpp"
-#include "Dijkstra.hpp"
 
 class BarabasiAlbert {
     public:
@@ -26,7 +12,7 @@ class BarabasiAlbert {
             this->degrees = vector<int>(n, 0);
         }
 
-        void build() {
+        vector<vector<Edge>> build() {
             srand(time(NULL));
 
             // Start with 4 connected nodes
@@ -50,6 +36,8 @@ class BarabasiAlbert {
                     }
                 }
             }
+
+            return this->asNeighbours();
         }
 
         bool tryToAddLink(int n1) {
@@ -95,39 +83,4 @@ class BarabasiAlbert {
         }
 
 };
-
-
-int main() {
-    cout << "hello world" << endl;
-    auto t1 = std::chrono::high_resolution_clock::now();
-
-    // Parameters
-    int n = 1000;
-
-    // Build network
-    BarabasiAlbert scaleFreeNetwork = BarabasiAlbert(n);
-    scaleFreeNetwork.build();
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto buildDuration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-    std::cout << "Build duration : " << buildDuration/1000000.0 << endl;
-
-    vector<vector<Edge>> graph = scaleFreeNetwork.asNeighbours(); // Get the network as a list of n lists of neighbours
-    auto t3 = std::chrono::high_resolution_clock::now();
-    auto convertDuration = std::chrono::duration_cast<std::chrono::microseconds>( t3 - t2 ).count();
-    std::cout << "Convert duration : " << convertDuration/1000000.0 << endl;
-
-    /*for (int a=0; a<100; a++) {
-        vector<Edge> neighbours = graph[a];
-        cout << "nb neighbours : " << neighbours.size() << endl;
-        for (int b=0; b<neighbours.size(); b++) {
-            cout << "weight : " << neighbours[b].getWeight() << endl;
-            cout << "dest : " << neighbours[b].getDestinationNode() << endl;
-        }
-    }*/
-
-    Dijkstra dijkstra(graph, 234, 400);
-    dijkstra.compute();
-    
-}
-
 

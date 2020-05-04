@@ -1,11 +1,8 @@
 all:
-	echo 'Please specify network to build ("make erdos" or "make barabasi")'
+	cd src && g++ main.cpp -std=c++11 -o main.out && ./main.out
 
-erdos:
-	cd src && g++ ErdosRenye.cpp -std=c++11 -o erdos.out && ./erdos.out
-
-barabasi:
-	cd src && g++ BarabasiAlbert.cpp -std=c++11 -o barabasi.out && ./barabasi.out
+run:
+	cd src && ./main.out
 
 clean:
 	cd src && rm *.out
