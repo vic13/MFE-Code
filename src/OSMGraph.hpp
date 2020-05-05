@@ -39,7 +39,7 @@ public:
                 }
                 
                 // Compute max speed
-                int maxSpeed_kmh = 0;
+                float maxSpeed_kmh = 0.0f;
                 if (feature["properties"]["tags"]["maxspeed"].is_null()) {
                     // No maxspeed available : estimate with highway type
                     nbEdgesWithoutMaxSpeed++;
@@ -47,7 +47,7 @@ public:
                 } else {
                     string maxspeed_str = feature["properties"]["tags"]["maxspeed"];
                     try {
-                        maxSpeed_kmh = std::stoi(maxspeed_str);
+                        maxSpeed_kmh = std::stof(maxspeed_str);
                     } 
                     catch (std::invalid_argument const &e) {cout << "maxspeed cast error" << endl; exit(0);}
                     catch (std::out_of_range const &e) {cout << "maxspeed cast error" << endl; exit(0);}
@@ -97,12 +97,12 @@ private:
         return j;
     }
 
-    int estimateMaxSpeed(string highwayType) {
+    float estimateMaxSpeed(string highwayType) {
         if (highwayType == "primary" || highwayType == "primary_link" || highwayType == "secondary" || highwayType == "secondary_link" 
                             || highwayType == "tertiary" || highwayType == "tertiary_link" || highwayType == "residential") {
-            return 50;
+            return 50.0f;
         } else if (highwayType == "motorway" || highwayType == "motorway_link" || highwayType == "trunk" || highwayType == "trunk_link") {
-            return 120;
+            return 120.0f;
         } else {
             cout << "Error : Unknown highway type" << endl;
             exit(0);
@@ -139,7 +139,7 @@ private:
     }
 
     float degreesToRadians(float degrees) {
-        return (degrees * M_PI) / 180;
+        return (degrees * M_PI) / 180.0;
     }
 
     CartesianCoordinate sphericalToCartesian(float r, float theta, float phi) {

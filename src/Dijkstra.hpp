@@ -5,11 +5,10 @@ using std::set;
 using std::pair;
 using std::make_pair;
 
-void print_vector(std::vector<int> const &input) {
-	std::copy(input.begin(), input.end(), std::ostream_iterator<int>(cout, " "));
-}
 void print_vector(std::vector<float> const &input) {
+    cout << "[";
 	std::copy(input.begin(), input.end(), std::ostream_iterator<float>(cout, " "));
+    cout << "]" << endl;
 }
 
 class Dijkstra {
@@ -24,7 +23,6 @@ public:
     bool compute() {
 
         while (!nodeSet.empty()) {
-            cout << nodeSet.size() << endl;
             // pop first node in the set
             pair<float, int> visitedNode = *(nodeSet.begin());
             nodeSet.erase(nodeSet.begin());
@@ -39,7 +37,7 @@ public:
                 for (int index=0; index<edges.size(); index++) {
                     Edge e = edges[index];
                     float node2CurrentWeight = nodeWeights[e.getDestinationNode()];
-                    int node2NewWeight = nodeCurrentWeight + e.getWeight();
+                    float node2NewWeight = nodeCurrentWeight + e.getWeight();
                     if ((node2CurrentWeight == -1.0f) || (node2NewWeight < node2CurrentWeight)) {                               // if smaller weight was found
                         if (node2CurrentWeight != -1.0f) {                                                              
                             // if current weight not infinite : node already in queue : DELETE before inserting the updated node

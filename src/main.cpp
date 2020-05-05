@@ -48,6 +48,13 @@ int main() {
     OSMGraph g;
     vector<vector<Edge>> osmGraph = g.build();
 
+    Dijkstra dijkstra(osmGraph, 123, 155);
+    if (dijkstra.compute()) {
+        cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
+    } else {
+        cout << "No solution found" << endl;
+    }
+    dijkstra.printNodeWeights();
 
     //dijkstraTest();
 
