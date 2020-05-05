@@ -10,6 +10,8 @@ using std::vector;
 #include "Edge.hpp"
 #include "Dijkstra.hpp"
 #include "BarabasiAlbert.hpp"
+#include "TestGraph.hpp"
+#include "OSMGraph.hpp"
 
 
 
@@ -25,40 +27,11 @@ void printNetwork(vector<vector<Edge>> graph) {
     }
 }
 
-int main() {
-    cout << "hello world" << endl;
-    auto t1 = std::chrono::high_resolution_clock::now();
+void dijkstraTest() {
+    TestGraph testGraph;
+    vector<vector<Edge>> g1 = testGraph.build();
 
-    // Parameters
-    int n = 100;
-
-    // Build network
-    BarabasiAlbert graph(n);
-    vector<vector<Edge>> graphAsNeighbours = graph.build(); // Get the network as a list of n lists of neighbours
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto buildDuration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-    std::cout << "Build duration : " << buildDuration/1000000.0 << endl;
-
-    //printNetwork();
-    vector<vector<Edge>> simpleGraph(6, vector<Edge>());
-    simpleGraph[0].push_back(Edge(1,7));
-    simpleGraph[0].push_back(Edge(2,2));
-    simpleGraph[1].push_back(Edge(0,7));
-    simpleGraph[1].push_back(Edge(2,3));
-    simpleGraph[1].push_back(Edge(3,4));
-    simpleGraph[2].push_back(Edge(0,2));
-    simpleGraph[2].push_back(Edge(1,3));
-    simpleGraph[2].push_back(Edge(3,4));
-    simpleGraph[2].push_back(Edge(4,1));
-    simpleGraph[3].push_back(Edge(1,4));
-    simpleGraph[3].push_back(Edge(2,4));
-    simpleGraph[3].push_back(Edge(5,5));
-    simpleGraph[4].push_back(Edge(2,1));
-    simpleGraph[4].push_back(Edge(5,3));
-    simpleGraph[5].push_back(Edge(3,5));
-    simpleGraph[5].push_back(Edge(4,3));
-
-    Dijkstra dijkstra(simpleGraph, 0, 1);
+    Dijkstra dijkstra(g1, 0, 1);
     dijkstra.printNodeWeights();
     if (dijkstra.compute()) {
         cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
@@ -66,5 +39,21 @@ int main() {
         cout << "No solution found" << endl;
     }
     dijkstra.printNodeWeights();
+}
+
+int main() {
+    cout << endl << "Hello world !" << endl << endl;
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    OSMGraph g;
+    vector<vector<Edge>> osmGraph = g.build();
+
+
+    //dijkstraTest();
+
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+    std::cout << "Duration : " << duration/1000000.0 << endl;
     
 }
+
