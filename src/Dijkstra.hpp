@@ -11,17 +11,24 @@ void print_vector(std::vector<float> const &input) {
     cout << "]" << endl;
 }
 
+void print_vector(std::vector<int> const &input) {
+    cout << "[";
+	std::copy(input.begin(), input.end(), std::ostream_iterator<int>(cout, " "));
+    cout << "]" << endl;
+}
+
 class Dijkstra {
 public:
     Dijkstra(vector<vector<Edge>> graph, int s, int t) {
         this->graph = graph;
         this->t = t;
+        this->s = s;
         this->nodeSet = initNodeSet(s);
         this->nodeWeights = initNodeWeights(s);
+        this->nodeParents = initNodeParents();
     }
 
     bool compute() {
-
         while (!nodeSet.empty()) {
             // pop first node in the set
             pair<float, int> visitedNode = *(nodeSet.begin());
@@ -34,8 +41,7 @@ public:
                 return true;
             } else {
                 vector<Edge> edges = graph[node];
-                for (int index=0; index<edges.size(); index++) {
-                    Edge e = edges[index];
+                for (auto& e : edges) {
                     float node2CurrentWeight = nodeWeights[e.getDestinationNode()];
                     float node2NewWeight = nodeCurrentWeight + e.getWeight();
                     if ((node2CurrentWeight == -1.0f) || (node2NewWeight < node2CurrentWeight)) {                               // if smaller weight was found
@@ -47,8 +53,9 @@ public:
                         // INSERT in queue
                         pair<float, int> newNode2 = make_pair(node2NewWeight, e.getDestinationNode());
                         nodeSet.insert(newNode2);
-                        // UPDATE weight
+                        // UPDATE weight + parent
                         nodeWeights[e.getDestinationNode()] = node2NewWeight;
+                        nodeParents[e.getDestinationNode()] = node;
                     }
                 }
             }
@@ -61,6 +68,22 @@ public:
         return this->nodeWeights[this->t];
     }
 
+    vector<int> getPath() {
+        // retrace path from end to start
+        vector<int> path;
+        path.push_back(this->t);
+        int parentNode = this->nodeParents[this->t];
+        path.push_back(parentNode);
+        while (parentNode != this->s) {
+            parentNode = this->nodeParents[parentNode];
+            path.push_back(parentNode);
+        }
+        // reverse path
+        std::reverse(path.begin(),path.end());
+
+        return path;
+    }
+
     void printNodeWeights() {
         print_vector(this->nodeWeights);
     }
@@ -68,11 +91,11 @@ public:
 
 private:
     int t;
+    int s;
     vector<vector<Edge>> graph;
     set<pair<float, int>> nodeSet;
     vector<float> nodeWeights;
-
-    vector<int> pathSequence;
+    vector<int> nodeParents;
 
     set<pair<float, int>> initNodeSet(int s) {
         set<pair<float, int>> nodeSet;
@@ -84,6 +107,10 @@ private:
         vector<float> nodeWeights(graph.size(), -1); // -1 corresponds to infinite weight
         nodeWeights[s] = 0;
         return nodeWeights;
+    }
+
+    vector<int> initNodeParents() {
+        return vector<int>(graph.size(), -1); // -1 corresponds to no parent
     }
     
 };

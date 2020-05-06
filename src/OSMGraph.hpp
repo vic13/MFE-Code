@@ -1,7 +1,7 @@
 
 #include <cmath>
 #include <fstream>
-#include "json.hpp"
+#include "external_headers/json.hpp"
 using json = nlohmann::json;
 using std::ifstream;
 using std::string;
@@ -15,16 +15,18 @@ public:
     vector<vector<Edge>> build() {
         json j = importJson();
         json features = j["features"];
-        // Get number of nodes
-        int nbNodes = 0;
+
+        // Get number of nodes + coordinates (used to display graph)
         for (auto& feature : features) {
             if (feature["geometry"]["type"] == "Point") {
-                nbNodes++;
+                this->nodesCoordinates.push_back(make_pair(feature["geometry"]["coordinates"][1], feature["geometry"]["coordinates"][0]));
             }
         }
+        int nbNodes = this->nodesCoordinates.size();
         
         // Init adjacency list
         vector<vector<Edge>> adjacencyList(nbNodes, vector<Edge>());
+
         // Get edges
         int nbEdgesWithoutMaxSpeed = 0;
         int nbEdges = 0;
@@ -86,8 +88,13 @@ public:
         return adjacencyList;
     }
 
+    vector<pair<float, float>> getNodesCoordinates() {
+        return this->nodesCoordinates;
+    }
+
 private:
     const char* osmFilePath;
+    vector<pair<float, float>> nodesCoordinates; // for displaying graph; order : lat, long
     
     json importJson() {
         ifstream jsonFile(osmFilePath);
@@ -149,3 +156,6 @@ private:
         return CartesianCoordinate{x, y, z};
     }
 };
+
+
+

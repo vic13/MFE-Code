@@ -51,6 +51,8 @@ int main() {
     Dijkstra dijkstra(osmGraph, 123, 155);
     if (dijkstra.compute()) {
         cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
+        cout << "Path : ";
+        print_vector(dijkstra.getPath());
     } else {
         cout << "No solution found" << endl;
     }
