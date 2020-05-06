@@ -1,5 +1,9 @@
 #pragma once
 
+// Python headers must be included before any system headers, since
+// they define _POSIX_C_SOURCE
+#include <Python.h>
+
 #include <vector>
 #include <map>
 #include <array>
@@ -10,10 +14,8 @@
 #include <cstdint> // <cstdint> requires c++11 support
 #include <functional>
 
-#include "/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/Python.h"
 
-#define WITHOUT_NUMPY
-
+#define WITHOUT_NUMPY 0
 #ifndef WITHOUT_NUMPY
 #  define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #  include <numpy/arrayobject.h>
@@ -62,6 +64,7 @@ struct _interpreter {
     PyObject *s_python_function_hist;
     PyObject *s_python_function_imshow;
     PyObject *s_python_function_scatter;
+    PyObject *s_python_function_boxplot;
     PyObject *s_python_function_subplot;
     PyObject *s_python_function_subplot2grid;
     PyObject *s_python_function_legend;
@@ -71,10 +74,13 @@ struct _interpreter {
     PyObject *s_python_function_ylim;
     PyObject *s_python_function_title;
     PyObject *s_python_function_axis;
+    PyObject *s_python_function_axvline;
     PyObject *s_python_function_xlabel;
     PyObject *s_python_function_ylabel;
+    PyObject *s_python_function_gca;
     PyObject *s_python_function_xticks;
     PyObject *s_python_function_yticks;
+    PyObject *s_python_function_tick_params;
     PyObject *s_python_function_grid;
     PyObject *s_python_function_clf;
     PyObject *s_python_function_errorbar;
@@ -87,6 +93,7 @@ struct _interpreter {
     PyObject *s_python_function_text;
     PyObject *s_python_function_suptitle;
     PyObject *s_python_function_bar;
+    PyObject *s_python_function_colorbar;
     PyObject *s_python_function_subplots_adjust;
 
 
@@ -195,16 +202,20 @@ private:
         s_python_function_fill_between = safe_import(pymod, "fill_between");
         s_python_function_hist = safe_import(pymod,"hist");
         s_python_function_scatter = safe_import(pymod,"scatter");
+        s_python_function_boxplot = safe_import(pymod,"boxplot");
         s_python_function_subplot = safe_import(pymod, "subplot");
         s_python_function_subplot2grid = safe_import(pymod, "subplot2grid");
         s_python_function_legend = safe_import(pymod, "legend");
         s_python_function_ylim = safe_import(pymod, "ylim");
         s_python_function_title = safe_import(pymod, "title");
         s_python_function_axis = safe_import(pymod, "axis");
+        s_python_function_axvline = safe_import(pymod, "axvline");
         s_python_function_xlabel = safe_import(pymod, "xlabel");
         s_python_function_ylabel = safe_import(pymod, "ylabel");
+        s_python_function_gca = safe_import(pymod, "gca");
         s_python_function_xticks = safe_import(pymod, "xticks");
         s_python_function_yticks = safe_import(pymod, "yticks");
+        s_python_function_tick_params = safe_import(pymod, "tick_params");
         s_python_function_grid = safe_import(pymod, "grid");
         s_python_function_xlim = safe_import(pymod, "xlim");
         s_python_function_ion = safe_import(pymod, "ion");
@@ -219,11 +230,11 @@ private:
         s_python_function_text = safe_import(pymod, "text");
         s_python_function_suptitle = safe_import(pymod, "suptitle");
         s_python_function_bar = safe_import(pymod,"bar");
+        s_python_function_colorbar = PyObject_GetAttrString(pymod, "colorbar");
         s_python_function_subplots_adjust = safe_import(pymod,"subplots_adjust");
 #ifndef WITHOUT_NUMPY
         s_python_function_imshow = safe_import(pymod, "imshow");
 #endif
-
         s_python_empty_tuple = PyTuple_New(0);
     }
 
@@ -234,7 +245,15 @@ private:
 
 } // end namespace detail
 
-// must be called before the first regular call to matplotlib to have any effect
+/// Select the backend
+///
+/// **NOTE:** This must be called before the first plot command to have
+/// any effect.
+///
+/// Mainly useful to select the non-interactive 'Agg' backend when running
+/// matplotlibcpp in headless mode, for example on a machine with no display.
+///
+/// See also: https://matplotlib.org/2.0.2/api/matplotlib_configuration_api.html#matplotlib.use
 inline void backend(const std::string& name)
 {
     detail::s_backend = name;
@@ -264,6 +283,8 @@ inline bool annotate(std::string annotation, double x, double y)
     return res;
 }
 
+namespace detail {
+
 #ifndef WITHOUT_NUMPY
 // Type selector for numpy array conversion
 template <typename T> struct select_npy_type { const static NPY_TYPES type = NPY_NOTYPE; }; //Default
@@ -279,24 +300,34 @@ template <> struct select_npy_type<uint16_t> { const static NPY_TYPES type = NPY
 template <> struct select_npy_type<uint32_t> { const static NPY_TYPES type = NPY_ULONG; };
 template <> struct select_npy_type<uint64_t> { const static NPY_TYPES type = NPY_UINT64; };
 
+// Sanity checks; comment them out or change the numpy type below if you're compiling on
+// a platform where they don't apply
+static_assert(sizeof(long long) == 8);
+template <> struct select_npy_type<long long> { const static NPY_TYPES type = NPY_INT64; };
+static_assert(sizeof(unsigned long long) == 8);
+template <> struct select_npy_type<unsigned long long> { const static NPY_TYPES type = NPY_UINT64; };
+// TODO: add int, long, etc.
+
 template<typename Numeric>
 PyObject* get_array(const std::vector<Numeric>& v)
 {
-    detail::_interpreter::get();    //interpreter needs to be initialized for the numpy commands to work
+    detail::_interpreter::get(); //interpreter needs to be initialized for the numpy commands to work
+    npy_intp vsize = v.size();
     NPY_TYPES type = select_npy_type<Numeric>::type;
-    if (type == NPY_NOTYPE)
-    {
-        std::vector<double> vd(v.size());
-        npy_intp vsize = v.size();
-        std::copy(v.begin(),v.end(),vd.begin());
-        PyObject* varray = PyArray_SimpleNewFromData(1, &vsize, NPY_DOUBLE, (void*)(vd.data()));
+    if (type == NPY_NOTYPE) {
+        size_t memsize = v.size()*sizeof(double);
+        double* dp = static_cast<double*>(::malloc(memsize));
+        for (size_t i=0; i<v.size(); ++i)
+            dp[i] = v[i];
+        PyObject* varray = PyArray_SimpleNewFromData(1, &vsize, NPY_DOUBLE, dp);
+        PyArray_UpdateFlags(reinterpret_cast<PyArrayObject*>(varray), NPY_ARRAY_OWNDATA);
         return varray;
     }
-
-    npy_intp vsize = v.size();
+    
     PyObject* varray = PyArray_SimpleNewFromData(1, &vsize, type, (void*)(v.data()));
     return varray;
 }
+
 
 template<typename Numeric>
 PyObject* get_2darray(const std::vector<::std::vector<Numeric>>& v)
@@ -336,14 +367,40 @@ PyObject* get_array(const std::vector<Numeric>& v)
 
 #endif // WITHOUT_NUMPY
 
+// sometimes, for labels and such, we need string arrays
+inline PyObject * get_array(const std::vector<std::string>& strings)
+{
+  PyObject* list = PyList_New(strings.size());
+  for (std::size_t i = 0; i < strings.size(); ++i) {
+    PyList_SetItem(list, i, PyString_FromString(strings[i].c_str()));
+  }
+  return list;
+}
+
+// not all matplotlib need 2d arrays, some prefer lists of lists
+template<typename Numeric>
+PyObject* get_listlist(const std::vector<std::vector<Numeric>>& ll)
+{
+  PyObject* listlist = PyList_New(ll.size());
+  for (std::size_t i = 0; i < ll.size(); ++i) {
+    PyList_SetItem(listlist, i, get_array(ll[i]));
+  }
+  return listlist;
+}
+
+} // namespace detail
+
+/// Plot a line through the given x and y data points..
+/// 
+/// See: https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.plot.html
 template<typename Numeric>
 bool plot(const std::vector<Numeric> &x, const std::vector<Numeric> &y, const std::map<std::string, std::string>& keywords)
 {
     assert(x.size() == y.size());
 
     // using numpy arrays
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     // construct positional args
     PyObject* args = PyTuple_New(2);
@@ -367,7 +424,7 @@ bool plot(const std::vector<Numeric> &x, const std::vector<Numeric> &y, const st
 }
 
 // TODO - it should be possible to make this work by implementing
-// a non-numpy alternative for `get_2darray()`.
+// a non-numpy alternative for `detail::get_2darray()`.
 #ifndef WITHOUT_NUMPY
 template <typename Numeric>
 void plot_surface(const std::vector<::std::vector<Numeric>> &x,
@@ -401,9 +458,9 @@ void plot_surface(const std::vector<::std::vector<Numeric>> &x,
   assert(y.size() == z.size());
 
   // using numpy arrays
-  PyObject *xarray = get_2darray(x);
-  PyObject *yarray = get_2darray(y);
-  PyObject *zarray = get_2darray(z);
+  PyObject *xarray = detail::get_2darray(x);
+  PyObject *yarray = detail::get_2darray(y);
+  PyObject *zarray = detail::get_2darray(z);
 
   // construct positional args
   PyObject *args = PyTuple_New(3);
@@ -462,6 +519,88 @@ void plot_surface(const std::vector<::std::vector<Numeric>> &x,
 }
 #endif // WITHOUT_NUMPY
 
+template <typename Numeric>
+void plot3(const std::vector<Numeric> &x,
+                  const std::vector<Numeric> &y,
+                  const std::vector<Numeric> &z,
+                  const std::map<std::string, std::string> &keywords =
+                      std::map<std::string, std::string>())
+{
+  // Same as with plot_surface: We lazily load the modules here the first time 
+  // this function is called because I'm not sure that we can assume "matplotlib 
+  // installed" implies "mpl_toolkits installed" on all platforms, and we don't 
+  // want to require it for people who don't need 3d plots.
+  static PyObject *mpl_toolkitsmod = nullptr, *axis3dmod = nullptr;
+  if (!mpl_toolkitsmod) {
+    detail::_interpreter::get();
+
+    PyObject* mpl_toolkits = PyString_FromString("mpl_toolkits");
+    PyObject* axis3d = PyString_FromString("mpl_toolkits.mplot3d");
+    if (!mpl_toolkits || !axis3d) { throw std::runtime_error("couldnt create string"); }
+
+    mpl_toolkitsmod = PyImport_Import(mpl_toolkits);
+    Py_DECREF(mpl_toolkits);
+    if (!mpl_toolkitsmod) { throw std::runtime_error("Error loading module mpl_toolkits!"); }
+
+    axis3dmod = PyImport_Import(axis3d);
+    Py_DECREF(axis3d);
+    if (!axis3dmod) { throw std::runtime_error("Error loading module mpl_toolkits.mplot3d!"); }
+  }
+
+  assert(x.size() == y.size());
+  assert(y.size() == z.size());
+
+  PyObject *xarray = detail::get_array(x);
+  PyObject *yarray = detail::get_array(y);
+  PyObject *zarray = detail::get_array(z);
+
+  // construct positional args
+  PyObject *args = PyTuple_New(3);
+  PyTuple_SetItem(args, 0, xarray);
+  PyTuple_SetItem(args, 1, yarray);
+  PyTuple_SetItem(args, 2, zarray);
+
+  // Build up the kw args.
+  PyObject *kwargs = PyDict_New();
+
+  for (std::map<std::string, std::string>::const_iterator it = keywords.begin();
+       it != keywords.end(); ++it) {
+    PyDict_SetItemString(kwargs, it->first.c_str(),
+                         PyString_FromString(it->second.c_str()));
+  }
+
+  PyObject *fig =
+      PyObject_CallObject(detail::_interpreter::get().s_python_function_figure,
+                          detail::_interpreter::get().s_python_empty_tuple);
+  if (!fig) throw std::runtime_error("Call to figure() failed.");
+
+  PyObject *gca_kwargs = PyDict_New();
+  PyDict_SetItemString(gca_kwargs, "projection", PyString_FromString("3d"));
+
+  PyObject *gca = PyObject_GetAttrString(fig, "gca");
+  if (!gca) throw std::runtime_error("No gca");
+  Py_INCREF(gca);
+  PyObject *axis = PyObject_Call(
+      gca, detail::_interpreter::get().s_python_empty_tuple, gca_kwargs);
+
+  if (!axis) throw std::runtime_error("No axis");
+  Py_INCREF(axis);
+
+  Py_DECREF(gca);
+  Py_DECREF(gca_kwargs);
+
+  PyObject *plot3 = PyObject_GetAttrString(axis, "plot");
+  if (!plot3) throw std::runtime_error("No 3D line plot");
+  Py_INCREF(plot3);
+  PyObject *res = PyObject_Call(plot3, args, kwargs);
+  if (!res) throw std::runtime_error("Failed 3D line plot");
+  Py_DECREF(plot3);
+
+  Py_DECREF(axis);
+  Py_DECREF(args);
+  Py_DECREF(kwargs);
+  if (res) Py_DECREF(res);
+}
 
 template<typename Numeric>
 bool stem(const std::vector<Numeric> &x, const std::vector<Numeric> &y, const std::map<std::string, std::string>& keywords)
@@ -469,8 +608,8 @@ bool stem(const std::vector<Numeric> &x, const std::vector<Numeric> &y, const st
     assert(x.size() == y.size());
 
     // using numpy arrays
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     // construct positional args
     PyObject* args = PyTuple_New(2);
@@ -502,8 +641,8 @@ bool fill(const std::vector<Numeric>& x, const std::vector<Numeric>& y, const st
     assert(x.size() == y.size());
 
     // using numpy arrays
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     // construct positional args
     PyObject* args = PyTuple_New(2);
@@ -533,9 +672,9 @@ bool fill_between(const std::vector<Numeric>& x, const std::vector<Numeric>& y1,
     assert(x.size() == y2.size());
 
     // using numpy arrays
-    PyObject* xarray = get_array(x);
-    PyObject* y1array = get_array(y1);
-    PyObject* y2array = get_array(y2);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* y1array = detail::get_array(y1);
+    PyObject* y2array = detail::get_array(y2);
 
     // construct positional args
     PyObject* args = PyTuple_New(3);
@@ -563,7 +702,7 @@ bool hist(const std::vector<Numeric>& y, long bins=10,std::string color="b",
           double alpha=1.0, bool cumulative=false)
 {
 
-    PyObject* yarray = get_array(y);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "bins", PyLong_FromLong(bins));
@@ -587,89 +726,99 @@ bool hist(const std::vector<Numeric>& y, long bins=10,std::string color="b",
 }
 
 #ifndef WITHOUT_NUMPY
-    namespace internal {
-        inline void imshow(void *ptr, const NPY_TYPES type, const int rows, const int columns, const int colors, const std::map<std::string, std::string> &keywords)
-        {
-            assert(type == NPY_UINT8 || type == NPY_FLOAT);
-            assert(colors == 1 || colors == 3 || colors == 4);
+namespace detail {
 
-            detail::_interpreter::get();    //interpreter needs to be initialized for the numpy commands to work
+inline void imshow(void *ptr, const NPY_TYPES type, const int rows, const int columns, const int colors, const std::map<std::string, std::string> &keywords, PyObject** out)
+{
+    assert(type == NPY_UINT8 || type == NPY_FLOAT);
+    assert(colors == 1 || colors == 3 || colors == 4);
 
-            // construct args
-            npy_intp dims[3] = { rows, columns, colors };
-            PyObject *args = PyTuple_New(1);
-            PyTuple_SetItem(args, 0, PyArray_SimpleNewFromData(colors == 1 ? 2 : 3, dims, type, ptr));
+    detail::_interpreter::get();    //interpreter needs to be initialized for the numpy commands to work
 
-            // construct keyword args
-            PyObject* kwargs = PyDict_New();
-            for(std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it)
-            {
-                PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
-            }
+    // construct args
+    npy_intp dims[3] = { rows, columns, colors };
+    PyObject *args = PyTuple_New(1);
+    PyTuple_SetItem(args, 0, PyArray_SimpleNewFromData(colors == 1 ? 2 : 3, dims, type, ptr));
 
-            PyObject *res = PyObject_Call(detail::_interpreter::get().s_python_function_imshow, args, kwargs);
-            Py_DECREF(args);
-            Py_DECREF(kwargs);
-            if (!res)
-                throw std::runtime_error("Call to imshow() failed");
-            Py_DECREF(res);
-        }
-    }
-
-    inline void imshow(const unsigned char *ptr, const int rows, const int columns, const int colors, const std::map<std::string, std::string> &keywords = {})
+    // construct keyword args
+    PyObject* kwargs = PyDict_New();
+    for(std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it)
     {
-        internal::imshow((void *) ptr, NPY_UINT8, rows, columns, colors, keywords);
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
     }
 
-    inline void imshow(const float *ptr, const int rows, const int columns, const int colors, const std::map<std::string, std::string> &keywords = {})
-    {
-        internal::imshow((void *) ptr, NPY_FLOAT, rows, columns, colors, keywords);
-    }
+    PyObject *res = PyObject_Call(detail::_interpreter::get().s_python_function_imshow, args, kwargs);
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
+    if (!res)
+        throw std::runtime_error("Call to imshow() failed");
+    if (out)
+        *out = res;
+    else
+        Py_DECREF(res);
+}
+
+} // namespace detail
+
+inline void imshow(const unsigned char *ptr, const int rows, const int columns, const int colors, const std::map<std::string, std::string> &keywords = {}, PyObject** out = nullptr)
+{
+    detail::imshow((void *) ptr, NPY_UINT8, rows, columns, colors, keywords, out);
+}
+
+inline void imshow(const float *ptr, const int rows, const int columns, const int colors, const std::map<std::string, std::string> &keywords = {}, PyObject** out = nullptr)
+{
+    detail::imshow((void *) ptr, NPY_FLOAT, rows, columns, colors, keywords, out);
+}
 
 #ifdef WITH_OPENCV
-    void imshow(const cv::Mat &image, const std::map<std::string, std::string> &keywords = {})
-    {
-        // Convert underlying type of matrix, if needed
-        cv::Mat image2;
-        NPY_TYPES npy_type = NPY_UINT8;
-        switch (image.type() & CV_MAT_DEPTH_MASK) {
-        case CV_8U:
-            image2 = image;
-            break;
-        case CV_32F:
-            image2 = image;
-            npy_type = NPY_FLOAT;
-            break;
-        default:
-            image.convertTo(image2, CV_MAKETYPE(CV_8U, image.channels()));
-        }
-
-        // If color image, convert from BGR to RGB
-        switch (image2.channels()) {
-        case 3:
-            cv::cvtColor(image2, image2, CV_BGR2RGB);
-            break;
-        case 4:
-            cv::cvtColor(image2, image2, CV_BGRA2RGBA);
-        }
-
-        internal::imshow(image2.data, npy_type, image2.rows, image2.cols, image2.channels(), keywords);
+void imshow(const cv::Mat &image, const std::map<std::string, std::string> &keywords = {})
+{
+    // Convert underlying type of matrix, if needed
+    cv::Mat image2;
+    NPY_TYPES npy_type = NPY_UINT8;
+    switch (image.type() & CV_MAT_DEPTH_MASK) {
+    case CV_8U:
+        image2 = image;
+        break;
+    case CV_32F:
+        image2 = image;
+        npy_type = NPY_FLOAT;
+        break;
+    default:
+        image.convertTo(image2, CV_MAKETYPE(CV_8U, image.channels()));
     }
+
+    // If color image, convert from BGR to RGB
+    switch (image2.channels()) {
+    case 3:
+        cv::cvtColor(image2, image2, CV_BGR2RGB);
+        break;
+    case 4:
+        cv::cvtColor(image2, image2, CV_BGRA2RGBA);
+    }
+
+    detail::imshow(image2.data, npy_type, image2.rows, image2.cols, image2.channels(), keywords);
+}
 #endif // WITH_OPENCV
 #endif // WITHOUT_NUMPY
 
 template<typename NumericX, typename NumericY>
 bool scatter(const std::vector<NumericX>& x,
              const std::vector<NumericY>& y,
-             const double s=1.0) // The marker size in points**2
+             const double s=1.0, // The marker size in points**2
+             const std::map<std::string, std::string> & keywords = {})
 {
     assert(x.size() == y.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "s", PyLong_FromLong(s));
+    for (const auto& it : keywords)
+    {
+        PyDict_SetItemString(kwargs, it.first.c_str(), PyString_FromString(it.second.c_str()));
+    }
 
     PyObject* plot_args = PyTuple_New(2);
     PyTuple_SetItem(plot_args, 0, xarray);
@@ -684,6 +833,62 @@ bool scatter(const std::vector<NumericX>& x,
     return res;
 }
 
+template<typename Numeric>
+bool boxplot(const std::vector<std::vector<Numeric>>& data,
+             const std::vector<std::string>& labels = {},
+             const std::map<std::string, std::string> & keywords = {})
+{
+    PyObject* listlist = detail::get_listlist(data);
+    PyObject* args = PyTuple_New(1);
+    PyTuple_SetItem(args, 0, listlist);
+
+    PyObject* kwargs = PyDict_New();
+
+    // kwargs needs the labels, if there are (the correct number of) labels
+    if (!labels.empty() && labels.size() == data.size()) {
+        PyDict_SetItemString(kwargs, "labels", detail::get_array(labels));
+    }
+
+    // take care of the remaining keywords
+    for (const auto& it : keywords)
+    {
+        PyDict_SetItemString(kwargs, it.first.c_str(), PyString_FromString(it.second.c_str()));
+    }
+
+    PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_boxplot, args, kwargs);
+
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
+
+    if(res) Py_DECREF(res);
+
+    return res;
+}
+
+template<typename Numeric>
+bool boxplot(const std::vector<Numeric>& data,
+             const std::map<std::string, std::string> & keywords = {})
+{
+    PyObject* vector = detail::get_array(data);
+    PyObject* args = PyTuple_New(1);
+    PyTuple_SetItem(args, 0, vector);
+
+    PyObject* kwargs = PyDict_New();
+    for (const auto& it : keywords)
+    {
+        PyDict_SetItemString(kwargs, it.first.c_str(), PyString_FromString(it.second.c_str()));
+    }
+
+    PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_boxplot, args, kwargs);
+
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
+
+    if(res) Py_DECREF(res);
+
+    return res;
+}
+
 template <typename Numeric>
 bool bar(const std::vector<Numeric> &               x,
          const std::vector<Numeric> &               y,
@@ -691,8 +896,8 @@ bool bar(const std::vector<Numeric> &               x,
          std::string                                ls       = "-",
          double                                     lw       = 1.0,
          const std::map<std::string, std::string> & keywords = {}) {
-  PyObject * xarray = get_array(x);
-  PyObject * yarray = get_array(y);
+  PyObject * xarray = detail::get_array(x);
+  PyObject * yarray = detail::get_array(y);
 
   PyObject * kwargs = PyDict_New();
 
@@ -761,7 +966,7 @@ inline bool subplots_adjust(const std::map<std::string, double>& keywords = {})
 template< typename Numeric>
 bool named_hist(std::string label,const std::vector<Numeric>& y, long bins=10, std::string color="b", double alpha=1.0)
 {
-    PyObject* yarray = get_array(y);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "label", PyString_FromString(label.c_str()));
@@ -787,8 +992,8 @@ bool plot(const std::vector<NumericX>& x, const std::vector<NumericY>& y, const 
 {
     assert(x.size() == y.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(s.c_str());
 
@@ -810,10 +1015,10 @@ bool quiver(const std::vector<NumericX>& x, const std::vector<NumericY>& y, cons
 {
     assert(x.size() == y.size() && x.size() == u.size() && u.size() == w.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
-    PyObject* uarray = get_array(u);
-    PyObject* warray = get_array(w);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
+    PyObject* uarray = detail::get_array(u);
+    PyObject* warray = detail::get_array(w);
 
     PyObject* plot_args = PyTuple_New(4);
     PyTuple_SetItem(plot_args, 0, xarray);
@@ -844,8 +1049,8 @@ bool stem(const std::vector<NumericX>& x, const std::vector<NumericY>& y, const 
 {
     assert(x.size() == y.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(s.c_str());
 
@@ -869,8 +1074,8 @@ bool semilogx(const std::vector<NumericX>& x, const std::vector<NumericY>& y, co
 {
     assert(x.size() == y.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(s.c_str());
 
@@ -892,8 +1097,8 @@ bool semilogy(const std::vector<NumericX>& x, const std::vector<NumericY>& y, co
 {
     assert(x.size() == y.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(s.c_str());
 
@@ -915,8 +1120,8 @@ bool loglog(const std::vector<NumericX>& x, const std::vector<NumericY>& y, cons
 {
     assert(x.size() == y.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(s.c_str());
 
@@ -938,9 +1143,9 @@ bool errorbar(const std::vector<NumericX> &x, const std::vector<NumericY> &y, co
 {
     assert(x.size() == y.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
-    PyObject* yerrarray = get_array(yerr);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
+    PyObject* yerrarray = detail::get_array(yerr);
 
     // construct keyword args
     PyObject* kwargs = PyDict_New();
@@ -971,10 +1176,13 @@ bool errorbar(const std::vector<NumericX> &x, const std::vector<NumericY> &y, co
 template<typename Numeric>
 bool named_plot(const std::string& name, const std::vector<Numeric>& y, const std::string& format = "")
 {
+    // Make sure python is initialized.
+    detail::_interpreter::get();
+
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "label", PyString_FromString(name.c_str()));
 
-    PyObject* yarray = get_array(y);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(format.c_str());
 
@@ -995,11 +1203,14 @@ bool named_plot(const std::string& name, const std::vector<Numeric>& y, const st
 template<typename Numeric>
 bool named_plot(const std::string& name, const std::vector<Numeric>& x, const std::vector<Numeric>& y, const std::string& format = "")
 {
+    // Make sure python is initialized.
+    detail::_interpreter::get();
+
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "label", PyString_FromString(name.c_str()));
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(format.c_str());
 
@@ -1020,11 +1231,14 @@ bool named_plot(const std::string& name, const std::vector<Numeric>& x, const st
 template<typename Numeric>
 bool named_semilogx(const std::string& name, const std::vector<Numeric>& x, const std::vector<Numeric>& y, const std::string& format = "")
 {
+    // Make sure python is initialized.
+    detail::_interpreter::get();
+
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "label", PyString_FromString(name.c_str()));
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(format.c_str());
 
@@ -1045,11 +1259,14 @@ bool named_semilogx(const std::string& name, const std::vector<Numeric>& x, cons
 template<typename Numeric>
 bool named_semilogy(const std::string& name, const std::vector<Numeric>& x, const std::vector<Numeric>& y, const std::string& format = "")
 {
+    // Make sure python is initialized.
+    detail::_interpreter::get();
+
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "label", PyString_FromString(name.c_str()));
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(format.c_str());
 
@@ -1070,11 +1287,14 @@ bool named_semilogy(const std::string& name, const std::vector<Numeric>& x, cons
 template<typename Numeric>
 bool named_loglog(const std::string& name, const std::vector<Numeric>& x, const std::vector<Numeric>& y, const std::string& format = "")
 {
+    // Make sure python is initialized.
+    detail::_interpreter::get();
+
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "label", PyString_FromString(name.c_str()));
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
+    PyObject* xarray = detail::get_array(x);
+    PyObject* yarray = detail::get_array(y);
 
     PyObject* pystring = PyString_FromString(format.c_str());
 
@@ -1127,6 +1347,27 @@ void text(Numeric x, Numeric y, const std::string& s = "")
     if(!res) throw std::runtime_error("Call to text() failed.");
 
     Py_DECREF(args);
+    Py_DECREF(res);
+}
+
+inline void colorbar(PyObject* mappable = NULL, const std::map<std::string, float>& keywords = {})
+{
+    if (mappable == NULL)
+        throw std::runtime_error("Must call colorbar with PyObject* returned from an image, contour, surface, etc.");
+    PyObject* args = PyTuple_New(1);
+    PyTuple_SetItem(args, 0, mappable);
+
+    PyObject* kwargs = PyDict_New();
+    for(std::map<std::string, float>::const_iterator it = keywords.begin(); it != keywords.end(); ++it)
+    {
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyFloat_FromDouble(it->second));
+    }
+
+    PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_colorbar, args, kwargs);
+    if(!res) throw std::runtime_error("Call to colorbar() failed.");
+
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
     Py_DECREF(res);
 }
 
@@ -1284,7 +1525,7 @@ inline void xticks(const std::vector<Numeric> &ticks, const std::vector<std::str
     assert(labels.size() == 0 || ticks.size() == labels.size());
 
     // using numpy array
-    PyObject* ticksarray = get_array(ticks);
+    PyObject* ticksarray = detail::get_array(ticks);
 
     PyObject* args;
     if(labels.size() == 0) {
@@ -1331,7 +1572,7 @@ inline void yticks(const std::vector<Numeric> &ticks, const std::vector<std::str
     assert(labels.size() == 0 || ticks.size() == labels.size());
 
     // using numpy array
-    PyObject* ticksarray = get_array(ticks);
+    PyObject* ticksarray = detail::get_array(ticks);
 
     PyObject* args;
     if(labels.size() == 0) {
@@ -1372,8 +1613,35 @@ inline void yticks(const std::vector<Numeric> &ticks, const std::map<std::string
     yticks(ticks, {}, keywords);
 }
 
+inline void tick_params(const std::map<std::string, std::string>& keywords, const std::string axis = "both")
+{
+  // construct positional args
+  PyObject* args;
+  args = PyTuple_New(1);
+  PyTuple_SetItem(args, 0, PyString_FromString(axis.c_str()));
+
+  // construct keyword args
+  PyObject* kwargs = PyDict_New();
+  for (std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it)
+  {
+    PyDict_SetItemString(kwargs, it->first.c_str(), PyString_FromString(it->second.c_str()));
+  }
+
+
+  PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_tick_params, args, kwargs);
+
+  Py_DECREF(args);
+  Py_DECREF(kwargs);
+  if (!res) throw std::runtime_error("Call to tick_params() failed");
+
+  Py_DECREF(res);
+}
+
 inline void subplot(long nrows, long ncols, long plot_number)
 {
+    // Make sure interpreter is initialized
+    detail::_interpreter::get();
+    
     // construct positional args
     PyObject* args = PyTuple_New(3);
     PyTuple_SetItem(args, 0, PyFloat_FromDouble(nrows));
@@ -1387,7 +1655,7 @@ inline void subplot(long nrows, long ncols, long plot_number)
     Py_DECREF(res);
 }
 
-void subplot2grid(long nrows, long ncols, long rowid=0, long colid=0, long rowspan=1, long colspan=1)
+inline void subplot2grid(long nrows, long ncols, long rowid=0, long colid=0, long rowspan=1, long colspan=1)
 {
     PyObject* shape = PyTuple_New(2);
     PyTuple_SetItem(shape, 0, PyLong_FromLong(nrows));
@@ -1433,6 +1701,9 @@ inline void title(const std::string &titlestr, const std::map<std::string, std::
 
 inline void suptitle(const std::string &suptitlestr, const std::map<std::string, std::string> &keywords = {})
 {
+    // Make sure interpreter is initialized
+    detail::_interpreter::get();
+    
     PyObject* pysuptitlestr = PyString_FromString(suptitlestr.c_str());
     PyObject* args = PyTuple_New(1);
     PyTuple_SetItem(args, 0, pysuptitlestr);
@@ -1461,6 +1732,29 @@ inline void axis(const std::string &axisstr)
 
     Py_DECREF(args);
     Py_DECREF(res);
+}
+
+inline void axvline(double x, double ymin = 0., double ymax = 1., const std::map<std::string, std::string>& keywords = std::map<std::string, std::string>())
+{
+    // construct positional args
+    PyObject* args = PyTuple_New(3);
+    PyTuple_SetItem(args, 0, PyFloat_FromDouble(x));
+    PyTuple_SetItem(args, 1, PyFloat_FromDouble(ymin));
+    PyTuple_SetItem(args, 2, PyFloat_FromDouble(ymax));
+
+    // construct keyword args
+    PyObject* kwargs = PyDict_New();
+    for(std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it)
+    {
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyString_FromString(it->second.c_str()));
+    }
+
+    PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_axvline, args, kwargs);
+
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
+
+    if(res) Py_DECREF(res);
 }
 
 inline void xlabel(const std::string &str, const std::map<std::string, std::string> &keywords = {})
@@ -1499,6 +1793,57 @@ inline void ylabel(const std::string &str, const std::map<std::string, std::stri
     Py_DECREF(args);
     Py_DECREF(kwargs);
     Py_DECREF(res);
+}
+
+inline void set_zlabel(const std::string &str, const std::map<std::string, std::string>& keywords = {}) {
+    // Same as with plot_surface: We lazily load the modules here the first time 
+    // this function is called because I'm not sure that we can assume "matplotlib 
+    // installed" implies "mpl_toolkits installed" on all platforms, and we don't 
+    // want to require it for people who don't need 3d plots.
+    static PyObject *mpl_toolkitsmod = nullptr, *axis3dmod = nullptr;
+    if (!mpl_toolkitsmod) {
+        detail::_interpreter::get();
+
+        PyObject* mpl_toolkits = PyString_FromString("mpl_toolkits");
+        PyObject* axis3d = PyString_FromString("mpl_toolkits.mplot3d");
+        if (!mpl_toolkits || !axis3d) { throw std::runtime_error("couldnt create string"); }
+
+        mpl_toolkitsmod = PyImport_Import(mpl_toolkits);
+        Py_DECREF(mpl_toolkits);
+        if (!mpl_toolkitsmod) { throw std::runtime_error("Error loading module mpl_toolkits!"); }
+
+        axis3dmod = PyImport_Import(axis3d);
+        Py_DECREF(axis3d);
+        if (!axis3dmod) { throw std::runtime_error("Error loading module mpl_toolkits.mplot3d!"); }
+    }
+
+    PyObject* pystr = PyString_FromString(str.c_str());
+    PyObject* args = PyTuple_New(1);
+    PyTuple_SetItem(args, 0, pystr);
+
+    PyObject* kwargs = PyDict_New();
+    for (auto it = keywords.begin(); it != keywords.end(); ++it) {
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
+    }
+
+    PyObject *ax =
+    PyObject_CallObject(detail::_interpreter::get().s_python_function_gca,
+      detail::_interpreter::get().s_python_empty_tuple);
+    if (!ax) throw std::runtime_error("Call to gca() failed.");
+    Py_INCREF(ax);
+
+    PyObject *zlabel = PyObject_GetAttrString(ax, "set_zlabel");
+    if (!zlabel) throw std::runtime_error("Attribute set_zlabel not found.");
+    Py_INCREF(zlabel);
+
+    PyObject *res = PyObject_Call(zlabel, args, kwargs);
+    if (!res) throw std::runtime_error("Call to set_zlabel() failed.");
+    Py_DECREF(zlabel);
+
+    Py_DECREF(ax);
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
+    if (res) Py_DECREF(res);
 }
 
 inline void grid(bool flag)
@@ -1789,10 +2134,6 @@ inline bool plot(const std::vector<double>& x, const std::vector<double>& y, con
     return plot<double,double>(x,y,format);
 }
 
-inline bool scatter(const std::vector<double>& x, const std::vector<double>& y, double s=1.0) {
-    return scatter<double,double>(x,y,s);
-}
-
 inline bool plot(const std::vector<double>& y, const std::string& format = "") {
     return plot<double>(y,format);
 }
@@ -1804,7 +2145,6 @@ inline bool plot(const std::vector<double>& x, const std::vector<double>& y, con
 /*
  * This class allows dynamic plots, ie changing the plotted data without clearing and re-plotting
  */
-
 class Plot
 {
 public:
@@ -1818,8 +2158,8 @@ public:
         if(name != "")
             PyDict_SetItemString(kwargs, "label", PyString_FromString(name.c_str()));
 
-        PyObject* xarray = get_array(x);
-        PyObject* yarray = get_array(y);
+        PyObject* xarray = detail::get_array(x);
+        PyObject* yarray = detail::get_array(y);
 
         PyObject* pystring = PyString_FromString(format.c_str());
 
@@ -1855,8 +2195,8 @@ public:
         assert(x.size() == y.size());
         if(set_data_fct)
         {
-            PyObject* xarray = get_array(x);
-            PyObject* yarray = get_array(y);
+            PyObject* xarray = detail::get_array(x);
+            PyObject* yarray = detail::get_array(y);
 
             PyObject* plot_args = PyTuple_New(2);
             PyTuple_SetItem(plot_args, 0, xarray);

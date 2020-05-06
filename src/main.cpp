@@ -12,7 +12,7 @@ using std::vector;
 #include "BarabasiAlbert.hpp"
 #include "TestGraph.hpp"
 #include "OSMGraph.hpp"
-
+#include "View.hpp"
 
 
 
@@ -27,39 +27,26 @@ void printNetwork(vector<vector<Edge>> graph) {
     }
 }
 
-void dijkstraTest() {
-    TestGraph testGraph;
-    vector<vector<Edge>> g1 = testGraph.build();
-
-    Dijkstra dijkstra(g1, 0, 1);
-    dijkstra.printNodeWeights();
-    if (dijkstra.compute()) {
-        cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
-    } else {
-        cout << "No solution found" << endl;
-    }
-    dijkstra.printNodeWeights();
-}
-
 int main() {
     cout << endl << "Hello world !" << endl << endl;
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    OSMGraph g;
-    vector<vector<Edge>> osmGraph = g.build();
+    OSMGraph osmGraph;
+    vector<vector<Edge>> adjacencyList = osmGraph.build();
 
-    Dijkstra dijkstra(osmGraph, 123, 155);
+    Dijkstra dijkstra(adjacencyList, 123, 155);
     if (dijkstra.compute()) {
         cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
         cout << "Path : ";
-        print_vector(dijkstra.getPath());
+        vector<int> path = dijkstra.getPath();
+        print_vector(path);
+        View::display(adjacencyList, path, osmGraph.getNodesCoordinates());
     } else {
         cout << "No solution found" << endl;
     }
-    dijkstra.printNodeWeights();
+    //dijkstra.printNodeWeights();
 
-    //dijkstraTest();
-
+    
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
     std::cout << "Duration : " << duration/1000000.0 << endl;
