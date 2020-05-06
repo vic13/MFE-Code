@@ -396,6 +396,8 @@ PyObject* get_listlist(const std::vector<std::vector<Numeric>>& ll)
 template<typename Numeric>
 bool plot(const std::vector<Numeric> &x, const std::vector<Numeric> &y, const std::map<std::string, std::string>& keywords)
 {
+    
+
     assert(x.size() == y.size());
 
     // using numpy arrays
@@ -409,8 +411,11 @@ bool plot(const std::vector<Numeric> &x, const std::vector<Numeric> &y, const st
 
     // construct keyword args
     PyObject* kwargs = PyDict_New();
-    for(std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it)
-    {
+    
+    for(auto it = keywords.begin(); it != keywords.end(); ++it) {
+    if (it->first == "linewidth" || it->first == "markersize" || it->first == "alpha")
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyFloat_FromDouble(std::stod(it->second)));
+    else
         PyDict_SetItemString(kwargs, it->first.c_str(), PyString_FromString(it->second.c_str()));
     }
 
@@ -815,9 +820,11 @@ bool scatter(const std::vector<NumericX>& x,
 
     PyObject* kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "s", PyLong_FromLong(s));
-    for (const auto& it : keywords)
-    {
-        PyDict_SetItemString(kwargs, it.first.c_str(), PyString_FromString(it.second.c_str()));
+    for(auto it = keywords.begin(); it != keywords.end(); ++it) {
+    if (it->first == "linewidth" || it->first == "markersize" || it->first == "alpha")
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyFloat_FromDouble(std::stod(it->second)));
+    else
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyString_FromString(it->second.c_str()));
     }
 
     PyObject* plot_args = PyTuple_New(2);

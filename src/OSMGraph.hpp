@@ -82,6 +82,12 @@ public:
                 Edge edge(targetNode, weight);
                 adjacencyList[sourceNode].push_back(edge);
 
+                // If two-way street : add opposite edge
+                if (feature["properties"]["tags"]["oneway"].is_null() || feature["properties"]["tags"]["oneway"] == "no") {
+                    Edge oppositeEdge(sourceNode, weight);
+                    adjacencyList[targetNode].push_back(oppositeEdge);
+                }
+
             }
         }
 

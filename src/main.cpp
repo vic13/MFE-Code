@@ -34,7 +34,7 @@ int main() {
     OSMGraph osmGraph;
     vector<vector<Edge>> adjacencyList = osmGraph.build();
 
-    Dijkstra dijkstra(adjacencyList, 123, 155);
+    Dijkstra dijkstra(adjacencyList, 100, 10);
     if (dijkstra.compute()) {
         cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
         cout << "Path : ";
