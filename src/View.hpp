@@ -47,7 +47,6 @@ public:
         keywords["linewidth"] = "3";
         keywords["alpha"] = "0.5";
         keywords["color"] = "red";
-        //keywords["linestyle"] = "dashed";
         plt::plot(xPath, yPath, keywords);
 
         // Display s and t

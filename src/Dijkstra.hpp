@@ -1,21 +1,7 @@
 
 #include <set>
-
 using std::set;
-using std::pair;
-using std::make_pair;
 
-void print_vector(std::vector<float> const &input) {
-    cout << "[";
-	std::copy(input.begin(), input.end(), std::ostream_iterator<float>(cout, " "));
-    cout << "]" << endl;
-}
-
-void print_vector(std::vector<int> const &input) {
-    cout << "[";
-	std::copy(input.begin(), input.end(), std::ostream_iterator<int>(cout, " "));
-    cout << "]" << endl;
-}
 
 class Dijkstra {
 public:

@@ -6,29 +6,20 @@
 using std::cout;
 using std::endl;
 using std::vector;
+using std::pair;
+using std::make_pair;
 
 #include "Edge.hpp"
+#include "utils.hpp"
 #include "Dijkstra.hpp"
-#include "BarabasiAlbert.hpp"
 #include "TestGraph.hpp"
 #include "OSMGraph.hpp"
 #include "View.hpp"
 
 
-
-void printNetwork(vector<vector<Edge>> graph) {
-    for (int a=0; a<100; a++) {
-        vector<Edge> neighbours = graph[a];
-        cout << "nb neighbours : " << neighbours.size() << endl;
-        for (int b=0; b<neighbours.size(); b++) {
-            cout << "weight : " << neighbours[b].getWeight() << endl;
-            cout << "dest : " << neighbours[b].getDestinationNode() << endl;
-        }
-    }
-}
-
 int main() {
     cout << endl << "Hello world !" << endl << endl;
+
     auto t1 = std::chrono::high_resolution_clock::now();
 
     OSMGraph osmGraph;
@@ -44,8 +35,6 @@ int main() {
     } else {
         cout << "No solution found" << endl;
     }
-    //dijkstra.printNodeWeights();
-
     
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
