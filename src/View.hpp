@@ -48,7 +48,6 @@ public:
         keywords["alpha"] = "0.5";
         keywords["color"] = "red";
         plt::plot(xPath, yPath, keywords);
-        cout << "b" << endl;
 
         // Display s and t
         std::map<string,string> keywordsST;

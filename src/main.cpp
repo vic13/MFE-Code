@@ -15,6 +15,7 @@ using std::make_pair;
 #include "TestGraph.hpp"
 #include "OSMGraph.hpp"
 #include "BarabasiAlbertGraph.hpp"
+#include "ErdosRenye.hpp"
 #include "View.hpp"
 
 
@@ -30,9 +31,11 @@ int main() {
     osmGraph.printImportStats();
     // BarabasiAlbertGraph barabasiAlbertGraph(10000, 4);
     // vector<vector<Edge>> adjacencyList = barabasiAlbertGraph.build();
+    // ErdosRenye erdosRenyeGraph(10000, 9000);
+    // vector<vector<Edge>> adjacencyList = erdosRenyeGraph.build();
 
-    int s = 23;//randomInt(adjacencyList.size());
-    int t = 59;//randomInt(adjacencyList.size());
+    int s = randomInt(adjacencyList.size());
+    int t = randomInt(adjacencyList.size());
     cout << "Search from vertex " << s << " to vertex " << t << endl;
     Dijkstra dijkstra(adjacencyList, s, t);
     if (dijkstra.compute()) {
