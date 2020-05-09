@@ -6,7 +6,7 @@ void printNetwork(vector<vector<Edge>> graph) {
         cout << "nb neighbours : " << neighbours.size() << endl;
         for (int b=0; b<neighbours.size(); b++) {
             cout << "weight : " << neighbours[b].getWeight() << endl;
-            cout << "dest : " << neighbours[b].getDestinationNode() << endl;
+            cout << "dest : " << neighbours[b].getDestinationVertex() << endl;
         }
     }
 }

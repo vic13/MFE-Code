@@ -16,27 +16,27 @@ public:
         json j = importJson();
         json features = j["features"];
 
-        // Get number of nodes + coordinates (used to display graph)
+        // Get number of vertices + coordinates (used to display graph)
         for (auto& feature : features) {
             if (feature["geometry"]["type"] == "Point") {
-                this->nodesCoordinates.push_back(make_pair(feature["geometry"]["coordinates"][1], feature["geometry"]["coordinates"][0]));
+                this->verticesCoordinates.push_back(make_pair(feature["geometry"]["coordinates"][1], feature["geometry"]["coordinates"][0]));
             }
         }
-        int nbNodes = this->nodesCoordinates.size();
+        int nbVertices = this->verticesCoordinates.size();
         
         // Init adjacency list
-        vector<vector<Edge>> adjacencyList(nbNodes, vector<Edge>());
+        vector<vector<Edge>> adjacencyList(nbVertices, vector<Edge>());
 
         // Get edges
         int nbEdgesWithoutMaxSpeed = 0;
         int nbEdges = 0;
         for (auto& feature : features) {
             if (feature["geometry"]["type"] == "LineString") {
-                int sourceNodeId = feature["src"];
-                int targetNodeId = feature["tgt"];
+                int sourceVertexId = feature["src"];
+                int targetVertexId = feature["tgt"];
 
                 // Skip "loop edges"
-                if (sourceNodeId == targetNodeId) {
+                if (sourceVertexId == targetVertexId) {
                     continue;
                 }
                 
@@ -77,15 +77,15 @@ public:
                 float weight = time_s;
 
                 // Add edge to graph
-                int sourceNode = sourceNodeId - 1; // -1 cause first node has id=1
-                int targetNode = targetNodeId - 1;
-                Edge edge(targetNode, weight);
-                adjacencyList[sourceNode].push_back(edge);
+                int sourceVertex = sourceVertexId - 1; // -1 cause first vertex has id=1
+                int targetVertex = targetVertexId - 1;
+                Edge edge(targetVertex, weight);
+                adjacencyList[sourceVertex].push_back(edge);
 
                 // If two-way street : add opposite edge
                 if (feature["properties"]["tags"]["oneway"].is_null() || feature["properties"]["tags"]["oneway"] == "no") {
-                    Edge oppositeEdge(sourceNode, weight);
-                    adjacencyList[targetNode].push_back(oppositeEdge);
+                    Edge oppositeEdge(sourceVertex, weight);
+                    adjacencyList[targetVertex].push_back(oppositeEdge);
                 }
 
             }
@@ -94,13 +94,13 @@ public:
         return adjacencyList;
     }
 
-    vector<pair<float, float>> getNodesCoordinates() {
-        return this->nodesCoordinates;
+    vector<pair<float, float>> getVerticesCoordinates() {
+        return this->verticesCoordinates;
     }
 
 private:
     const char* osmFilePath;
-    vector<pair<float, float>> nodesCoordinates; // for displaying graph; order : lat, long
+    vector<pair<float, float>> verticesCoordinates; // for displaying graph; order : lat, long
     
     json importJson() {
         ifstream jsonFile(osmFilePath);

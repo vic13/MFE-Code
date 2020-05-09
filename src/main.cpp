@@ -31,7 +31,7 @@ int main() {
         cout << "Path : ";
         vector<int> path = dijkstra.getPath();
         print_vector(path);
-        View::display(adjacencyList, path, osmGraph.getNodesCoordinates());
+        View::display(adjacencyList, path, osmGraph.getVerticesCoordinates());
     } else {
         cout << "No solution found" << endl;
     }

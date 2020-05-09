@@ -3,8 +3,8 @@
 class Edge {
 public:
     
-    Edge(int destinationNode, float weight) {
-        this->destinationNode = destinationNode;
+    Edge(int destinationVertex, float weight) {
+        this->destinationVertex = destinationVertex;
         this->weight = weight;
     }
 
@@ -12,11 +12,11 @@ public:
         return this->weight;
     }
 
-    int getDestinationNode() {
-        return this->destinationNode;
+    int getDestinationVertex() {
+        return this->destinationVertex;
     }
 
 private:
-    int destinationNode;
+    int destinationVertex;
     float weight;
 };
