@@ -22,21 +22,21 @@ public:
                 this->verticesCoordinates.push_back(make_pair(feature["geometry"]["coordinates"][1], feature["geometry"]["coordinates"][0]));
             }
         }
-        int nbVertices = this->verticesCoordinates.size();
+        nbVertices = this->verticesCoordinates.size();
         
         // Init adjacency list
         vector<vector<Edge>> adjacencyList(nbVertices, vector<Edge>());
 
         // Get edges
-        int nbEdgesWithoutMaxSpeed = 0;
-        int nbEdges = 0;
         for (auto& feature : features) {
             if (feature["geometry"]["type"] == "LineString") {
+                nbEdges++;
                 int sourceVertexId = feature["src"];
                 int targetVertexId = feature["tgt"];
 
                 // Skip "loop edges"
                 if (sourceVertexId == targetVertexId) {
+                    nbLoopEdges++;
                     continue;
                 }
                 
@@ -98,9 +98,21 @@ public:
         return this->verticesCoordinates;
     }
 
+    void printImportStats() {
+        cout << "------- Data Importation Stats -------" << endl;
+        cout << "The original data had " << this->nbEdges << " edges and " << this->nbVertices << " vertices." << endl;
+        cout << this->nbLoopEdges << " loop edges ignored : " <<  "(" << 100*(float)this->nbLoopEdges/(float)this->nbEdges << "%)" << endl;
+        cout << "Max speed estimated for " << this->nbEdgesWithoutMaxSpeed << " edges " << "(" << 100*(float)this->nbEdgesWithoutMaxSpeed/(float)this->nbEdges << "%)" << endl;
+        cout << endl;
+    }
+
 private:
     const char* osmFilePath;
     vector<pair<float, float>> verticesCoordinates; // for displaying graph; order : lat, long
+    int nbEdgesWithoutMaxSpeed = 0;
+    int nbLoopEdges = 0;
+    int nbEdges = 0;
+    int nbVertices = 0;
     
     json importJson() {
         ifstream jsonFile(osmFilePath);

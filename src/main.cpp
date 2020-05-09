@@ -24,6 +24,7 @@ int main() {
 
     OSMGraph osmGraph;
     vector<vector<Edge>> adjacencyList = osmGraph.build();
+    osmGraph.printImportStats();
 
     Dijkstra dijkstra(adjacencyList, 100, 10);
     if (dijkstra.compute()) {
