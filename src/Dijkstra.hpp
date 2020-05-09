@@ -58,6 +58,9 @@ public:
         // retrace path from end to start
         vector<int> path;
         path.push_back(this->t);
+        if (this->s == this->t) {
+            return path;
+        }
         int parentVertex = this->vertexParents[this->t];
         path.push_back(parentVertex);
         while (parentVertex != this->s) {

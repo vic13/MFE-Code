@@ -4,7 +4,7 @@ namespace plt = matplotlibcpp;
 
 class View {
 public:
-    static void display(vector<vector<Edge>> adjacencyList, vector<int> path, vector<pair<float, float>> verticesCoordinates) {
+    static void display(vector<vector<Edge>> adjacencyList, vector<int> path, vector<pair<float, float>> verticesCoordinates, int s, int t) {
         plt::figure_size(700, 700);
 
         // Display vertices
@@ -48,16 +48,16 @@ public:
         keywords["alpha"] = "0.5";
         keywords["color"] = "red";
         plt::plot(xPath, yPath, keywords);
+        cout << "b" << endl;
 
         // Display s and t
         std::map<string,string> keywordsST;
         keywordsST["alpha"] = "0.5";
         keywordsST["color"] = "green";
-        plt::scatter(vector<float>{verticesCoordinates[path[0]].second}, vector<float>{verticesCoordinates[path[0]].first}, 100, keywordsST);
+        plt::scatter(vector<float>{verticesCoordinates[s].second}, vector<float>{verticesCoordinates[s].first}, 100, keywordsST);
         keywordsST["color"] = "orange";
-        plt::scatter(vector<float>{verticesCoordinates[path[path.size()-1]].second}, vector<float>{verticesCoordinates[path[path.size()-1]].first}, 100, keywordsST);
+        plt::scatter(vector<float>{verticesCoordinates[t].second}, vector<float>{verticesCoordinates[t].first}, 100, keywordsST);
 
-        
         plt::show();
         
     }

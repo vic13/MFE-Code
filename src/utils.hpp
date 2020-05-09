@@ -1,5 +1,17 @@
 
 
+void initRandom(int seed = time(NULL)) {
+    srand(seed);
+}
+
+float random01() {
+    return ((float) rand() / (RAND_MAX));
+}
+
+int randomInt(int moduloValue) {
+    return rand() % moduloValue;
+}
+
 void printNetwork(vector<vector<Edge>> graph) {
     for (int a=0; a<100; a++) {
         vector<Edge> neighbours = graph[a];
