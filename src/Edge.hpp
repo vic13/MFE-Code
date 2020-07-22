@@ -16,7 +16,7 @@ public:
         return this->destinationVertex;
     }
 
-private:
+protected:
     int destinationVertex;
     float weight;
 };
