@@ -18,22 +18,41 @@ using std::make_pair;
 #include "ErdosRenye.hpp"
 #include "View.hpp"
 #include "CH.hpp"
+#include "DijkstraCHQuery.hpp"
 
 
 void performRandomDijkstra(vector<vector<Edge>> adjacencyList, vector<pair<float, float>> verticesCoordinates) {
     int s = randomInt(adjacencyList.size());
     int t = randomInt(adjacencyList.size());
     cout << "Search from vertex " << s << " to vertex " << t << endl;
+
+    cout << "Ref : " << endl;
+    cout << adjacencyList.size() << endl;
+    cout << adjacencyList[10].size() << endl;
     Dijkstra dijkstra(adjacencyList, s, t);
     if (dijkstra.compute()) {
         cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
-        cout << "Path : ";
-        vector<int> path = dijkstra.getPath();
-        print_vector(path);
-        View::display(adjacencyList, path, verticesCoordinates, s, t);
+        // cout << "Path : ";
+        // vector<int> path = dijkstra.getPath();
+        // print_vector(path);
+        // View::display(adjacencyList, path, verticesCoordinates, s, t);
     } else {
         cout << "No solution found" << endl;
-        View::display(adjacencyList, vector<int>(), verticesCoordinates, s, t);
+        // View::display(adjacencyList, vector<int>(), verticesCoordinates, s, t);
+    }
+
+    CH ch(adjacencyList);
+    vector<vector<CHQueryEdge>> adjacencyList2 = ch.preprocess();
+    DijkstraCHQuery dijkstra2(adjacencyList2, s, t);
+    if (dijkstra2.compute()) {
+        cout << "Solution found, cost : " << dijkstra2.getPathWeight() << endl;
+        //cout << "Path : ";
+        //vector<int> path = dijkstra2.getPath();
+        //print_vector(path);
+        //View::display(adjacencyList2, path, verticesCoordinates, s, t);
+    } else {
+        cout << "No solution found" << endl;
+        //View::display(adjacencyList2, vector<int>(), verticesCoordinates, s, t);
     }
 }
 
@@ -47,15 +66,14 @@ int main() {
     OSMGraph osmGraph;
     vector<vector<Edge>> adjacencyList = osmGraph.build();
 
-    CH ch(adjacencyList);
-    ch.constructCH();
+    
     // osmGraph.printImportStats();
     // BarabasiAlbertGraph barabasiAlbertGraph(10000, 4);
     // vector<vector<Edge>> adjacencyList = barabasiAlbertGraph.build();
     // ErdosRenye erdosRenyeGraph(10000, 9000);
     // vector<vector<Edge>> adjacencyList = erdosRenyeGraph.build();
 
-    // performRandomDijkstra(adjacencyList, osmGraph.getVerticesCoordinates());
+    performRandomDijkstra(adjacencyList, osmGraph.getVerticesCoordinates());
     
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();

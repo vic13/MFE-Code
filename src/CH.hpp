@@ -1,23 +1,7 @@
 
 
 
-class CHEdge : public Edge {
-public:
-    CHEdge(int sourceVertex, int destinationVertex, float weight): Edge(destinationVertex, weight) {
-        this->sourceVertex = sourceVertex;
-    }
 
-    int getSourceVertex() {
-        return this->sourceVertex;
-    }
-
-    void setWeight(float weight) {
-        this->weight = weight;
-    }
-
-private:
-    int sourceVertex;
-};
 
 class CHGraph {
 public:
@@ -107,6 +91,16 @@ public:
         this->inputGraph = inputGraph;
     }
 
+    vector<vector<CHQueryEdge>> preprocess() {
+        CHGraph g_H = constructCH();
+        vector<vector<CHQueryEdge>> g_star = convertToSearchGraph(g_H);
+        return g_star;
+    }
+
+private:
+    CHGraph graph;
+    vector<vector<Edge>> inputGraph;
+
     CHGraph constructCH() {
         CHGraph g_H = graph; // CH graph
         CHGraph g_R = graph; // Remaining graph
@@ -138,7 +132,24 @@ public:
         return g_H;
     }
 
-private:
-    CHGraph graph;
-    vector<vector<Edge>> inputGraph;
+    vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph g_H) {
+        int n = g_H.getIncidenceList().size();
+        vector<vector<CHQueryEdge>> g_star = vector<vector<CHQueryEdge>>(n, vector<CHQueryEdge>());
+        
+        for (int u = 0; u<n; u++) {
+            vector<CHEdge*> edgePtrs = g_H.getIncidenceList()[u].first;
+            for (auto& edgePtr : edgePtrs) {
+                int v = edgePtr->getDestinationVertex();
+                bool direction = (u < v);
+                if (direction) {
+                    g_star[u].push_back(CHQueryEdge(v, edgePtr->getWeight(), direction));
+                } else {
+                    g_star[v].push_back(CHQueryEdge(u, edgePtr->getWeight(), direction));
+                }
+                
+            }
+        }
+
+        return g_star;
+    }
 };
