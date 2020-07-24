@@ -97,7 +97,6 @@ public:
         if (weight_up != -1 && weight_down != -1) { // vertex reached in both direction
             if (weight_up + weight_down < this->d || this->d == -1) {
                 this->d = weight_up + weight_down;
-                cout << "d :  " << this->d << endl;
             }
         }
     }

@@ -86,7 +86,11 @@ public:
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
+        auto t1 = std::chrono::high_resolution_clock::now();
         CHGraph g_H = constructCH();
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+        std::cout << "CH duration : " << duration/1000000.0 << " seconds" << endl;
         vector<vector<CHQueryEdge>> g_star = convertToSearchGraph(g_H);
         return g_star;
     }
@@ -115,18 +119,21 @@ private:
                         referenceWeight_list.push_back(ingoingEdge.getWeight() + outgoingEdge.getWeight());
                     }
                 }
-                // Compare path weight going through removed vertex x_i with shortest path weight without x_i
-                vector<float> shortest_list = dijkstraCH(g_R.getIncidenceList(), u, v_list);
-                for (int i = 0; i<shortest_list.size(); i++) {
-                    float shortest = shortest_list[i];
-                    float referenceWeight = referenceWeight_list[i];
-                    int v = v_list[i];
-                    if ((shortest != -1) && (shortest <= referenceWeight)) {
-                        // Found witness path : should not add shortcut
-                    } else {
-                        // Should add shortcut
-                        g_R.updateEdge(u, v, referenceWeight);
-                        g_H.updateEdge(u, v, referenceWeight);
+                if (v_list.size() > 0) {
+                    // Compare path weight going through removed vertex x_i with shortest path weight without x_i
+                    float stoppingDistance = *max_element(referenceWeight_list.begin(), referenceWeight_list.end());
+                    vector<float> shortest_list = dijkstraCH(g_R.getIncidenceList(), u, v_list, stoppingDistance);
+                    for (int i = 0; i<shortest_list.size(); i++) {
+                        float shortest = shortest_list[i];
+                        float referenceWeight = referenceWeight_list[i];
+                        int v = v_list[i];
+                        if ((shortest != -1) && (shortest <= referenceWeight)) {
+                            // Found witness path : should not add shortcut
+                        } else {
+                            // Should add shortcut
+                            g_R.updateEdge(u, v, referenceWeight);
+                            g_H.updateEdge(u, v, referenceWeight);
+                        }
                     }
                 }
             }
@@ -135,7 +142,7 @@ private:
         return g_H;
     }
 
-    vector<float> dijkstraCH( vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, vector<int> t_list) {
+    vector<float> dijkstraCH(vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, vector<int> t_list, float stoppingDistance) {
         // Init
         set<pair<float, int>> vertexSet;
         vertexSet.insert(make_pair(0.0f, s));
@@ -158,13 +165,8 @@ private:
                     visitedCount++;
                 }
             }
-            if (visitedCount == t_list.size()) { // TODO stopping criteria
-                // finished
-                for (int i = 0; i < t_list.size(); i++) {
-                    int t = t_list[i];
-                    results[i] = vertexWeights[t];
-                }
-                return results;
+            if ((visitedCount == t_list.size()) || (visitedVertexWeight > stoppingDistance)) { // if all t's visited or if no more possible shortest path
+                break;
             } else {
                 vector<CHEdge*> edges = graph[visitedVertexNb].first;
                 for (auto& e : edges) {
@@ -185,7 +187,7 @@ private:
                 }
             }
         }
-        // No solution for every t
+        // Return result
         for (int i = 0; i < t_list.size(); i++) {
             int t = t_list[i];
             results[i] = vertexWeights[t];
