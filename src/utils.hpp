@@ -34,3 +34,29 @@ void print_vector(std::vector<int> const &input) {
 	std::copy(input.begin(), input.end(), std::ostream_iterator<int>(cout, " "));
     cout << "]" << endl;
 }
+
+void print_graph_properties(vector<vector<CHQueryEdge>> graph) {
+    int nbVertices = graph.size();
+    int nbEdges = 0;
+
+    for (auto& vertexEdges : graph) {
+        nbEdges += vertexEdges.size();
+    }
+
+    cout << "\nGraph properties : " << endl;
+    cout << "#Vertices : " << nbVertices << endl;
+    cout << "#Edges : " << nbEdges << endl;
+}
+
+void print_graph_properties(vector<vector<Edge>> graph) {
+    int nbVertices = graph.size();
+    int nbEdges = 0;
+
+    for (auto& vertexEdges : graph) {
+        nbEdges += vertexEdges.size();
+    }
+
+    cout << "\nGraph properties : " << endl;
+    cout << "#Vertices : " << nbVertices << endl;
+    cout << "#Edges : " << nbEdges << endl;
+}

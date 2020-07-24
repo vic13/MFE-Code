@@ -86,11 +86,8 @@ public:
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
-        cout << "a" << endl;
         CHGraph g_H = constructCH();
-        cout << "b" << endl;
         vector<vector<CHQueryEdge>> g_star = convertToSearchGraph(g_H);
-        cout << "c" << endl;
         return g_star;
     }
 
@@ -103,7 +100,7 @@ private:
         CHGraph g_R = graph; // Remaining graph
 
         for (int priorityVertex = 0; priorityVertex < inputGraph.size(); priorityVertex++) {
-            cout << priorityVertex << endl;
+            //cout << priorityVertex << endl;
             vector<CHEdge> ingoingEdges = g_R.getIngoingEdges(priorityVertex);
             vector<CHEdge> outgoingEdges = g_R.getOutgoingEdges(priorityVertex);
             g_R.removeVertex(priorityVertex);
