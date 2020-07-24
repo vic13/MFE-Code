@@ -1,8 +1,4 @@
 
-
-
-
-
 class CHGraph {
 public:
     CHGraph(vector<vector<Edge>> inputGraph) {
@@ -35,7 +31,7 @@ public:
         return result;
     }
 
-    vector<pair<vector<CHEdge*>, vector<CHEdge*>>> getIncidenceList() {
+    vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& getIncidenceList() {
         return this->incidenceList;
     }
 
@@ -82,8 +78,6 @@ private:
     vector<pair<vector<CHEdge*>, vector<CHEdge*>>> incidenceList;
 };
 
-#include "DijkstraCH.hpp"
-
 class CH {
 /* This class implements Contracion Hierarchies functions, including preprocessing and querying */
 public:
@@ -92,8 +86,11 @@ public:
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
+        cout << "a" << endl;
         CHGraph g_H = constructCH();
+        cout << "b" << endl;
         vector<vector<CHQueryEdge>> g_star = convertToSearchGraph(g_H);
+        cout << "c" << endl;
         return g_star;
     }
 
@@ -106,6 +103,7 @@ private:
         CHGraph g_R = graph; // Remaining graph
 
         for (int priorityVertex = 0; priorityVertex < inputGraph.size(); priorityVertex++) {
+            cout << priorityVertex << endl;
             vector<CHEdge> ingoingEdges = g_R.getIngoingEdges(priorityVertex);
             vector<CHEdge> outgoingEdges = g_R.getOutgoingEdges(priorityVertex);
             g_R.removeVertex(priorityVertex);
@@ -116,8 +114,8 @@ private:
                     if (u != v) {
                         // Compare path weight going through removed vertex x_i with shortest path weight without x_i
                         float referenceWeight = ingoingEdge.getWeight() + outgoingEdge.getWeight();
-                        DijkstraCH dijkstra(g_R.getIncidenceList(), u, v);
-                        if (dijkstra.compute() && (dijkstra.getPathWeight() <= referenceWeight)) {
+                        float shortest = dijkstraCH(g_R.getIncidenceList(), u, v);
+                        if ((shortest != -1) && (shortest <= referenceWeight)) {
                             // Found witness path : should not add shortcut
                         } else {
                             // Should add shortcut
@@ -130,6 +128,47 @@ private:
         }
 
         return g_H;
+    }
+
+    float dijkstraCH( vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, int t) {
+        // Init
+        set<pair<float, int>> vertexSet;
+        vertexSet.insert(make_pair(0.0f, s));
+        vector<float> vertexWeights(graph.size(), -1); // -1 corresponds to infinite weight
+        vertexWeights[s] = 0;
+
+        while (!vertexSet.empty()) {
+            // pop first vertex in the set
+            pair<float, int> visitedVertex = *(vertexSet.begin());
+            vertexSet.erase(vertexSet.begin());
+            float visitedVertexWeight = visitedVertex.first;
+            int visitedVertexNb = visitedVertex.second;
+
+            if (visitedVertexNb == t) {
+                // finished
+                return vertexWeights[t];
+            } else {
+                vector<CHEdge*> edges = graph[visitedVertexNb].first;
+                for (auto& e : edges) {
+                    float neighbourCurrentWeight = vertexWeights[e->getDestinationVertex()];
+                    float neighbourNewWeight = visitedVertexWeight + e->getWeight();
+                    if ((neighbourCurrentWeight == -1.0f) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
+                        if (neighbourCurrentWeight != -1.0f) {                                                              
+                            // if current weight not infinite : vertex already in queue : DELETE before inserting the updated vertex
+                            pair<float, int> currentNeighbour = make_pair(neighbourCurrentWeight, e->getDestinationVertex());
+                            vertexSet.erase(vertexSet.find(currentNeighbour));
+                        }
+                        // INSERT in queue
+                        pair<float, int> newNeighbour = make_pair(neighbourNewWeight, e->getDestinationVertex());
+                        vertexSet.insert(newNeighbour);
+                        // UPDATE weight + parent
+                        vertexWeights[e->getDestinationVertex()] = neighbourNewWeight;
+                    }
+                }
+            }
+        }
+        // No solution
+        return vertexWeights[t];
     }
 
     vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph g_H) {

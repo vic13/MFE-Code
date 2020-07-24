@@ -58,8 +58,8 @@ public:
                 }
             }
         }
-        // No solution
-        return false;
+        // Stopping criterion not met
+        return (d != -1);
     }
 
     bool checkStoppingCriteria(float visitedWeight) {

@@ -26,9 +26,6 @@ void performRandomDijkstra(vector<vector<Edge>> adjacencyList, vector<pair<float
     int t = randomInt(adjacencyList.size());
     cout << "Search from vertex " << s << " to vertex " << t << endl;
 
-    cout << "Ref : " << endl;
-    cout << adjacencyList.size() << endl;
-    cout << adjacencyList[10].size() << endl;
     Dijkstra dijkstra(adjacencyList, s, t);
     if (dijkstra.compute()) {
         cout << "Solution found, cost : " << dijkstra.getPathWeight() << endl;
@@ -63,11 +60,11 @@ int main() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    OSMGraph osmGraph;
+    OSMGraph osmGraph("./OSM_graph_data/graph.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
 
     
-    // osmGraph.printImportStats();
+    osmGraph.printImportStats();
     // BarabasiAlbertGraph barabasiAlbertGraph(10000, 4);
     // vector<vector<Edge>> adjacencyList = barabasiAlbertGraph.build();
     // ErdosRenye erdosRenyeGraph(10000, 9000);

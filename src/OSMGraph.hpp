@@ -43,16 +43,16 @@ public:
                 // Compute max speed
                 float maxSpeed_kmh = 0.0f;
                 if (feature["properties"]["tags"]["maxspeed"].is_null()) {
-                    // No maxspeed available : estimate with highway type
-                    nbEdgesWithoutMaxSpeed++;
                     maxSpeed_kmh = estimateMaxSpeed(feature["properties"]["tags"]["highway"]);
                 } else {
                     string maxspeed_str = feature["properties"]["tags"]["maxspeed"];
                     try {
                         maxSpeed_kmh = std::stof(maxspeed_str);
                     } 
-                    catch (std::invalid_argument const &e) {cout << "maxspeed cast error" << endl; exit(0);}
-                    catch (std::out_of_range const &e) {cout << "maxspeed cast error" << endl; exit(0);}
+                    catch (std::invalid_argument const &e) {
+                        maxSpeed_kmh = estimateMaxSpeed(feature["properties"]["tags"]["highway"]);
+                    }
+                    catch (std::out_of_range const &e) {cout << "maxspeed cast error (out of range) : " << maxspeed_str << endl; exit(0);}
                 }
                 
                 // Compute edge length
@@ -123,6 +123,8 @@ private:
     }
 
     float estimateMaxSpeed(string highwayType) {
+        // No maxspeed available : estimate with highway type
+        nbEdgesWithoutMaxSpeed++;
         if (highwayType == "primary" || highwayType == "primary_link" || highwayType == "secondary" || highwayType == "secondary_link" 
                             || highwayType == "tertiary" || highwayType == "tertiary_link" || highwayType == "residential") {
             return 50.0f;
