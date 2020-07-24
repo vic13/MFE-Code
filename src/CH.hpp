@@ -108,20 +108,28 @@ private:
             vector<CHEdge> outgoingEdges = g_R.getOutgoingEdges(priorityVertex);
             g_R.removeVertex(priorityVertex);
             for (CHEdge ingoingEdge : ingoingEdges) {
+                int u = ingoingEdge.getSourceVertex();
+                vector<int> v_list;
+                vector<float> referenceWeight_list;
                 for (CHEdge outgoingEdge : outgoingEdges) {
-                    int u = ingoingEdge.getSourceVertex();
                     int v = outgoingEdge.getDestinationVertex();
                     if (u != v) {
-                        // Compare path weight going through removed vertex x_i with shortest path weight without x_i
-                        float referenceWeight = ingoingEdge.getWeight() + outgoingEdge.getWeight();
-                        float shortest = dijkstraCH(g_R.getIncidenceList(), u, v);
-                        if ((shortest != -1) && (shortest <= referenceWeight)) {
-                            // Found witness path : should not add shortcut
-                        } else {
-                            // Should add shortcut
-                            g_R.updateEdge(u, v, referenceWeight);
-                            g_H.updateEdge(u, v, referenceWeight);
-                        }
+                        v_list.push_back(v);
+                        referenceWeight_list.push_back(ingoingEdge.getWeight() + outgoingEdge.getWeight());
+                    }
+                }
+                // Compare path weight going through removed vertex x_i with shortest path weight without x_i
+                vector<float> shortest_list = dijkstraCH(g_R.getIncidenceList(), u, v_list);
+                for (int i = 0; i<shortest_list.size(); i++) {
+                    float shortest = shortest_list[i];
+                    float referenceWeight = referenceWeight_list[i];
+                    int v = v_list[i];
+                    if ((shortest != -1) && (shortest <= referenceWeight)) {
+                        // Found witness path : should not add shortcut
+                    } else {
+                        // Should add shortcut
+                        g_R.updateEdge(u, v, referenceWeight);
+                        g_H.updateEdge(u, v, referenceWeight);
                     }
                 }
             }
@@ -130,12 +138,15 @@ private:
         return g_H;
     }
 
-    float dijkstraCH( vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, int t) {
+    vector<float> dijkstraCH( vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, vector<int> t_list) {
         // Init
         set<pair<float, int>> vertexSet;
         vertexSet.insert(make_pair(0.0f, s));
         vector<float> vertexWeights(graph.size(), -1); // -1 corresponds to infinite weight
         vertexWeights[s] = 0;
+
+        vector<float> results = vector<float>(t_list.size(), -1);
+        int visitedCount = 0;
 
         while (!vertexSet.empty()) {
             // pop first vertex in the set
@@ -144,9 +155,19 @@ private:
             float visitedVertexWeight = visitedVertex.first;
             int visitedVertexNb = visitedVertex.second;
 
-            if (visitedVertexNb == t) {
+            // update visited t count
+            for (auto& t : t_list) {
+                if (visitedVertexNb == t) {
+                    visitedCount++;
+                }
+            }
+            if (visitedCount == t_list.size()) { // TODO stopping criteria
                 // finished
-                return vertexWeights[t];
+                for (int i = 0; i < t_list.size(); i++) {
+                    int t = t_list[i];
+                    results[i] = vertexWeights[t];
+                }
+                return results;
             } else {
                 vector<CHEdge*> edges = graph[visitedVertexNb].first;
                 for (auto& e : edges) {
@@ -161,14 +182,18 @@ private:
                         // INSERT in queue
                         pair<float, int> newNeighbour = make_pair(neighbourNewWeight, e->getDestinationVertex());
                         vertexSet.insert(newNeighbour);
-                        // UPDATE weight + parent
+                        // UPDATE weight
                         vertexWeights[e->getDestinationVertex()] = neighbourNewWeight;
                     }
                 }
             }
         }
-        // No solution
-        return vertexWeights[t];
+        // No solution for every t
+        for (int i = 0; i < t_list.size(); i++) {
+            int t = t_list[i];
+            results[i] = vertexWeights[t];
+        }
+        return results;
     }
 
     vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph g_H) {

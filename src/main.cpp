@@ -22,8 +22,8 @@ using std::make_pair;
 
 
 void performRandomDijkstra(vector<vector<Edge>> adjacencyList, vector<pair<float, float>> verticesCoordinates) {
-    int s = randomInt(adjacencyList.size());
-    int t = randomInt(adjacencyList.size());
+    int s = 400;//randomInt(adjacencyList.size());
+    int t = 1022;//randomInt(adjacencyList.size());
     cout << "Search from vertex " << s << " to vertex " << t << endl;
 
     Dijkstra dijkstra(adjacencyList, s, t);
@@ -60,7 +60,7 @@ int main() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    OSMGraph osmGraph("./OSM_graph_data/graph.json");
+    OSMGraph osmGraph("./OSM_graph_data/graphBxlCenter.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
 
     
