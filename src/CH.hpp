@@ -1,9 +1,10 @@
+#include <unordered_set>
+using std::unordered_set;
 
 class CHGraph {
 public:
     CHGraph(vector<vector<Edge>> inputGraph) {
         this->incidenceList = vector<pair<vector<CHEdge*>, vector<CHEdge*>>>(inputGraph.size(), make_pair(vector<CHEdge*>(), vector<CHEdge*>()));
-        //this->incidenceList = vector<vector<bool>>(n, vector<bool>(n, false));
         for (int sourceVertex = 0; sourceVertex<inputGraph.size(); sourceVertex++) {
             vector<Edge> edges = inputGraph[sourceVertex];
             for (auto& edge : edges) {
@@ -29,6 +30,17 @@ public:
             result.push_back(*edgePtr);
         }
         return result;
+    }
+
+    unordered_set<int> getNeighbours(int vertex) {
+        unordered_set<int> neighbours;
+        for (auto& edgePtr : this->incidenceList[vertex].first) {
+            neighbours.insert(edgePtr->getDestinationVertex());
+        }
+        for (auto& edgePtr : this->incidenceList[vertex].second) {
+            neighbours.insert(edgePtr->getSourceVertex());
+        }
+        return neighbours;
     }
 
     vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& getIncidenceList() {
@@ -83,6 +95,7 @@ class CH {
 public:
     CH(vector<vector<Edge>> inputGraph) : graph(inputGraph) {
         this->inputGraph = inputGraph;
+        this->buildVertexOrdering();
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
@@ -98,39 +111,90 @@ public:
 private:
     CHGraph graph;
     vector<vector<Edge>> inputGraph;
+    set<pair<float, int>> vertexOrdering;
+    vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering
+    CHGraph g_H = graph; // CH graph
+    CHGraph g_R = graph; // Remaining graph
+
+    void buildVertexOrdering() {
+        for (int vertexNb = 0; vertexNb < inputGraph.size(); vertexNb++) {
+            float priorityScore = calcPriorityScore(vertexNb);
+            vertexOrderingScores.push_back(priorityScore);
+            vertexOrdering.insert(make_pair(priorityScore, vertexNb));
+        }
+    }
+
+    bool updateOrdering(int vertexNb) {   // Update ordering for the specified vertex, and returns true if it is on top of the queue
+        pair<float, int> current = make_pair(vertexOrderingScores[vertexNb], vertexNb);
+        vertexOrdering.erase(vertexOrdering.find(current));
+        float priorityScore = calcPriorityScore(vertexNb);
+        vertexOrderingScores[vertexNb] = priorityScore;
+        return (vertexOrdering.insert(make_pair(priorityScore, vertexNb)).first == vertexOrdering.begin());
+    }
+
+    float calcPriorityScore(int vertexNb) {
+        int addedShortcuts = contractVertex(vertexNb, true);
+        int incidentEdges = g_R.getIngoingEdges(vertexNb).size() + g_R.getOutgoingEdges(vertexNb).size();
+        int edgeDifference = addedShortcuts - incidentEdges;
+        return edgeDifference;
+        //return incidentEdges;
+    }
 
     CHGraph constructCH() {
-        CHGraph g_H = graph; // CH graph
-        CHGraph g_R = graph; // Remaining graph
-
-        for (int priorityVertex = 0; priorityVertex < inputGraph.size(); priorityVertex++) {
-            //cout << priorityVertex << endl;
-            vector<CHEdge> ingoingEdges = g_R.getIngoingEdges(priorityVertex);
-            vector<CHEdge> outgoingEdges = g_R.getOutgoingEdges(priorityVertex);
+        int i = 0;
+        while (!vertexOrdering.empty()) {
+            int priorityVertex = (*(vertexOrdering.begin())).second;
+            // Lazy update : update ordering, and sample another vertex if it is no longer on top of the queue
+            if (!updateOrdering(priorityVertex)) {
+                cout << "continue" << endl;
+                continue;
+            }
+            cout << i << "   " << (*(vertexOrdering.begin())).first << endl;
+            i++;
+            vertexOrdering.erase(vertexOrdering.begin());
+            unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
+            contractVertex(priorityVertex, false);
             g_R.removeVertex(priorityVertex);
-            for (CHEdge ingoingEdge : ingoingEdges) {
-                int u = ingoingEdge.getSourceVertex();
-                vector<int> v_list;
-                vector<float> referenceWeight_list;
-                for (CHEdge outgoingEdge : outgoingEdges) {
-                    int v = outgoingEdge.getDestinationVertex();
-                    if (u != v) {
-                        v_list.push_back(v);
-                        referenceWeight_list.push_back(ingoingEdge.getWeight() + outgoingEdge.getWeight());
-                    }
+            // Neighbours update
+            // for (auto& neighbour : neighbours) {   
+            //     updateOrdering(neighbour);
+            // }
+        }
+
+        return g_H;
+    }
+
+    int contractVertex(int vertexNb, bool simulation) {
+        int addedShortcuts = 0;
+
+        vector<CHEdge> ingoingEdges = g_R.getIngoingEdges(vertexNb);
+        vector<CHEdge> outgoingEdges = g_R.getOutgoingEdges(vertexNb);
+        
+        for (CHEdge ingoingEdge : ingoingEdges) {
+            int u = ingoingEdge.getSourceVertex();
+            vector<int> v_list;
+            vector<float> referenceWeight_list;
+            for (CHEdge outgoingEdge : outgoingEdges) {
+                int v = outgoingEdge.getDestinationVertex();
+                if (u != v) {
+                    v_list.push_back(v);
+                    referenceWeight_list.push_back(ingoingEdge.getWeight() + outgoingEdge.getWeight());
                 }
-                if (v_list.size() > 0) {
-                    // Compare path weight going through removed vertex x_i with shortest path weight without x_i
-                    float stoppingDistance = *max_element(referenceWeight_list.begin(), referenceWeight_list.end());
-                    vector<float> shortest_list = dijkstraCH(g_R.getIncidenceList(), u, v_list, stoppingDistance);
-                    for (int i = 0; i<shortest_list.size(); i++) {
-                        float shortest = shortest_list[i];
-                        float referenceWeight = referenceWeight_list[i];
-                        int v = v_list[i];
-                        if ((shortest != -1) && (shortest <= referenceWeight)) {
-                            // Found witness path : should not add shortcut
-                        } else {
-                            // Should add shortcut
+            }
+            if (v_list.size() > 0) {
+                // Compare path weight going through removed vertex x_i with shortest path weight without x_i
+                float stoppingDistance = *max_element(referenceWeight_list.begin(), referenceWeight_list.end());
+                vector<float> shortest_list = dijkstraCH(g_R.getIncidenceList(), u, v_list, stoppingDistance, vertexNb);
+                for (int i = 0; i<shortest_list.size(); i++) {
+                    float shortest = shortest_list[i];
+                    float referenceWeight = referenceWeight_list[i];
+                    int v = v_list[i];
+                    if ((shortest != -1) && (shortest <= referenceWeight)) {
+                        // Found witness path : should not add shortcut
+                    } else {
+                        // Should add shortcut
+                        addedShortcuts++;
+                        if (!simulation) {
                             g_R.updateEdge(u, v, referenceWeight);
                             g_H.updateEdge(u, v, referenceWeight);
                         }
@@ -138,11 +202,10 @@ private:
                 }
             }
         }
-
-        return g_H;
+        return addedShortcuts;
     }
 
-    vector<float> dijkstraCH(vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, vector<int> t_list, float stoppingDistance) {
+    vector<float> dijkstraCH(vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, vector<int> t_list, float stoppingDistance, int ignoreVertex) {
         // Init
         set<pair<float, int>> vertexSet;
         vertexSet.insert(make_pair(0.0f, s));
@@ -170,6 +233,7 @@ private:
             } else {
                 vector<CHEdge*> edges = graph[visitedVertexNb].first;
                 for (auto& e : edges) {
+                    if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
                     float neighbourCurrentWeight = vertexWeights[e->getDestinationVertex()];
                     float neighbourNewWeight = visitedVertexWeight + e->getWeight();
                     if ((neighbourCurrentWeight == -1.0f) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
