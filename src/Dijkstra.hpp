@@ -16,6 +16,7 @@ public:
 
     bool compute() {
         while (!vertexSet.empty()) {
+            searchSpace++;
             // pop first vertex in the set
             pair<float, int> visitedVertex = *(vertexSet.begin());
             vertexSet.erase(vertexSet.begin());
@@ -54,6 +55,10 @@ public:
         return this->vertexWeights[this->t];
     }
 
+    int getSearchSpace() {
+        return this->searchSpace;
+    }
+
     vector<int> getPath() {
         // retrace path from end to start
         vector<int> path;
@@ -85,6 +90,7 @@ private:
     set<pair<float, int>> vertexSet;
     vector<float> vertexWeights;
     vector<int> vertexParents;
+    int searchSpace = 0;
 
     set<pair<float, int>> initVertexSet(int s) {
         set<pair<float, int>> vertexSet;

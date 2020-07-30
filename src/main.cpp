@@ -31,6 +31,8 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, int nbRuns = 100) {
 
     auto avgDijkstra = 0.0;
     auto avgDijkstraCH = 0.0;
+    int avgSearchSpaceDijkstra = 0;
+    int avgSearchSpaceDijkstraCH = 0;
 
     int wrong = 0;
 
@@ -49,6 +51,8 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, int nbRuns = 100) {
 
         avgDijkstra += std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
         avgDijkstraCH += std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
+        avgSearchSpaceDijkstra += dijkstra.getSearchSpace();
+        avgSearchSpaceDijkstraCH += dijkstraCH.getSearchSpace();
 
         if (c1 != c2) {
             cout << "Wrong for s : " << s << " and t : " << t << " (c1 : " << c1 << " and c2 : " << c2 << endl;
@@ -63,8 +67,11 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, int nbRuns = 100) {
             }
         }
     }
-    std::cout << "Average time dijkstra : " << avgDijkstra/(1000000.0*nbRuns) << " seconds" << endl;
-    std::cout << "Average time dijkstraCH : " << avgDijkstraCH/(1000000.0*nbRuns) << " seconds" << endl;
+    std::cout << "Average time dijkstra : " << avgDijkstra/(1000.0*nbRuns) << " ms" << endl;
+    std::cout << "Average time dijkstraCH : " << avgDijkstraCH/(1000.0*nbRuns) << " ms" << endl;
+    std::cout << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
+    std::cout << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << " settled nodes" << endl;
+    std::cout << "Average search space dijkstraCH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << " settled nodes" << endl;
     return correct;
 }
 

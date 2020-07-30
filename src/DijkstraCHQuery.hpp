@@ -22,6 +22,7 @@ public:
 
     bool compute() {
         while (!vertexSet_up.empty() || !vertexSet_down.empty()) {
+            searchSpace++;
             // Set current direction and associated vertex set, weights, and parents 
             setDirection();
 
@@ -40,21 +41,21 @@ public:
             vector<CHQueryEdge> edges = graph[visitedVertexNb];
 
             // Stall-on-demand
-            // bool stall = false;
-            // int u = visitedVertexNb;
-            // float du = visitedVertexWeight;
-            // for (auto& e : edges) {
-            //     if (!e.isSameDirection(direction)) {
-            //         int v = e.getDestinationVertex();
-            //         float dv = (*vertexWeights)[v];
-            //         if ((dv != -1) && (dv + e.getWeight() < du)) {
-            //             //cout << "dv : " << dv << " w : " << e.getWeight() << " du : " << du << endl;
-            //             stall = true;
-            //             break;
-            //         }
-            //     }
-            // }
-            // if (stall) continue;
+            bool stall = false;
+            int u = visitedVertexNb;
+            float du = visitedVertexWeight;
+            for (auto& e : edges) {
+                if (!e.isSameDirection(direction)) {
+                    int v = e.getDestinationVertex();
+                    float dv = (*vertexWeights)[v];
+                    if ((dv != -1) && (dv + e.getWeight() < du)) {
+                        //cout << "dv : " << dv << " w : " << e.getWeight() << " du : " << du << endl;
+                        stall = true;
+                        break;
+                    }
+                }
+            }
+            if (stall) continue;
             // End stall-on-demand
 
             for (auto& e : edges) {
@@ -83,6 +84,10 @@ public:
 
     float getPathWeight() {
         return this->d;
+    }
+
+    int getSearchSpace() {
+        return this->searchSpace;
     }
 
     vector<int> getPath() {
@@ -126,6 +131,7 @@ private:
     float weight_upward_search = 0;
     float weight_downward_search = 0;
     float d = -1; // best path weight so far (-1 : infinity)
+    int searchSpace = 0;
 
     set<pair<float, int>> initVertexSet(int s) {
         set<pair<float, int>> vertexSet;
