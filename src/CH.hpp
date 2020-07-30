@@ -95,6 +95,7 @@ class CH {
 public:
     CH(vector<vector<Edge>> inputGraph) : graph(inputGraph) {
         this->inputGraph = inputGraph;
+        this->deletedNeighbours = vector<int>(inputGraph.size(), 0);
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
@@ -114,6 +115,7 @@ private:
     set<pair<float, int>> vertexOrdering;
     vector<int> vertexOrderMap;
     vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering
+    vector<int> deletedNeighbours;
     CHGraph g_H = graph; // CH graph
     CHGraph g_R = graph; // Remaining graph
 
@@ -137,9 +139,9 @@ private:
     float calcPriorityScore(int vertexNb) {
         int addedShortcuts = contractVertex(vertexNb, true);
         int incidentEdges = g_R.getIngoingEdges(vertexNb).size() + g_R.getOutgoingEdges(vertexNb).size();
-        int edgeDifference = addedShortcuts - incidentEdges;
-        return edgeDifference;
-        //return incidentEdges;
+        int e = addedShortcuts - incidentEdges; // Edge difference
+        int d = deletedNeighbours[vertexNb];// Deleted neighbours
+        return 190*e + 120*d;
     }
 
     CHGraph constructCH() {
@@ -153,6 +155,7 @@ private:
             }
             vertexOrdering.erase(vertexOrdering.begin());
             contractVertex(priorityVertex, false);
+            updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
             order++;
@@ -164,6 +167,12 @@ private:
         }
 
         return g_H;
+    }
+
+    void updateDeletedNeighbours(int deletedVertex) {
+        for (auto& neighbour : g_R.getNeighbours(deletedVertex)) {
+            this->deletedNeighbours[neighbour]++;
+        }
     }
 
     int contractVertex(int vertexNb, bool simulation) {
