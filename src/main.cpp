@@ -20,7 +20,7 @@ using std::make_pair;
 #include "CH.hpp"
 #include "DijkstraCHQuery.hpp"
 
-bool testCorrectness(vector<vector<Edge>> adjacencyList, int nbRuns = 1000) {
+bool testCorrectness(vector<vector<Edge>> adjacencyList, int nbRuns = 100) {
     bool correct = true;
     float eps = 0.001;
 
@@ -77,7 +77,8 @@ int main() {
 
     OSMGraph osmGraph("./OSM_graph_data/graphBxlCenter.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
-    osmGraph.printImportStats();
+    //osmGraph.printImportStats();
+    
     // BarabasiAlbertGraph barabasiAlbertGraph(2000, 2);
     // vector<vector<Edge>> adjacencyList = barabasiAlbertGraph.build();
     // ErdosRenye erdosRenyeGraph(10000, 9000);

@@ -38,6 +38,25 @@ public:
             }
 
             vector<CHQueryEdge> edges = graph[visitedVertexNb];
+
+            // Stall-on-demand
+            // bool stall = false;
+            // int u = visitedVertexNb;
+            // float du = visitedVertexWeight;
+            // for (auto& e : edges) {
+            //     if (!e.isSameDirection(direction)) {
+            //         int v = e.getDestinationVertex();
+            //         float dv = (*vertexWeights)[v];
+            //         if ((dv != -1) && (dv + e.getWeight() < du)) {
+            //             //cout << "dv : " << dv << " w : " << e.getWeight() << " du : " << du << endl;
+            //             stall = true;
+            //             break;
+            //         }
+            //     }
+            // }
+            // if (stall) continue;
+            // End stall-on-demand
+
             for (auto& e : edges) {
                 if (e.isSameDirection(direction)) {
                     float neighbourCurrentWeight = (*vertexWeights)[e.getDestinationVertex()];
@@ -60,45 +79,6 @@ public:
         }
         // Stopping criterion not met
         return (d != -1);
-    }
-
-    bool checkStoppingCriteria(float visitedWeight) {
-        // Update weight
-        if (this->direction) {
-            weight_upward_search = visitedWeight;
-        } else {
-            weight_downward_search = visitedWeight;
-        }
-
-        this->minQueueWeight = std::min(weight_downward_search, weight_upward_search);
-        return (this->d != -1 && this->d <= this->minQueueWeight); // No possible better path can be found
-    }
-
-    void setDirection() {
-        if (this->direction && !this->vertexSet_down.empty()) {
-            // Switch down
-            this->direction = false;
-            this->vertexSet = &this->vertexSet_down;
-            this->vertexWeights = &this->vertexWeights_down;
-            this->vertexParents = &this->vertexParents_down;
-        } else if (!this->direction && !this->vertexSet_up.empty()) {
-            // Switch up
-            this->direction = true;
-            this->vertexSet = &this->vertexSet_up;
-            this->vertexWeights = &this->vertexWeights_up;
-            this->vertexParents = &this->vertexParents_up;
-        }
-    }
-
-
-    void updateD(int visitedVertexNb) {
-        float weight_up = this->vertexWeights_up[visitedVertexNb];
-        float weight_down = this->vertexWeights_down[visitedVertexNb];
-        if (weight_up != -1 && weight_down != -1) { // vertex reached in both direction
-            if (weight_up + weight_down < this->d || this->d == -1) {
-                this->d = weight_up + weight_down;
-            }
-        }
     }
 
     float getPathWeight() {
@@ -146,7 +126,6 @@ private:
     float weight_upward_search = 0;
     float weight_downward_search = 0;
     float d = -1; // best path weight so far (-1 : infinity)
-    float minQueueWeight = 0; // Used for stopping criteria
 
     set<pair<float, int>> initVertexSet(int s) {
         set<pair<float, int>> vertexSet;
@@ -162,6 +141,44 @@ private:
 
     vector<int> initVertexParents() {
         return vector<int>(graph.size(), -1); // -1 corresponds to no parent
+    }
+
+    bool checkStoppingCriteria(float visitedWeight) {
+        // Check min queue weight
+        if (this->direction) {
+            weight_upward_search = visitedWeight;
+        } else {
+            weight_downward_search = visitedWeight;
+        }
+
+        float minQueueWeight = fmin(weight_downward_search, weight_upward_search);
+        return (this->d != -1 && this->d <= minQueueWeight); // No possible better path can be found
+    }
+
+    void setDirection() {
+        if (this->direction && !this->vertexSet_down.empty()) {
+            // Switch down
+            this->direction = false;
+            this->vertexSet = &this->vertexSet_down;
+            this->vertexWeights = &this->vertexWeights_down;
+            this->vertexParents = &this->vertexParents_down;
+        } else if (!this->direction && !this->vertexSet_up.empty()) {
+            // Switch up
+            this->direction = true;
+            this->vertexSet = &this->vertexSet_up;
+            this->vertexWeights = &this->vertexWeights_up;
+            this->vertexParents = &this->vertexParents_up;
+        }
+    }
+
+    void updateD(int visitedVertexNb) {
+        float weight_up = this->vertexWeights_up[visitedVertexNb];
+        float weight_down = this->vertexWeights_down[visitedVertexNb];
+        if (weight_up != -1 && weight_down != -1) { // vertex reached in both direction
+            if (weight_up + weight_down < this->d || this->d == -1) {
+                this->d = weight_up + weight_down;
+            }
+        }
     }
     
 };

@@ -95,11 +95,11 @@ class CH {
 public:
     CH(vector<vector<Edge>> inputGraph) : graph(inputGraph) {
         this->inputGraph = inputGraph;
-        this->buildVertexOrdering();
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
         auto t1 = std::chrono::high_resolution_clock::now();
+        this->buildVertexOrdering();
         CHGraph g_H = constructCH();
         auto t2 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
@@ -148,7 +148,7 @@ private:
             int priorityVertex = (*(vertexOrdering.begin())).second;
             // Lazy update : update ordering, and sample another vertex if it is no longer on top of the queue
             if (!updateOrdering(priorityVertex)) {
-                // cout << "continue" << endl;
+                //cout << "continue" << endl;
                 continue;
             }
             vertexOrdering.erase(vertexOrdering.begin());
