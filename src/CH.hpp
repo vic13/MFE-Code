@@ -137,11 +137,14 @@ private:
     }
 
     float calcPriorityScore(int vertexNb) {
-        int addedShortcuts = contractVertex(vertexNb, true);
+        vector<int> simulResults = contractVertex(vertexNb, true);
+        int addedShortcuts = simulResults[0];
+        int s = simulResults[1]; // Search space
         int incidentEdges = g_R.getIngoingEdges(vertexNb).size() + g_R.getOutgoingEdges(vertexNb).size();
         int e = addedShortcuts - incidentEdges; // Edge difference
         int d = deletedNeighbours[vertexNb];// Deleted neighbours
-        return 190*e + 120*d;
+        //cout << s << endl;
+        return 190*e + 120*d + 10*s;
     }
 
     CHGraph constructCH() {
@@ -150,7 +153,7 @@ private:
             int priorityVertex = (*(vertexOrdering.begin())).second;
             // Lazy update : update ordering, and sample another vertex if it is no longer on top of the queue
             if (!updateOrdering(priorityVertex)) {
-                //cout << "continue" << endl;
+                cout << "continue" << endl;
                 continue;
             }
             vertexOrdering.erase(vertexOrdering.begin());
@@ -158,12 +161,13 @@ private:
             updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
+            cout << order << endl;
             order++;
             // Neighbours update
-            // unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
-            // for (auto& neighbour : neighbours) {   
-            //     updateOrdering(neighbour);
-            // }
+            unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
+            for (auto& neighbour : neighbours) {   
+                updateOrdering(neighbour);
+            }
         }
 
         return g_H;
@@ -175,8 +179,9 @@ private:
         }
     }
 
-    int contractVertex(int vertexNb, bool simulation) {
+    vector<int> contractVertex(int vertexNb, bool simulation) {
         int addedShortcuts = 0;
+        int searchSpace = 0;
 
         vector<CHEdge> ingoingEdges = g_R.getIngoingEdges(vertexNb);
         vector<CHEdge> outgoingEdges = g_R.getOutgoingEdges(vertexNb);
@@ -195,7 +200,9 @@ private:
             if (v_list.size() > 0) {
                 // Compare path weight going through removed vertex x_i with shortest path weight without x_i
                 float stoppingDistance = *max_element(referenceWeight_list.begin(), referenceWeight_list.end());
-                vector<float> shortest_list = dijkstraCH(g_R.getIncidenceList(), u, v_list, stoppingDistance, vertexNb);
+                pair<vector<float>, int> dikstraResult = dijkstraCH(u, v_list, stoppingDistance, vertexNb);
+                vector<float> shortest_list = dikstraResult.first;
+                searchSpace += dikstraResult.second;
                 for (int i = 0; i<shortest_list.size(); i++) {
                     float shortest = shortest_list[i];
                     float referenceWeight = referenceWeight_list[i];
@@ -213,20 +220,22 @@ private:
                 }
             }
         }
-        return addedShortcuts;
+        return vector<int>({addedShortcuts, searchSpace});
     }
 
-    vector<float> dijkstraCH(vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& graph, int s, vector<int> t_list, float stoppingDistance, int ignoreVertex) {
+    pair<vector<float>, int> dijkstraCH(int s, vector<int> t_list, float stoppingDistance, int ignoreVertex) {
         // Init
         set<pair<float, int>> vertexSet;
         vertexSet.insert(make_pair(0.0f, s));
-        vector<float> vertexWeights(graph.size(), -1); // -1 corresponds to infinite weight
+        vector<float> vertexWeights(g_R.getIncidenceList().size(), -1); // -1 corresponds to infinite weight
         vertexWeights[s] = 0;
 
         vector<float> results = vector<float>(t_list.size(), -1);
         int visitedCount = 0;
+        int searchSpace = 0;
 
         while (!vertexSet.empty()) {
+            searchSpace++;
             // pop first vertex in the set
             pair<float, int> visitedVertex = *(vertexSet.begin());
             vertexSet.erase(vertexSet.begin());
@@ -242,7 +251,7 @@ private:
             if ((visitedCount == t_list.size()) || (visitedVertexWeight > stoppingDistance)) { // if all t's visited or if no more possible shortest path
                 break;
             } else {
-                vector<CHEdge*> edges = graph[visitedVertexNb].first;
+                vector<CHEdge*> edges = g_R.getIncidenceList()[visitedVertexNb].first;
                 for (auto& e : edges) {
                     if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
                     float neighbourCurrentWeight = vertexWeights[e->getDestinationVertex()];
@@ -267,7 +276,7 @@ private:
             int t = t_list[i];
             results[i] = vertexWeights[t];
         }
-        return results;
+        return make_pair(results, searchSpace);
     }
 
     vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph g_H) {
