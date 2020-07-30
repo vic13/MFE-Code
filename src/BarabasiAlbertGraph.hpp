@@ -72,7 +72,7 @@ private:
             vector<bool> neighbours = adjacencyMatrix[vertex];
             for (int neighbour = 0; neighbour < n; neighbour++) {
                 if (neighbours[neighbour]) {
-                    adjacencyList[vertex].push_back(Edge(neighbour, 1));
+                    adjacencyList[vertex].push_back(Edge(neighbour, random01()));
                 }
             }
         }

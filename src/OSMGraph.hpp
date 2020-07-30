@@ -79,19 +79,35 @@ public:
                 // Add edge to graph
                 int sourceVertex = sourceVertexId - 1; // -1 cause first vertex has id=1
                 int targetVertex = targetVertexId - 1;
-                Edge edge(targetVertex, weight);
-                adjacencyList[sourceVertex].push_back(edge);
+                addEdge(adjacencyList, sourceVertex, targetVertex, weight);
 
                 // If two-way street : add opposite edge
                 if (feature["properties"]["tags"]["oneway"].is_null() || feature["properties"]["tags"]["oneway"] == "no") {
-                    Edge oppositeEdge(sourceVertex, weight);
-                    adjacencyList[targetVertex].push_back(oppositeEdge);
+                    addEdge(adjacencyList, targetVertex, sourceVertex, weight);
                 }
 
             }
         }
 
         return adjacencyList;
+    }
+
+    void addEdge(vector<vector<Edge>>& adjacencyList, int u, int v, float newWeight) {
+        bool alreadyEdge = false;
+        for (auto& edge : adjacencyList[u]) {
+            if (edge.getDestinationVertex() == v) {
+                // There exists a u-v edge : it should be replaced by minimum weight
+                alreadyEdge = true;
+                float minWeight = fmin(edge.getWeight(), newWeight);
+                edge.setWeight(minWeight);
+            }
+        }
+        if (!alreadyEdge) {
+            // Add edge
+            Edge edge(v, newWeight);
+            adjacencyList[u].push_back(edge);
+        }
+        this->nbParallelEdges += alreadyEdge;
     }
 
     vector<pair<float, float>> getVerticesCoordinates() {
@@ -102,6 +118,7 @@ public:
         cout << "------- Data Importation Stats -------" << endl;
         cout << "The original data had " << this->nbEdges << " edges and " << this->nbVertices << " vertices." << endl;
         cout << this->nbLoopEdges << " loop edges ignored : " <<  "(" << 100*(float)this->nbLoopEdges/(float)this->nbEdges << "%)" << endl;
+        cout << this->nbParallelEdges << " parallel edges ignored (minimum weight taken) : " <<  "(" << 100*(float)this->nbParallelEdges/(float)this->nbEdges << "%)" << endl;
         cout << "Max speed estimated for " << this->nbEdgesWithoutMaxSpeed << " edges " << "(" << 100*(float)this->nbEdgesWithoutMaxSpeed/(float)this->nbEdges << "%)" << endl;
         cout << endl;
     }
@@ -111,6 +128,7 @@ private:
     vector<pair<float, float>> verticesCoordinates; // for displaying graph; order : lat, long
     int nbEdgesWithoutMaxSpeed = 0;
     int nbLoopEdges = 0;
+    int nbParallelEdges = 0;
     int nbEdges = 0;
     int nbVertices = 0;
     

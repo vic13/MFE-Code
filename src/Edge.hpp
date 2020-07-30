@@ -16,6 +16,10 @@ public:
         return this->destinationVertex;
     }
 
+    void setWeight(float weight) {
+        this->weight = weight;
+    }
+
 protected:
     int destinationVertex;
     float weight;
@@ -29,10 +33,6 @@ public:
 
     int getSourceVertex() {
         return this->sourceVertex;
-    }
-
-    void setWeight(float weight) {
-        this->weight = weight;
     }
 
 private:

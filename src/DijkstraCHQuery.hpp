@@ -5,7 +5,7 @@ using std::set;
 
 class DijkstraCHQuery {
 public:
-    DijkstraCHQuery(vector<vector<CHQueryEdge>> graph, int s, int t) {
+    DijkstraCHQuery(vector<vector<CHQueryEdge>>& graph, int s, int t) {
         this->graph = graph;
         this->t = t;
         this->s = s;

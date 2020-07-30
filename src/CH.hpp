@@ -112,6 +112,7 @@ private:
     CHGraph graph;
     vector<vector<Edge>> inputGraph;
     set<pair<float, int>> vertexOrdering;
+    vector<int> vertexOrderMap;
     vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering
     CHGraph g_H = graph; // CH graph
     CHGraph g_R = graph; // Remaining graph
@@ -122,6 +123,7 @@ private:
             vertexOrderingScores.push_back(priorityScore);
             vertexOrdering.insert(make_pair(priorityScore, vertexNb));
         }
+        this->vertexOrderMap = vector<int>(inputGraph.size(), -1);
     }
 
     bool updateOrdering(int vertexNb) {   // Update ordering for the specified vertex, and returns true if it is on top of the queue
@@ -141,21 +143,21 @@ private:
     }
 
     CHGraph constructCH() {
-        int i = 0;
+        int order = 0;
         while (!vertexOrdering.empty()) {
             int priorityVertex = (*(vertexOrdering.begin())).second;
             // Lazy update : update ordering, and sample another vertex if it is no longer on top of the queue
             if (!updateOrdering(priorityVertex)) {
-                cout << "continue" << endl;
+                // cout << "continue" << endl;
                 continue;
             }
-            cout << i << "   " << (*(vertexOrdering.begin())).first << endl;
-            i++;
             vertexOrdering.erase(vertexOrdering.begin());
-            unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
             contractVertex(priorityVertex, false);
             g_R.removeVertex(priorityVertex);
+            vertexOrderMap[priorityVertex] = order;
+            order++;
             // Neighbours update
+            // unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
             // for (auto& neighbour : neighbours) {   
             //     updateOrdering(neighbour);
             // }
@@ -267,7 +269,7 @@ private:
             vector<CHEdge*> edgePtrs = g_H.getIncidenceList()[u].first;
             for (auto& edgePtr : edgePtrs) {
                 int v = edgePtr->getDestinationVertex();
-                bool direction = (u < v);
+                bool direction = (vertexOrderMap[u] < vertexOrderMap[v]);
                 if (direction) {
                     g_star[u].push_back(CHQueryEdge(v, edgePtr->getWeight(), direction));
                 } else {

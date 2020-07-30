@@ -5,7 +5,7 @@ using std::set;
 
 class Dijkstra {
 public:
-    Dijkstra(vector<vector<Edge>> graph, int s, int t) {
+    Dijkstra(vector<vector<Edge>>& graph, int s, int t) {
         this->graph = graph;
         this->t = t;
         this->s = s;
