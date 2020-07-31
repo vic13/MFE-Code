@@ -8,7 +8,9 @@ using std::endl;
 using std::vector;
 using std::pair;
 using std::make_pair;
+using std::string;
 
+#include "Parameters.hpp"
 #include "Edge.hpp"
 #include "utils.hpp"
 #include "Dijkstra.hpp"
@@ -20,12 +22,10 @@ using std::make_pair;
 #include "CH.hpp"
 #include "DijkstraCHQuery.hpp"
 
-bool testCorrectness(vector<vector<Edge>> adjacencyList, int nbRuns = 100) {
+bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 100) {
     bool correct = true;
-    float eps = 0.001;
-
-    CH ch(adjacencyList);
-    vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
+    float eps = 0.002;
+    
     print_graph_properties(adjacencyList);
     print_graph_properties(adjacencyListCH);
 
@@ -85,13 +85,22 @@ int main() {
     OSMGraph osmGraph("./OSM_graph_data/graphBxlCenter.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     //osmGraph.printImportStats();
+
+    // CH ch(adjacencyList);
+    // vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
+    // print_graph_properties(adjacencyListCH);
+    // writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
+    vector<vector<CHQueryEdge>> adjacencyListCH = readGraphFromFile("./OSM_graph_serialized/graphBxlCenter");
+    // print_graph_properties(adjacencyListCH2);
+    // printNetwork(adjacencyListCH, 2);
+    // printNetwork(adjacencyListCH2, 2);
     
     // BarabasiAlbertGraph barabasiAlbertGraph(2000, 2);
     // vector<vector<Edge>> adjacencyList = barabasiAlbertGraph.build();
     // ErdosRenye erdosRenyeGraph(10000, 9000);
     // vector<vector<Edge>> adjacencyList = erdosRenyeGraph.build();
 
-    testCorrectness(adjacencyList) ? cout << "Correct" << endl : cout << "Not correct" << endl;
+    testCorrectness(adjacencyList, adjacencyListCH) ? cout << "Correct" << endl : cout << "Not correct" << endl;
     
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();

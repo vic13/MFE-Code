@@ -1,7 +1,56 @@
+#include <fstream>
+#include <sstream>
+using std::stringstream;
 
+void writeGraphToFile(const char* filePath, vector<vector<CHQueryEdge>> graph) {
+    std::ofstream ofs(filePath);
+    for (auto& vertexEdges : graph) {
+        for (auto& edge : vertexEdges) {
+            ofs << edge.getDestinationVertex() << "," << edge.getWeight() << "," << edge.getDirection() << ",";
+        }
+        ofs << ";,";
+    }
+}
 
-void initRandom(int seed = time(NULL)) {
+vector<vector<CHQueryEdge>> readGraphFromFile(const char* filePath) {
+    std::ifstream ifs(filePath);
+    vector<vector<CHQueryEdge>> graph;
+    vector<CHQueryEdge> edges;
+    string s;
+    int dest = 0;
+    float w = 0;
+    bool direction = 0;
+    int state = 0;
+    while(getline(ifs, s, ',')) {
+        stringstream ss(stringstream::in | stringstream::out);
+        ss << s;
+        if (s==";") {
+            graph.push_back(edges);
+            edges.clear();
+        } else {
+            if (state == 0) {
+                ss >> dest;
+                state = 1;
+            } else if (state == 1) {
+                ss >> w;
+                state = 2;
+            } else if (state == 2) {
+                ss >> direction;
+                state = 0;
+                edges.push_back(CHQueryEdge(dest, w, direction));
+            }
+        }
+    }
+    return graph;
+}
+
+void initRandom() {
+    int seed = Parameters::seed;
+    if (seed == -1) {
+        seed = time(NULL);
+    }
     srand(seed);
+    cout << "Seed : " << seed << endl;
 }
 
 float random01() {
@@ -12,9 +61,10 @@ int randomInt(int moduloValue) {
     return rand() % moduloValue;
 }
 
-void printNetwork(vector<vector<Edge>> graph) {
-    for (int a=0; a<100; a++) {
-        vector<Edge> neighbours = graph[a];
+template <typename T>
+void printNetwork(vector<vector<T>> graph, int nbVertices) {
+    for (int a=0; a<nbVertices; a++) {
+        vector<T> neighbours = graph[a];
         cout << "nb neighbours : " << neighbours.size() << endl;
         for (int b=0; b<neighbours.size(); b++) {
             cout << "weight : " << neighbours[b].getWeight() << endl;

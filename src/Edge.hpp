@@ -1,5 +1,4 @@
 
-
 class Edge {
 public:
     
@@ -47,6 +46,10 @@ public:
 
     bool isSameDirection(bool direction) {
         return (this->direction == direction);
+    }
+
+    bool getDirection() {
+        return this->direction;
     }
 
 private:
