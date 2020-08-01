@@ -22,7 +22,7 @@ using std::string;
 #include "CH.hpp"
 #include "DijkstraCHQuery.hpp"
 
-bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 100) {
+bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 1000) {
     bool correct = true;
     float eps = 0.002;
     
@@ -86,11 +86,11 @@ int main() {
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     //osmGraph.printImportStats();
 
-    // CH ch(adjacencyList);
-    // vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
-    // print_graph_properties(adjacencyListCH);
-    // writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
-    vector<vector<CHQueryEdge>> adjacencyListCH = readGraphFromFile("./OSM_graph_serialized/graphBxlCenter");
+    CH ch(adjacencyList);
+    vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
+    print_graph_properties(adjacencyListCH);
+    writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
+    // vector<vector<CHQueryEdge>> adjacencyListCH = readGraphFromFile("./OSM_graph_serialized/graphBxlCenter");
     // print_graph_properties(adjacencyListCH2);
     // printNetwork(adjacencyListCH, 2);
     // printNetwork(adjacencyListCH2, 2);

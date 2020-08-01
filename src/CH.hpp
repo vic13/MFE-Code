@@ -69,7 +69,26 @@ public:
         }
     }
 
-    void updateEdge(int u, int v, float newWeight) {
+    void removeEdge(CHEdge* edgePtr) {
+        // Detach from source
+        int sourceVertex = edgePtr->getSourceVertex();
+        for (int sourceEdgeIndex = 0; sourceEdgeIndex<this->incidenceList[sourceVertex].first.size(); sourceEdgeIndex++) {
+            CHEdge* edgePtr2 = this->incidenceList[sourceVertex].first[sourceEdgeIndex];
+            if (edgePtr == edgePtr2) {
+                this->incidenceList[sourceVertex].first.erase(this->incidenceList[sourceVertex].first.begin() + sourceEdgeIndex);
+            }
+        }
+        // Detach from destination
+        int destinationVertex = edgePtr->getDestinationVertex();
+        for (int destinationEdgeIndex = 0; destinationEdgeIndex<this->incidenceList[destinationVertex].second.size(); destinationEdgeIndex++) {
+            CHEdge* edgePtr2 = this->incidenceList[destinationVertex].second[destinationEdgeIndex];
+            if (edgePtr == edgePtr2) {
+                this->incidenceList[destinationVertex].second.erase(this->incidenceList[destinationVertex].second.begin() + destinationEdgeIndex);
+            }
+        }
+    }
+
+    bool updateEdge(int u, int v, float newWeight) {
         bool alreadyEdge = false;
         for (auto& edgePtr : this->incidenceList[u].first) { // outgoing from u
             if (edgePtr->getDestinationVertex() == v) {
@@ -78,12 +97,12 @@ public:
                 edgePtr->setWeight(newWeight);
             }
         }
-        if (!alreadyEdge) {
-            // Add edge
-            CHEdge* edgePtr = new CHEdge(u, v, newWeight);
-            this->incidenceList[u].first.push_back(edgePtr); // outgoing from u
-            this->incidenceList[v].second.push_back(edgePtr); // ingoing to v
-        }
+        return alreadyEdge;
+    }
+
+    void addEdge(CHEdge* edgePtr) {
+        this->incidenceList[edgePtr->getSourceVertex()].first.push_back(edgePtr); // outgoing from u
+        this->incidenceList[edgePtr->getDestinationVertex()].second.push_back(edgePtr); // ingoing to v
     }
 
 private:
@@ -143,7 +162,6 @@ private:
         int incidentEdges = g_R.getIngoingEdges(vertexNb).size() + g_R.getOutgoingEdges(vertexNb).size();
         int e = addedShortcuts - incidentEdges; // Edge difference
         int d = deletedNeighbours[vertexNb];// Deleted neighbours
-        //cout << s << endl;
         return 190*e + 120*d + 10*s;
     }
 
@@ -161,7 +179,7 @@ private:
             updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
-            cout << order << endl;
+            //cout << order << endl;
             order++;
             // Neighbours update
             unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
@@ -213,8 +231,14 @@ private:
                         // Should add shortcut
                         addedShortcuts++;
                         if (!simulation) {
-                            g_R.updateEdge(u, v, referenceWeight);
-                            g_H.updateEdge(u, v, referenceWeight);
+                            if (g_R.updateEdge(u, v, referenceWeight)) {
+                                g_H.updateEdge(u, v, referenceWeight);
+                            } else {
+                                CHEdge* edgePtr = new CHEdge(u, v, referenceWeight);
+                                g_R.addEdge(edgePtr);
+                                g_H.addEdge(edgePtr);
+                            }
+                            
                         }
                     }
                 }
@@ -269,6 +293,17 @@ private:
                         vertexWeights[e->getDestinationVertex()] = neighbourNewWeight;
                     }
                 }
+            }
+        }
+        // On-the-fly edge reduction
+        for (int edgeIndex = 0; edgeIndex < g_R.getIncidenceList()[s].first.size(); edgeIndex++) {
+            CHEdge* edge = g_R.getIncidenceList()[s].first[edgeIndex];
+            float newWeight = vertexWeights[edge->getDestinationVertex()];
+            if (newWeight != -1 && newWeight < edge->getWeight()) {
+                // Remove edge
+                g_R.removeEdge(edge);
+                g_H.removeEdge(edge);
+
             }
         }
         // Return result
