@@ -114,7 +114,10 @@ class CH {
 public:
     CH(vector<vector<Edge>> inputGraph) : graph(inputGraph) {
         this->inputGraph = inputGraph;
-        this->deletedNeighbours = vector<int>(inputGraph.size(), 0);
+        this->n = inputGraph.size();
+        this->deletedNeighbours = vector<int>(this->n, 0);
+        this->vertexWeights = vector<float>(n, -1);
+        this->vertexWeightsR = vector<float>(n, -1);
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
@@ -131,20 +134,23 @@ public:
 private:
     CHGraph graph;
     vector<vector<Edge>> inputGraph;
+    int n;
     set<pair<float, int>> vertexOrdering;
     vector<int> vertexOrderMap;
     vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering
     vector<int> deletedNeighbours;
     CHGraph g_H = graph; // CH graph
     CHGraph g_R = graph; // Remaining graph
+    vector<float> vertexWeights;
+    vector<float> vertexWeightsR;
 
     void buildVertexOrdering() {
-        for (int vertexNb = 0; vertexNb < inputGraph.size(); vertexNb++) {
+        for (int vertexNb = 0; vertexNb < this->n; vertexNb++) {
             float priorityScore = calcPriorityScore(vertexNb);
             vertexOrderingScores.push_back(priorityScore);
             vertexOrdering.insert(make_pair(priorityScore, vertexNb));
         }
-        this->vertexOrderMap = vector<int>(inputGraph.size(), -1);
+        this->vertexOrderMap = vector<int>(this->n, -1);
     }
 
     bool updateOrdering(int vertexNb) {   // Update ordering for the specified vertex, and returns true if it is on top of the queue
@@ -179,7 +185,7 @@ private:
             updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
-            //cout << order << endl;
+            cout << order << endl;
             order++;
             // Neighbours update
             unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
@@ -251,7 +257,20 @@ private:
         // Init
         set<pair<float, int>> vertexSet;
         vertexSet.insert(make_pair(0.0f, s));
-        vector<float> vertexWeights(g_R.getIncidenceList().size(), -1); // -1 corresponds to infinite weight
+        // auto t1 = std::chrono::high_resolution_clock::now();
+        // for (int i = 0; i<vertexWeights.size(); i++) {
+        //     vertexWeights[i] = -1;
+        // }
+        // auto t2 = std::chrono::high_resolution_clock::now();
+        // vector<float> aaa(n, -1);
+        // auto t3 = std::chrono::high_resolution_clock::now();
+        this->vertexWeights = this->vertexWeightsR;
+        // auto t4 = std::chrono::high_resolution_clock::now();
+        // std::cout << " : " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << " µs" << endl;
+        // std::cout << " + " << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << " µs" << endl;
+        // std::cout << " x " << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() << " µs" << endl;
+        //vector<int> hops(this->n, 0); 
+        // int hopLimit = 1;
         vertexWeights[s] = 0;
 
         vector<float> results = vector<float>(t_list.size(), -1);
@@ -275,6 +294,7 @@ private:
             if ((visitedCount == t_list.size()) || (visitedVertexWeight > stoppingDistance)) { // if all t's visited or if no more possible shortest path
                 break;
             } else {
+                // if (hops[visitedVertexNb] > hopLimit) break;
                 vector<CHEdge*> edges = g_R.getIncidenceList()[visitedVertexNb].first;
                 for (auto& e : edges) {
                     if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
@@ -291,6 +311,7 @@ private:
                         vertexSet.insert(newNeighbour);
                         // UPDATE weight
                         vertexWeights[e->getDestinationVertex()] = neighbourNewWeight;
+                        // hops[e->getDestinationVertex()] = hops[visitedVertexNb] + 1;
                     }
                 }
             }
@@ -315,8 +336,7 @@ private:
     }
 
     vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph g_H) {
-        int n = g_H.getIncidenceList().size();
-        vector<vector<CHQueryEdge>> g_star = vector<vector<CHQueryEdge>>(n, vector<CHQueryEdge>());
+        vector<vector<CHQueryEdge>> g_star = vector<vector<CHQueryEdge>>(this->n, vector<CHQueryEdge>());
         
         for (int u = 0; u<n; u++) {
             vector<CHEdge*> edgePtrs = g_H.getIncidenceList()[u].first;
