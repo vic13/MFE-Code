@@ -160,6 +160,9 @@ private:
     vector<float> vertexWeightsR; // Reference Dijkstra weights (for memory optimisation)
     vector<int> hops;
     vector<int> hopsR;
+    vector<int> hopLimits = vector<int>({1, 2, 3, 5});
+    vector<float> hopTresholds = vector<float>({3.3, 10, 10});
+    int hopIndex = 0;
 
     void buildVertexOrdering() {
         for (int vertexNb = 0; vertexNb < this->n; vertexNb++) {
@@ -205,6 +208,11 @@ private:
             cout << order << endl;
             cout << g_R.getAverageDegree() << endl;
             order++;
+            // Update hop limit
+            if ((hopIndex<hopTresholds.size()) && (g_R.getAverageDegree() >= hopTresholds[hopIndex])) {
+                hopIndex++;
+                cout << "Swiched to hop limit : " << hopLimits[hopIndex] << endl;
+            }
             // Neighbours update
             unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
             for (auto& neighbour : neighbours) {   
@@ -278,8 +286,6 @@ private:
         this->hops = this->hopsR; 
         this->vertexWeights = this->vertexWeightsR;
         vertexWeights[s] = 0;
-        
-        int hopLimit = 2;
 
         vector<float> results = vector<float>(t_list.size(), -1);
         int visitedCount = 0;
@@ -302,7 +308,7 @@ private:
             if ((visitedCount == t_list.size()) || (visitedVertexWeight > stoppingDistance)) { // if all t's visited or if no more possible shortest path
                 break;
             } else {
-                if (hops[visitedVertexNb] > hopLimit) continue;
+                if (hops[visitedVertexNb] > 2) continue;
                 vector<CHEdge*> edges = g_R.getIncidenceList()[visitedVertexNb].first;
                 for (auto& e : edges) {
                     if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
