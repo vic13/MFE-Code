@@ -118,8 +118,8 @@ public:
 
 private:
     vector<pair<vector<CHEdge*>, vector<CHEdge*>>> incidenceList;
-    int remainingVerticesNb;
-    int remainingEdgesNb;
+    int remainingVerticesNb = 0;
+    int remainingEdgesNb = 0;
 };
 
 class CH {
@@ -161,7 +161,7 @@ private:
     vector<int> hops;
     vector<int> hopsR;
     vector<int> hopLimits = vector<int>({1, 2, 3, 5});
-    vector<float> hopTresholds = vector<float>({3.3, 10, 10});
+    vector<float> hopTresholds = vector<float>({3.3, 7, 8});
     int hopIndex = 0;
 
     void buildVertexOrdering() {
@@ -197,7 +197,7 @@ private:
             int priorityVertex = (*(vertexOrdering.begin())).second;
             // Lazy update : update ordering, and sample another vertex if it is no longer on top of the queue
             if (!updateOrdering(priorityVertex)) {
-                cout << "continue" << endl;
+                //cout << "continue" << endl;
                 continue;
             }
             vertexOrdering.erase(vertexOrdering.begin());
@@ -205,13 +205,13 @@ private:
             updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
-            cout << order << endl;
-            cout << g_R.getAverageDegree() << endl;
+            //cout << order << endl;
+            //cout << g_R.getAverageDegree() << endl;
             order++;
             // Update hop limit
             if ((hopIndex<hopTresholds.size()) && (g_R.getAverageDegree() >= hopTresholds[hopIndex])) {
                 hopIndex++;
-                cout << "Swiched to hop limit : " << hopLimits[hopIndex] << endl;
+                cout << "Swiched to hop limit : " << hopLimits[hopIndex] << " (order : " << order << ")" << endl;
             }
             // Neighbours update
             unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
@@ -308,7 +308,7 @@ private:
             if ((visitedCount == t_list.size()) || (visitedVertexWeight > stoppingDistance)) { // if all t's visited or if no more possible shortest path
                 break;
             } else {
-                if (hops[visitedVertexNb] > 2) continue;
+                if (hops[visitedVertexNb] > hopLimits[hopIndex]) continue;
                 vector<CHEdge*> edges = g_R.getIncidenceList()[visitedVertexNb].first;
                 for (auto& e : edges) {
                     if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
