@@ -12,8 +12,10 @@ public:
                 CHEdge* edgePtr = new CHEdge(sourceVertex, destinationVertex, edge.getWeight());
                 this->incidenceList[sourceVertex].first.push_back(edgePtr);
                 this->incidenceList[destinationVertex].second.push_back(edgePtr);
+                this->remainingEdgesNb++;
             }
         }
+        this->remainingVerticesNb = inputGraph.size();
     }
 
     vector<CHEdge> getOutgoingEdges(int vertex) {
@@ -55,6 +57,7 @@ public:
                 CHEdge* edgePtr2 = this->incidenceList[destinationVertex].second[edgeIndex];
                 if (edgePtr == edgePtr2) {
                     this->incidenceList[destinationVertex].second.erase(this->incidenceList[destinationVertex].second.begin() + edgeIndex);
+                    this->remainingEdgesNb--;
                 }
             }
         }
@@ -64,9 +67,11 @@ public:
                 CHEdge* edgePtr2 = this->incidenceList[sourceVertex].first[edgeIndex];
                 if (edgePtr == edgePtr2) {
                     this->incidenceList[sourceVertex].first.erase(this->incidenceList[sourceVertex].first.begin() + edgeIndex);
+                    this->remainingEdgesNb--;
                 }
             }
         }
+        this->remainingVerticesNb--;
     }
 
     void removeEdge(CHEdge* edgePtr) {
@@ -86,6 +91,7 @@ public:
                 this->incidenceList[destinationVertex].second.erase(this->incidenceList[destinationVertex].second.begin() + destinationEdgeIndex);
             }
         }
+        this->remainingEdgesNb--;
     }
 
     bool updateEdge(int u, int v, float newWeight) {
@@ -103,21 +109,30 @@ public:
     void addEdge(CHEdge* edgePtr) {
         this->incidenceList[edgePtr->getSourceVertex()].first.push_back(edgePtr); // outgoing from u
         this->incidenceList[edgePtr->getDestinationVertex()].second.push_back(edgePtr); // ingoing to v
+        this->remainingEdgesNb++;
+    }
+
+    float getAverageDegree() {
+        return (float)remainingEdgesNb/(float)remainingVerticesNb;
     }
 
 private:
     vector<pair<vector<CHEdge*>, vector<CHEdge*>>> incidenceList;
+    int remainingVerticesNb;
+    int remainingEdgesNb;
 };
 
 class CH {
-/* This class implements Contracion Hierarchies functions, including preprocessing and querying */
+/* This class implements Contracion Hierarchies preprocessing functions */
 public:
     CH(vector<vector<Edge>> inputGraph) : graph(inputGraph) {
         this->inputGraph = inputGraph;
         this->n = inputGraph.size();
         this->deletedNeighbours = vector<int>(this->n, 0);
-        this->vertexWeights = vector<float>(n, -1);
-        this->vertexWeightsR = vector<float>(n, -1);
+        this->vertexWeights = vector<float>(this->n, -1);
+        this->vertexWeightsR = vector<float>(this->n, -1);
+        this->hops = vector<int>(this->n, 0);
+        this->hopsR = vector<int>(this->n, 0);
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
@@ -141,8 +156,10 @@ private:
     vector<int> deletedNeighbours;
     CHGraph g_H = graph; // CH graph
     CHGraph g_R = graph; // Remaining graph
-    vector<float> vertexWeights;
-    vector<float> vertexWeightsR;
+    vector<float> vertexWeights; // Dijkstra weights (for memory optimisation)
+    vector<float> vertexWeightsR; // Reference Dijkstra weights (for memory optimisation)
+    vector<int> hops;
+    vector<int> hopsR;
 
     void buildVertexOrdering() {
         for (int vertexNb = 0; vertexNb < this->n; vertexNb++) {
@@ -186,6 +203,7 @@ private:
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
             cout << order << endl;
+            cout << g_R.getAverageDegree() << endl;
             order++;
             // Neighbours update
             unordered_set<int> neighbours = g_R.getNeighbours(priorityVertex);
@@ -257,21 +275,11 @@ private:
         // Init
         set<pair<float, int>> vertexSet;
         vertexSet.insert(make_pair(0.0f, s));
-        // auto t1 = std::chrono::high_resolution_clock::now();
-        // for (int i = 0; i<vertexWeights.size(); i++) {
-        //     vertexWeights[i] = -1;
-        // }
-        // auto t2 = std::chrono::high_resolution_clock::now();
-        // vector<float> aaa(n, -1);
-        // auto t3 = std::chrono::high_resolution_clock::now();
+        this->hops = this->hopsR; 
         this->vertexWeights = this->vertexWeightsR;
-        // auto t4 = std::chrono::high_resolution_clock::now();
-        // std::cout << " : " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << " µs" << endl;
-        // std::cout << " + " << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << " µs" << endl;
-        // std::cout << " x " << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() << " µs" << endl;
-        //vector<int> hops(this->n, 0); 
-        // int hopLimit = 1;
         vertexWeights[s] = 0;
+        
+        int hopLimit = 2;
 
         vector<float> results = vector<float>(t_list.size(), -1);
         int visitedCount = 0;
@@ -294,7 +302,7 @@ private:
             if ((visitedCount == t_list.size()) || (visitedVertexWeight > stoppingDistance)) { // if all t's visited or if no more possible shortest path
                 break;
             } else {
-                // if (hops[visitedVertexNb] > hopLimit) break;
+                if (hops[visitedVertexNb] > hopLimit) continue;
                 vector<CHEdge*> edges = g_R.getIncidenceList()[visitedVertexNb].first;
                 for (auto& e : edges) {
                     if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
@@ -311,7 +319,7 @@ private:
                         vertexSet.insert(newNeighbour);
                         // UPDATE weight
                         vertexWeights[e->getDestinationVertex()] = neighbourNewWeight;
-                        // hops[e->getDestinationVertex()] = hops[visitedVertexNb] + 1;
+                        hops[e->getDestinationVertex()] = hops[visitedVertexNb] + 1;
                     }
                 }
             }

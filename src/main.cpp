@@ -82,14 +82,14 @@ int main() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    OSMGraph osmGraph("./OSM_graph_data/graphBxlCenter.json");
+    OSMGraph osmGraph("./OSM_graph_data/graphBxl.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     //osmGraph.printImportStats();
 
     CH ch(adjacencyList);
     vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
     print_graph_properties(adjacencyListCH);
-    writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
+    // writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
     // vector<vector<CHQueryEdge>> adjacencyListCH = readGraphFromFile("./OSM_graph_serialized/graphBxlCenter");
     // print_graph_properties(adjacencyListCH2);
     // printNetwork(adjacencyListCH, 2);
