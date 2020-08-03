@@ -75,7 +75,7 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEd
     return correct;
 }
 
-void createLayeredGraph(vector<vector<Edge>>& graph, int nbLayers, int nbTransitionVertices) {
+vector<int> createLayeredGraph(vector<vector<Edge>>& graph, int nbLayers, int nbTransitionVertices) {
     int nbBaseVertices = graph.size();
     // Define transition vertices
     vector<int> transitionVertices;
@@ -97,13 +97,17 @@ void createLayeredGraph(vector<vector<Edge>>& graph, int nbLayers, int nbTransit
         }
     }
     // Connect to base layer
+    vector<int> verticesOrder = vector<int>(graph.size(), 0);
     for (int layer=1; layer<nbLayers; layer++) {
         int offset = nbBaseVertices*layer;
         for (int transitionVertex : transitionVertices) {
-            graph[transitionVertex].push_back(Edge(transitionVertex+offset, 0)); // base to up layer
+            graph[transitionVertex].push_back(Edge(transitionVertex+offset, 100)); // base to up layer
             graph[transitionVertex+offset].push_back(Edge(transitionVertex, 0)); // up layer to base
+            verticesOrder[transitionVertex] = 2;
+            verticesOrder[transitionVertex+offset] = 1;
         }
     }
+    return verticesOrder;
 }
 
 
@@ -118,10 +122,10 @@ int main() {
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     print_graph_properties(adjacencyList);
 
-    createLayeredGraph(adjacencyList, 5, 10);
+    vector<int> transitionVertices = createLayeredGraph(adjacencyList, 5, 10);
     //osmGraph.printImportStats();
 
-    CH ch(adjacencyList);
+    CH ch(adjacencyList, transitionVertices);
     vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
     
     // writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);

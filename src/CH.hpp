@@ -125,7 +125,7 @@ private:
 class CH {
 /* This class implements Contracion Hierarchies preprocessing functions */
 public:
-    CH(vector<vector<Edge>> inputGraph) : graph(inputGraph) {
+    CH(vector<vector<Edge>> inputGraph, vector<int> transitionVertices) : graph(inputGraph) {
         this->inputGraph = inputGraph;
         this->n = inputGraph.size();
         this->deletedNeighbours = vector<int>(this->n, 0);
@@ -133,6 +133,7 @@ public:
         this->vertexWeightsR = vector<float>(this->n, -1);
         this->hops = vector<int>(this->n, 0);
         this->hopsR = vector<int>(this->n, 0);
+        this->transitionVertices = transitionVertices;
     }
 
     vector<vector<CHQueryEdge>> preprocess() {
@@ -163,6 +164,7 @@ private:
     vector<int> hopLimits = vector<int>({1, 2, 3, 5});
     vector<float> hopTresholds = vector<float>({3.3, 7, 8});
     int hopIndex = 0;
+    vector<int> transitionVertices;
 
     void buildVertexOrdering() {
         for (int vertexNb = 0; vertexNb < this->n; vertexNb++) {
@@ -188,7 +190,8 @@ private:
         int incidentEdges = g_R.getIngoingEdges(vertexNb).size() + g_R.getOutgoingEdges(vertexNb).size();
         int e = addedShortcuts - incidentEdges; // Edge difference
         int d = deletedNeighbours[vertexNb];// Deleted neighbours
-        return 190*e + 120*d + 10*s;
+        int t = transitionVertices[vertexNb];
+        return 190*e + 120*d + s + 1000000*t;
     }
 
     CHGraph constructCH() {
@@ -202,6 +205,7 @@ private:
             }
             vertexOrdering.erase(vertexOrdering.begin());
             contractVertex(priorityVertex, false);
+            if (this->transitionVertices[priorityVertex]) cout << "transition : "<< order << endl;
             updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
