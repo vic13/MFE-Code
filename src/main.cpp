@@ -22,7 +22,7 @@ using std::string;
 #include "CH.hpp"
 #include "DijkstraCHQuery.hpp"
 
-bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 1000) {
+bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 100) {
     bool correct = true;
     float eps = 0.002;
     
@@ -75,6 +75,38 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEd
     return correct;
 }
 
+void createLayeredGraph(vector<vector<Edge>>& graph, int nbLayers, int nbTransitionVertices) {
+    int nbBaseVertices = graph.size();
+    // Define transition vertices
+    vector<int> transitionVertices;
+    for (int i=0; i<nbTransitionVertices; i++) {
+        transitionVertices.push_back(i * nbBaseVertices / nbTransitionVertices);
+    }
+    print_vector(transitionVertices);
+    // Layers
+    for (int layer=1; layer<nbLayers; layer++) {
+        // Create layer graph
+        int offset = nbBaseVertices*layer;
+        for (int baseVertex=0; baseVertex<nbBaseVertices; baseVertex++) {
+            vector<Edge> layerEdges;
+            vector<Edge> baseEdges = graph[baseVertex];
+            for (auto& edge : baseEdges) {
+                layerEdges.push_back(Edge(edge.getDestinationVertex()+offset, edge.getWeight()));
+            }
+            graph.push_back(layerEdges);
+        }
+    }
+    // Connect to base layer
+    for (int layer=1; layer<nbLayers; layer++) {
+        int offset = nbBaseVertices*layer;
+        for (int transitionVertex : transitionVertices) {
+            graph[transitionVertex].push_back(Edge(transitionVertex+offset, 0)); // base to up layer
+            graph[transitionVertex+offset].push_back(Edge(transitionVertex, 0)); // up layer to base
+        }
+    }
+}
+
+
 int main() {
     cout << endl << "Hello world !" << endl << endl;
 
@@ -82,13 +114,16 @@ int main() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    OSMGraph osmGraph("./OSM_graph_data/graphBxl.json");
+    OSMGraph osmGraph("./OSM_graph_data/graphBxlCenter.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
+    print_graph_properties(adjacencyList);
+
+    createLayeredGraph(adjacencyList, 5, 10);
     //osmGraph.printImportStats();
 
     CH ch(adjacencyList);
     vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
-    print_graph_properties(adjacencyListCH);
+    
     // writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
     // vector<vector<CHQueryEdge>> adjacencyListCH = readGraphFromFile("./OSM_graph_serialized/graphBxlCenter");
     // print_graph_properties(adjacencyListCH2);
