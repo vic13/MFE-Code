@@ -120,7 +120,7 @@ public:
         cout << this->nbLoopEdges << " loop edges ignored : " <<  "(" << 100*(float)this->nbLoopEdges/(float)this->nbEdges << "%)" << endl;
         cout << this->nbParallelEdges << " parallel edges ignored (minimum weight taken) : " <<  "(" << 100*(float)this->nbParallelEdges/(float)this->nbEdges << "%)" << endl;
         cout << "Max speed estimated for " << this->nbEdgesWithoutMaxSpeed << " edges " << "(" << 100*(float)this->nbEdgesWithoutMaxSpeed/(float)this->nbEdges << "%)" << endl;
-        cout << endl;
+        cout << "--------------------------------------" << endl;
     }
 
 private:

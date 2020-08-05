@@ -205,9 +205,7 @@ private:
             updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
-            //cout << order << endl;
-            //cout << g_R.getAverageDegree() << endl;
-            order++;
+            
             // Update hop limit
             if ((hopIndex<hopTresholds.size()) && (g_R.getAverageDegree() >= hopTresholds[hopIndex])) {
                 hopIndex++;
@@ -218,6 +216,10 @@ private:
             for (auto& neighbour : neighbours) {   
                 updateOrdering(neighbour);
             }
+
+            // Print progress
+            if (100*order/(this->n-1) > 100*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<100*order/(this->n-1)<<" %\r"; cout.flush();}
+            order++;
         }
 
         return g_H;

@@ -65,11 +65,14 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEd
             }
         }
     }
-    std::cout << "Average time dijkstra : " << avgDijkstra/(1000.0*nbRuns) << " ms" << endl;
-    std::cout << "Average time dijkstraCH : " << avgDijkstraCH/(1000.0*nbRuns) << " ms" << endl;
-    std::cout << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
-    std::cout << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << " settled nodes" << endl;
-    std::cout << "Average search space dijkstraCH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << " settled nodes" << endl;
+    cout << "------- Dijkstra vs CH Query -------" << endl;
+    cout << "Average time dijkstra : " << avgDijkstra/(1000.0*nbRuns) << " ms" << endl;
+    cout << "Average time dijkstraCH : " << avgDijkstraCH/(1000.0*nbRuns) << " ms" << endl;
+    cout << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
+    cout << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << " settled nodes" << endl;
+    cout << "Average search space dijkstraCH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << " settled nodes" << endl;
+    cout << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
+    cout << "------------------------------------" << endl;
     return correct;
 }
 
@@ -103,7 +106,7 @@ int main() {
     
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-    std::cout << "Program duration : " << duration/1000000.0 << " seconds" << endl;
+    cout << "Program duration : " << duration/1000000.0 << " seconds" << endl;
     
 }
 

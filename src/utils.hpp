@@ -89,7 +89,8 @@ void print_graph_properties(vector<vector<T>> graph) {
         nbEdges += vertexEdges.size();
     }
 
-    cout << "\nGraph properties : " << endl;
+    cout << "------- Graph properties -------" << endl;
     cout << "#Vertices : " << nbVertices << endl;
     cout << "#Edges : " << nbEdges << endl;
+    cout << "--------------------------------" << endl;
 }
