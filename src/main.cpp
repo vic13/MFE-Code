@@ -22,7 +22,7 @@ using std::string;
 #include "CH.hpp"
 #include "DijkstraCHQuery.hpp"
 
-bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 1000) {
+bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 100) {
     bool correct = true;
     float eps = 0.002;
     
@@ -33,8 +33,6 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEd
     auto avgDijkstraCH = 0.0;
     int avgSearchSpaceDijkstra = 0;
     int avgSearchSpaceDijkstraCH = 0;
-
-    int wrong = 0;
 
     for (int i = 0; i<nbRuns; i++) {
         int s = randomInt(adjacencyList.size());
@@ -82,13 +80,14 @@ int main() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    OSMGraph osmGraph("./OSM_graph_data/graphBxl.json");
+    OSMGraph osmGraph("./OSM_graph_data/graphBelgiumCenter.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
-    //osmGraph.printImportStats();
+    osmGraph.printImportStats();
+    print_graph_properties(adjacencyList);
 
     CH ch(adjacencyList);
     vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
-    print_graph_properties(adjacencyListCH);
+    
     // writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
     // vector<vector<CHQueryEdge>> adjacencyListCH = readGraphFromFile("./OSM_graph_serialized/graphBxlCenter");
     // print_graph_properties(adjacencyListCH2);
