@@ -83,10 +83,11 @@ int main() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    OSMGraph osmGraph("./OSM_graph_data/graph_3_bxl.json");
+    OSMGraph osmGraph("./OSM_graph_data/graph_2_bxl_ctr.json");
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     osmGraph.printImportStats();
     print_graph_properties(adjacencyList);
+    //View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
 
     CH ch(adjacencyList);
     vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();

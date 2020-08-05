@@ -55,6 +55,10 @@ public:
         return this->vertexWeights[this->t];
     }
 
+    vector<float> getWeights() {
+        return this->vertexWeights;
+    }
+
     int getSearchSpace() {
         return this->searchSpace;
     }

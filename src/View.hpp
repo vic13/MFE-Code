@@ -5,7 +5,7 @@ namespace plt = matplotlibcpp;
 class View {
 public:
     template <typename TEdge>
-    static void display(vector<vector<TEdge>> adjacencyList, vector<int> path, vector<pair<float, float>> verticesCoordinates, int s, int t) {
+    static void displayNetwork(vector<vector<TEdge>> adjacencyList, vector<pair<float, float>> verticesCoordinates) {
         plt::figure_size(700, 700);
 
         // Display vertices
@@ -37,7 +37,12 @@ public:
             }
         }
 
-        // Display shortest path
+        plt::show();
+    }
+
+    template <typename TEdge>
+    static void displayPath(vector<vector<TEdge>> adjacencyList, vector<int> path, vector<pair<float, float>> verticesCoordinates, int s, int t) {
+         // Display shortest path
         vector<float> xPath;
         vector<float> yPath;
         for (auto& vertex : path) {
@@ -58,7 +63,7 @@ public:
         keywordsST["color"] = "orange";
         plt::scatter(vector<float>{verticesCoordinates[t].second}, vector<float>{verticesCoordinates[t].first}, 100, keywordsST);
 
-        plt::show();
-        
+        displayNetwork(adjacencyList, verticesCoordinates);
     }
+
 };

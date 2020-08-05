@@ -89,7 +89,54 @@ public:
             }
         }
 
-        return adjacencyList;
+        // Remove non-connected components
+        vector<vector<Edge>> connectedGraph;
+        while (this->connectedRatio < 0.5) {
+            int s = randomInt(adjacencyList.size());
+            connectedGraph = transformToStronglyConnectedGraph(adjacencyList, s);
+            this->connectedRatio = (float)connectedGraph.size()/(float)adjacencyList.size();
+        }
+
+        return connectedGraph;
+    }
+
+    vector<vector<Edge>> transformToStronglyConnectedGraph(vector<vector<Edge>>& graph, int s) {
+        vector<vector<Edge>> stronglyConnectedGraph;
+
+        Dijkstra fromS(graph, s, -1); // t set to -1 to disable stopping criteria
+        fromS.compute();
+        vector<float> weightsFromS = fromS.getWeights();
+        vector<vector<Edge>> reversedGraph = reverseGraph(graph);
+        Dijkstra toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
+        toS.compute();
+        vector<float> weightsToS = toS.getWeights();
+
+        vector<bool> verticesToKeep(graph.size(), true);
+        vector<int> offsets;
+        int offset = 0;
+        for (int vertex=0; vertex<graph.size(); vertex++) {
+            if (weightsFromS[vertex] == -1 || weightsToS[vertex] == -1) {
+                verticesToKeep[vertex] = false;
+                offset++;
+            }
+            offsets.push_back(offset);
+        }
+        vector<pair<float, float>> newCoordinates;
+        for (int v = 0; v<graph.size(); v++) {
+            if (verticesToKeep[v]) {
+                vector<Edge> edges;
+                for (auto& edge : graph[v]) {
+                    if (verticesToKeep[edge.getDestinationVertex()]) {
+                        edges.push_back(Edge(edge.getDestinationVertex()-offsets[edge.getDestinationVertex()], edge.getWeight()));
+                    }
+                }
+                stronglyConnectedGraph.push_back(edges);
+                newCoordinates.push_back(this->verticesCoordinates[v]);
+            }
+        }
+        this->verticesCoordinates = newCoordinates;
+
+        return stronglyConnectedGraph;
     }
 
     void addEdge(vector<vector<Edge>>& adjacencyList, int u, int v, float newWeight) {
@@ -116,10 +163,11 @@ public:
 
     void printImportStats() {
         cout << "------- Data Importation Stats -------" << endl;
-        cout << "The original data had " << this->nbEdges << " edges and " << this->nbVertices << " vertices." << endl;
+        cout << "The original data had " << this->nbVertices << " vertices and " << this->nbEdges << " edges." << endl;
         cout << this->nbLoopEdges << " loop edges ignored : " <<  "(" << 100*(float)this->nbLoopEdges/(float)this->nbEdges << "%)" << endl;
         cout << this->nbParallelEdges << " parallel edges ignored (minimum weight taken) : " <<  "(" << 100*(float)this->nbParallelEdges/(float)this->nbEdges << "%)" << endl;
         cout << "Max speed estimated for " << this->nbEdgesWithoutMaxSpeed << " edges " << "(" << 100*(float)this->nbEdgesWithoutMaxSpeed/(float)this->nbEdges << "%)" << endl;
+        cout << "Removed non strongly-connected vertices : " << this->connectedRatio*100 << "% of vertices kept." << endl;
         cout << "--------------------------------------" << endl;
     }
 
@@ -131,6 +179,7 @@ private:
     int nbParallelEdges = 0;
     int nbEdges = 0;
     int nbVertices = 0;
+    float connectedRatio = 0;
     
     json importJson() {
         ifstream jsonFile(osmFilePath);

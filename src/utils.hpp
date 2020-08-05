@@ -94,3 +94,13 @@ void print_graph_properties(vector<vector<T>> graph) {
     cout << "#Edges : " << nbEdges << endl;
     cout << "--------------------------------" << endl;
 }
+
+vector<vector<Edge>> reverseGraph(vector<vector<Edge>>& graph) {
+    vector<vector<Edge>> reversedGraph(graph.size(), vector<Edge>());
+    for (int source = 0; source<graph.size(); source++) {
+        for (auto& edge : graph[source]) {
+            reversedGraph[edge.getDestinationVertex()].push_back(Edge(source, edge.getWeight()));
+        }
+    }
+    return reversedGraph;
+}
