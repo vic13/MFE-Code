@@ -1,5 +1,5 @@
 *.out
 .DS_Store
 .vscode/
-src/OSM_graph_data/graph_4_be_ctr.json
-src/OSM_graph_data/graph_5_be.json
+src/graph_data_OSM/graph_4_be_ctr.json
+src/graph_data_OSM/graph_5_be.json

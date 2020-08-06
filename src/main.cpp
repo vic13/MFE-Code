@@ -10,7 +10,7 @@ using std::pair;
 using std::make_pair;
 using std::string;
 
-#include "Parameters.hpp"
+#include "parameters.hpp"
 #include "Edge.hpp"
 #include "utils.hpp"
 #include "Dijkstra.hpp"
@@ -18,96 +18,38 @@ using std::string;
 #include "OSMGraph.hpp"
 #include "BarabasiAlbertGraph.hpp"
 #include "ErdosRenye.hpp"
-#include "View.hpp"
+#if (PARAMS_VIEW)
+    #include "View.hpp"
+#endif
 #include "CH.hpp"
 #include "DijkstraCHQuery.hpp"
-
-bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 1000) {
-    bool correct = true;
-    float eps = 0.002;
-    
-    print_graph_properties(adjacencyList);
-    print_graph_properties(adjacencyListCH);
-
-    auto avgDijkstra = 0.0;
-    auto avgDijkstraCH = 0.0;
-    int avgSearchSpaceDijkstra = 0;
-    int avgSearchSpaceDijkstraCH = 0;
-
-    for (int i = 0; i<nbRuns; i++) {
-        int s = randomInt(adjacencyList.size());
-        int t = randomInt(adjacencyList.size());
-
-        Dijkstra dijkstra(adjacencyList, s, t);
-        DijkstraCHQuery dijkstraCH(adjacencyListCH, s, t);
-        
-        auto t1 = std::chrono::high_resolution_clock::now();
-        bool c1 = dijkstra.compute();
-        auto t2 = std::chrono::high_resolution_clock::now();
-        bool c2 = dijkstraCH.compute();
-        auto t3 = std::chrono::high_resolution_clock::now();
-
-        avgDijkstra += std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-        avgDijkstraCH += std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
-        avgSearchSpaceDijkstra += dijkstra.getSearchSpace();
-        avgSearchSpaceDijkstraCH += dijkstraCH.getSearchSpace();
-
-        if (c1 != c2) {
-            cout << "Wrong for s : " << s << " and t : " << t << " (c1 : " << c1 << " and c2 : " << c2 << endl;
-            correct = false;
-        } else {
-            if (c1 == true) {
-                float error = abs(dijkstra.getPathWeight() - dijkstraCH.getPathWeight());
-                if (error > eps) {
-                    cout << "Wrong for s : " << s << " and t : " << t << " (w1 : " << dijkstra.getPathWeight() << " and w2 : " << dijkstraCH.getPathWeight() << " dw : " << dijkstraCH.getPathWeight()-dijkstra.getPathWeight() << endl;
-                    correct = false;
-                }
-            }
-        }
-    }
-    cout << "------- Dijkstra vs CH Query -------" << endl;
-    cout << "Average time dijkstra : " << avgDijkstra/(1000.0*nbRuns) << " ms" << endl;
-    cout << "Average time dijkstraCH : " << avgDijkstraCH/(1000.0*nbRuns) << " ms" << endl;
-    cout << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
-    cout << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << " settled nodes" << endl;
-    cout << "Average search space dijkstraCH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << " settled nodes" << endl;
-    cout << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
-    cout << "------------------------------------" << endl;
-    return correct;
-}
+#include "Benchmark.hpp"
 
 int main() {
     cout << endl << "Hello world !" << endl << endl;
-
     initRandom();
+    Clock clock("Program duration", false);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
-
-    OSMGraph osmGraph("./OSM_graph_data/graph_2_bxl_ctr.json");
+    OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     osmGraph.printImportStats();
     print_graph_properties(adjacencyList);
-    //View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
+    #if (PARAMS_VIEW) 
+        View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates()); 
+    #endif
 
-    CH ch(adjacencyList);
-    vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
-    
-    // writeGraphToFile("./OSM_graph_serialized/graph", adjacencyListCH);
-    // vector<vector<CHQueryEdge>> adjacencyListCH = readGraphFromFile("./OSM_graph_serialized/graphBxlCenter");
-    // print_graph_properties(adjacencyListCH2);
-    // printNetwork(adjacencyListCH, 2);
-    // printNetwork(adjacencyListCH2, 2);
-    
-    // BarabasiAlbertGraph barabasiAlbertGraph(2000, 2);
-    // vector<vector<Edge>> adjacencyList = barabasiAlbertGraph.build();
-    // ErdosRenye erdosRenyeGraph(10000, 9000);
-    // vector<vector<Edge>> adjacencyList = erdosRenyeGraph.build();
+    vector<vector<CHQueryEdge>> adjacencyListCH;
+    if (PARAMS_READ_CH_FROM_FILE) {
+        adjacencyListCH = readGraphFromFile(PATH_CH_GRAPHS PARAMS_GRAPH_NAME CH_GRAPHS_EXTENSION);
+    } else {
+        CH ch(adjacencyList);
+        adjacencyListCH = ch.preprocess();
+        if (PARAMS_WRITE_CH_TO_FILE) writeGraphToFile(PATH_CH_GRAPHS PARAMS_GRAPH_NAME CH_GRAPHS_EXTENSION, adjacencyListCH);
+    }
 
-    testCorrectness(adjacencyList, adjacencyListCH) ? cout << "Correct" << endl : cout << "Not correct" << endl;
+    if (PARAMS_QUERY_BENCHMARK) Benchmark::queryBenchmark(adjacencyList, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
     
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-    cout << "Program duration : " << duration/1000000.0 << " seconds" << endl;
+    clock.lap(true);
     
 }
 
