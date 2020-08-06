@@ -27,8 +27,7 @@ public:
                 // finished
                 return true;
             } else {
-                vector<Edge> edges = graph[visitedVertexNb];
-                for (auto& e : edges) {
+                for (auto& e : graph[visitedVertexNb]) {
                     float neighbourCurrentWeight = vertexWeights[e.getDestinationVertex()];
                     float neighbourNewWeight = visitedVertexWeight + e.getWeight();
                     if ((neighbourCurrentWeight == -1.0f) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found

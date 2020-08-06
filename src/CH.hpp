@@ -311,8 +311,7 @@ private:
                 break;
             } else {
                 if (hops[visitedVertexNb] > hopLimits[hopIndex]) continue;
-                vector<CHEdge*> edges = g_R.getIncidenceList()[visitedVertexNb].first;
-                for (auto& e : edges) {
+                for (auto& e : g_R.getIncidenceList()[visitedVertexNb].first) {
                     if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
                     float neighbourCurrentWeight = vertexWeights[e->getDestinationVertex()];
                     float neighbourNewWeight = visitedVertexWeight + e->getWeight();
