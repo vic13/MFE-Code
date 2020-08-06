@@ -93,21 +93,22 @@ public:
     }
 
     void stallPropagate(int u, float stallingDistance) {
-        //cout << "propagate" << endl;
-        queue<int> q({u});
+        float delta = 0.001;
+        queue<pair<int, float>> q({make_pair(u, stallingDistance)});
         while (!q.empty()) {
-            int x = q.front();
+            pair<int, float> x_pair = q.front();
             q.pop();
-            //cout << x << endl;
+            int x = x_pair.first;
+            float x_distance = x_pair.second;
             for (auto& edge : graph[x]) {
                 if (edge.isSameDirection(direction)) {
                     int v = edge.getDestinationVertex();
-                    float newDistance = stallingDistance + edge.getWeight();
-                    if ((*vertexWeights)[v] == -1 || (*stalled)[v] || (*vertexWeights)[v] <= newDistance) { // if unreached, already stalled, or no better distance
+                    float newDistance = x_distance + edge.getWeight();
+                    if (((*vertexWeights)[v] == -1) || ((*stalled)[v]) || ((*vertexWeights)[v] <= newDistance + delta)) { // if unreached, already stalled, or no better distance
                         continue;
                     }
                     (*stalled)[v] = true;
-                    q.push(v);
+                    q.push(make_pair(v, newDistance));
                 }
             }
         }

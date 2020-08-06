@@ -22,7 +22,7 @@ using std::string;
 #include "CH.hpp"
 #include "DijkstraCHQuery.hpp"
 
-bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 100) {
+bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = 1000) {
     bool correct = true;
     float eps = 0.002;
     
@@ -37,6 +37,7 @@ bool testCorrectness(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEd
     int wrong = 0;
 
     for (int i = 0; i<nbRuns; i++) {
+        // cout << "Run " << i << endl;
         int s = randomInt(adjacencyList.size());
         int t = randomInt(adjacencyList.size());
 
