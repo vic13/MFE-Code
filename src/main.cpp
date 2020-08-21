@@ -11,6 +11,7 @@ using std::make_pair;
 using std::string;
 
 #include "parameters.hpp"
+#include "TTF.hpp"
 #include "Edge.hpp"
 #include "utils.hpp"
 #include "Dijkstra.hpp"
@@ -29,6 +30,12 @@ int main() {
     cout << endl << "Hello world !" << endl << endl;
     initRandom();
     Clock clock("Program duration", false);
+    
+    vector<pair<float,float>> points({make_pair(0,10), make_pair(360,10), make_pair(360,0), make_pair(1440,0)});
+    TTF f1(points);
+    cout << f1.evaluate(1440) << endl;
+
+    return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
