@@ -61,6 +61,20 @@ int randomInt(int moduloValue) {
     return rand() % moduloValue;
 }
 
+TTF randomTTF() {
+    vector<pair<float,float>> points;
+    float x = 0;
+    while (true) {
+        if (x>TTF::period) x=TTF::period;
+        float y = 10*random01();
+        points.push_back(make_pair(x,y));
+        if (x==TTF::period) break;
+        float dx = 1000*random01();
+        x += dx;
+    }
+    return TTF(points);
+}
+
 template <typename T>
 void printNetwork(vector<vector<T>> graph, int nbVertices) {
     for (int a=0; a<nbVertices; a++) {

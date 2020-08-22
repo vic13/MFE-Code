@@ -12,7 +12,7 @@
 #define PARAMS_GRAPH_NAME                           GRAPH_NAME_2
 #define PARAMS_READ_CH_FROM_FILE                    false
 #define PARAMS_WRITE_CH_TO_FILE                     true                   // Only used if not 'PARAMS_READ_CH_FROM_FILE'
-#define PARAMS_SEED                                 123                      // -1 for random seed
+#define PARAMS_SEED                                 -1                      // -1 for random seed
 #define PARAMS_QUERY_BENCHMARK                      true
 #define PARAMS_NB_RUNS_QUERY_BENCHMARK              100
-#define PARAMS_VIEW                                 false
+#define PARAMS_VIEW                                 true

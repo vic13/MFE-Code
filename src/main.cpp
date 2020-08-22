@@ -31,9 +31,14 @@ int main() {
     initRandom();
     Clock clock("Program duration", false);
     
-    vector<pair<float,float>> points({make_pair(0,10), make_pair(360,10), make_pair(360,0), make_pair(1440,0)});
-    TTF f1(points);
-    cout << f1.evaluate(1440) << endl;
+    // vector<pair<float,float>> points1({make_pair(0,5), make_pair(10,0)});
+    // TTF f1(points1);
+    // vector<pair<float,float>> points2({make_pair(0,0), make_pair(7,0), make_pair(7,5), make_pair(10,5)});
+    // TTF f2(points2);
+    TTF f1 = randomTTF();
+    TTF f2 = randomTTF();
+    // cout << f1.evaluate(400);
+    View::displayTTF({f1, f2, TTF::minimum(f1,f2)});
 
     return 0;
 

@@ -66,4 +66,30 @@ public:
         displayNetwork(adjacencyList, verticesCoordinates);
     }
 
+    static void displayTTF(vector<TTF> ttfs) {
+        
+        plt::figure_size(700, 400);
+        for (int i = 0; i<ttfs.size(); i++) {
+            TTF f = ttfs[i];
+            vector<float> x;
+            vector<float> y;
+            for (auto& point : f.getPoints()) {
+                x.push_back(point.first);
+                y.push_back(point.second);
+            }
+            if (i==ttfs.size()-1) {
+                std::map<string,string> keywords; 
+                keywords["linewidth"] = "5";
+                keywords["alpha"] = "0.3";
+                plt::plot(x, y, keywords);
+            } else {
+                plt::plot(x, y);
+            }
+        }
+        
+        plt::ylim(-5,15);
+        plt::xlim(-100,(int)TTF::period+100);
+        plt::show();
+    }
+
 };
