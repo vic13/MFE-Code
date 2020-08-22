@@ -45,6 +45,9 @@ public:
         vector<pair<float,float>> points;
         int index1 = 0;
         int index2 = 0;
+        // float t = reverseChaining(f1.points[0], f1.points[1], f1.points[1].first+f1.points[1].second);
+        // cout << t << endl;
+        // cout << t + interpolation(f1.points[0], f1.points[1], t) << endl;
         if (f1.points[0].second <= f2.points[0].second) {
             points.push_back(f1.points[0]);
         } else {
@@ -97,6 +100,14 @@ private:
         return (distance_down * value_up + distance_up * value_down) / (distance_down + distance_up);
     }
 
+    // f(t) = ((p2.second - p1.second)*t + p1.first*p2.second + p2.first*p1.second) / (p2.first - p1.first); (interpolation)
+    // Solves t + f(t) = t2 for given t2 and f 
+    static float reverseChaining(pair<float,float> p1, pair<float,float> p2, float t2) {
+        float t = (t2*(p2.first - p1.first) - p1.first*p2.second - p2.first*p1.second) / (p2.second - p1.second + p2.first - p1.first);  
+        return t;
+    }
+    
+
     static pair<float,float> intersection(pair<float,float> p, pair<float,float> p2, pair<float,float> q, pair<float,float> q2) {
         pair<float,float> r = p2 - p;
         pair<float,float> s = q2 - q;
@@ -111,7 +122,7 @@ private:
             if (t>= 0 && t<= 1 && u>= 0 && u<= 1) {
                 return p + (t*r);                       // Intersection
             } else {
-                cout << "no intersection : " << endl;
+                // cout << "no intersection : " << endl;
                 return make_pair(-1,-1);                // No intersection
             }
         }
