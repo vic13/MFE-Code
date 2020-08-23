@@ -37,9 +37,7 @@ int main() {
     TTF f2 = randomTTF();
     // cout << f1.evaluate(400);
     // View::displayTTF({f1, f2, TTF::minimum(f1,f2)});
-    View::displayTTF({f1, f2, TTF::chaining(f1,f2)});
-
-    return 0;
+    // View::displayTTF({f1, f2, TTF::chaining(f1,f2)});
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();

@@ -103,11 +103,11 @@ public:
     vector<vector<Edge>> transformToStronglyConnectedGraph(vector<vector<Edge>>& graph, int s) {
         vector<vector<Edge>> stronglyConnectedGraph;
 
-        Dijkstra fromS(graph, s, -1); // t set to -1 to disable stopping criteria
+        Dijkstra<Edge> fromS(graph, s, -1); // t set to -1 to disable stopping criteria
         fromS.compute();
         vector<float> weightsFromS = fromS.getWeights();
         vector<vector<Edge>> reversedGraph = reverseGraph(graph);
-        Dijkstra toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
+        Dijkstra<Edge> toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
         toS.compute();
         vector<float> weightsToS = toS.getWeights();
 

@@ -18,7 +18,7 @@ public:
             int s = randomInt(adjacencyList.size());
             int t = randomInt(adjacencyList.size());
 
-            Dijkstra dijkstra(adjacencyList, s, t);
+            Dijkstra<Edge> dijkstra(adjacencyList, s, t);
             DijkstraCHQuery dijkstraCH(adjacencyListCH, s, t);
             
             auto t1 = std::chrono::high_resolution_clock::now();

@@ -55,3 +55,26 @@ public:
 private:
     bool direction; // true -> up; false -> down
 };
+
+class TDEdge {
+public:
+    TDEdge(int destinationVertex, TTF ttf) : ttf(ttf) {
+        this->destinationVertex = destinationVertex;
+    }
+
+    float getWeight(float t=0) {
+        return this->ttf.evaluate(t);
+    }
+
+    int getDestinationVertex() {
+        return this->destinationVertex;
+    }
+
+    void setWeight(TTF ttf) {
+        this->ttf = ttf;
+    }
+
+protected:
+    int destinationVertex;
+    TTF ttf;
+};

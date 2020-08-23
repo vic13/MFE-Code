@@ -2,10 +2,10 @@
 #include <set>
 using std::set;
 
-
+template <class T>
 class Dijkstra {
 public:
-    Dijkstra(vector<vector<Edge>>& graph, int s, int t) {
+    Dijkstra(vector<vector<T>>& graph, int s, int t) {
         this->graph = graph;
         this->t = t;
         this->s = s;
@@ -29,7 +29,7 @@ public:
             } else {
                 for (auto& e : graph[visitedVertexNb]) {
                     float neighbourCurrentWeight = vertexWeights[e.getDestinationVertex()];
-                    float neighbourNewWeight = visitedVertexWeight + e.getWeight();
+                    float neighbourNewWeight = visitedVertexWeight + getEdgeWeight(e, visitedVertexWeight);
                     if ((neighbourCurrentWeight == -1.0f) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
                         if (neighbourCurrentWeight != -1.0f) {                                                              
                             // if current weight not infinite : vertex already in queue : DELETE before inserting the updated vertex
@@ -84,12 +84,15 @@ public:
     void printVertexWeights() {
         print_vector(this->vertexWeights);
     }
-  
 
+    virtual float getEdgeWeight(T e, float visitedVertexWeight) {
+        return e.getWeight();
+    }
+  
 private:
     int t;
     int s;
-    vector<vector<Edge>> graph;
+    vector<vector<T>> graph;
     set<pair<float, int>> vertexSet;
     vector<float> vertexWeights;
     vector<int> vertexParents;
@@ -110,5 +113,18 @@ private:
     vector<int> initVertexParents() {
         return vector<int>(graph.size(), -1); // -1 corresponds to no parent
     }
-    
+};
+
+class DijkstraTD : public Dijkstra<TDEdge> {
+public:
+    DijkstraTD(vector<vector<TDEdge>>& graph, int s, int t, float startingTime): Dijkstra(graph, s, t) {
+        this->startingTime = startingTime;
+    }
+
+    float getEdgeWeight(TDEdge e, float visitedVertexWeight) {
+        return e.getWeight(startingTime + visitedVertexWeight);
+    }
+
+private:
+    float startingTime;
 };
