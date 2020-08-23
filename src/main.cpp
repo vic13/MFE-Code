@@ -21,7 +21,9 @@ using std::string;
     #include "View.hpp"
 #endif
 #include "CH/CHGraph.hpp"
+#include "CH/CHTemplate.hpp"
 #include "CH/CH.hpp"
+#include "CH/TCH.hpp"
 #include "CH/DijkstraCHQuery.hpp"
 #include "Benchmark.hpp"
 
