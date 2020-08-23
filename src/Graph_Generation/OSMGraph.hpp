@@ -1,7 +1,7 @@
 
 #include <cmath>
 #include <fstream>
-#include "external_headers/json.hpp"
+#include "../external_headers/json.hpp"
 using json = nlohmann::json;
 using std::ifstream;
 using std::string;
@@ -103,11 +103,11 @@ public:
     vector<vector<Edge>> transformToStronglyConnectedGraph(vector<vector<Edge>>& graph, int s) {
         vector<vector<Edge>> stronglyConnectedGraph;
 
-        Dijkstra<Edge> fromS(graph, s, -1); // t set to -1 to disable stopping criteria
+        Dijkstra fromS(graph, s, -1); // t set to -1 to disable stopping criteria
         fromS.compute();
         vector<float> weightsFromS = fromS.getWeights();
         vector<vector<Edge>> reversedGraph = reverseGraph(graph);
-        Dijkstra<Edge> toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
+        Dijkstra toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
         toS.compute();
         vector<float> weightsToS = toS.getWeights();
 

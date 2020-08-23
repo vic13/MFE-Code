@@ -62,7 +62,11 @@ public:
         this->destinationVertex = destinationVertex;
     }
 
-    float getWeight(float t=0) {
+    TTF getWeight() {
+        return this->ttf;
+    }
+
+    float evaluate(float t=0) {
         return this->ttf.evaluate(t);
     }
 
@@ -77,4 +81,36 @@ public:
 protected:
     int destinationVertex;
     TTF ttf;
+};
+
+class TCHEdge : public TDEdge {
+public:
+    TCHEdge(int sourceVertex, int destinationVertex, TTF ttf): TDEdge(destinationVertex, ttf) {
+        this->sourceVertex = sourceVertex;
+    }
+
+    int getSourceVertex() {
+        return this->sourceVertex;
+    }
+
+private:
+    int sourceVertex;
+};
+
+class TCHQueryEdge : public TDEdge {
+public:
+    TCHQueryEdge(int destinationVertex, TTF ttf, bool direction): TDEdge(destinationVertex, ttf) {
+        this->direction = direction;
+    }
+
+    bool isSameDirection(bool direction) {
+        return (this->direction == direction);
+    }
+
+    bool getDirection() {
+        return this->direction;
+    }
+
+private:
+    bool direction; // true -> up; false -> down
 };

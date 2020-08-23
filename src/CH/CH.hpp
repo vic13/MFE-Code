@@ -1,126 +1,3 @@
-#include <unordered_set>
-using std::unordered_set;
-
-class CHGraph {
-public:
-    CHGraph(vector<vector<Edge>> inputGraph) {
-        this->incidenceList = vector<pair<vector<CHEdge*>, vector<CHEdge*>>>(inputGraph.size(), make_pair(vector<CHEdge*>(), vector<CHEdge*>()));
-        for (int sourceVertex = 0; sourceVertex<inputGraph.size(); sourceVertex++) {
-            vector<Edge> edges = inputGraph[sourceVertex];
-            for (auto& edge : edges) {
-                int destinationVertex = edge.getDestinationVertex();
-                CHEdge* edgePtr = new CHEdge(sourceVertex, destinationVertex, edge.getWeight());
-                this->incidenceList[sourceVertex].first.push_back(edgePtr);
-                this->incidenceList[destinationVertex].second.push_back(edgePtr);
-                this->remainingEdgesNb++;
-            }
-        }
-        this->remainingVerticesNb = inputGraph.size();
-    }
-
-    vector<CHEdge> getOutgoingEdges(int vertex) {
-        vector<CHEdge> result;
-        for (auto& edgePtr : this->incidenceList[vertex].first) {
-            result.push_back(*edgePtr);
-        }
-        return result;
-    }
-
-    vector<CHEdge> getIngoingEdges(int vertex) {
-        vector<CHEdge> result;
-        for (auto& edgePtr : this->incidenceList[vertex].second) {
-            result.push_back(*edgePtr);
-        }
-        return result;
-    }
-
-    unordered_set<int> getNeighbours(int vertex) {
-        unordered_set<int> neighbours;
-        for (auto& edgePtr : this->incidenceList[vertex].first) {
-            neighbours.insert(edgePtr->getDestinationVertex());
-        }
-        for (auto& edgePtr : this->incidenceList[vertex].second) {
-            neighbours.insert(edgePtr->getSourceVertex());
-        }
-        return neighbours;
-    }
-
-    vector<pair<vector<CHEdge*>, vector<CHEdge*>>>& getIncidenceList() {
-        return this->incidenceList;
-    }
-
-    void removeVertex(int vertex) {
-        /* Removes the pointers to edges incident to the given vertex */
-        for (auto& edgePtr : this->incidenceList[vertex].first) { // outgoing edges
-            int destinationVertex = edgePtr->getDestinationVertex();
-            for (int edgeIndex = 0; edgeIndex<this->incidenceList[destinationVertex].second.size(); edgeIndex++) {
-                CHEdge* edgePtr2 = this->incidenceList[destinationVertex].second[edgeIndex];
-                if (edgePtr == edgePtr2) {
-                    this->incidenceList[destinationVertex].second.erase(this->incidenceList[destinationVertex].second.begin() + edgeIndex);
-                    this->remainingEdgesNb--;
-                }
-            }
-        }
-        for (auto& edgePtr : this->incidenceList[vertex].second) { // ingoing edges
-            int sourceVertex = edgePtr->getSourceVertex();
-            for (int edgeIndex = 0; edgeIndex<this->incidenceList[sourceVertex].first.size(); edgeIndex++) {
-                CHEdge* edgePtr2 = this->incidenceList[sourceVertex].first[edgeIndex];
-                if (edgePtr == edgePtr2) {
-                    this->incidenceList[sourceVertex].first.erase(this->incidenceList[sourceVertex].first.begin() + edgeIndex);
-                    this->remainingEdgesNb--;
-                }
-            }
-        }
-        this->remainingVerticesNb--;
-    }
-
-    void removeEdge(CHEdge* edgePtr) {
-        // Detach from source
-        int sourceVertex = edgePtr->getSourceVertex();
-        for (int sourceEdgeIndex = 0; sourceEdgeIndex<this->incidenceList[sourceVertex].first.size(); sourceEdgeIndex++) {
-            CHEdge* edgePtr2 = this->incidenceList[sourceVertex].first[sourceEdgeIndex];
-            if (edgePtr == edgePtr2) {
-                this->incidenceList[sourceVertex].first.erase(this->incidenceList[sourceVertex].first.begin() + sourceEdgeIndex);
-            }
-        }
-        // Detach from destination
-        int destinationVertex = edgePtr->getDestinationVertex();
-        for (int destinationEdgeIndex = 0; destinationEdgeIndex<this->incidenceList[destinationVertex].second.size(); destinationEdgeIndex++) {
-            CHEdge* edgePtr2 = this->incidenceList[destinationVertex].second[destinationEdgeIndex];
-            if (edgePtr == edgePtr2) {
-                this->incidenceList[destinationVertex].second.erase(this->incidenceList[destinationVertex].second.begin() + destinationEdgeIndex);
-            }
-        }
-        this->remainingEdgesNb--;
-    }
-
-    bool updateEdge(int u, int v, float newWeight) {
-        bool alreadyEdge = false;
-        for (auto& edgePtr : this->incidenceList[u].first) { // outgoing from u
-            if (edgePtr->getDestinationVertex() == v) {
-                // There exists a u-v edge : it should be replaced
-                alreadyEdge = true;
-                edgePtr->setWeight(newWeight);
-            }
-        }
-        return alreadyEdge;
-    }
-
-    void addEdge(CHEdge* edgePtr) {
-        this->incidenceList[edgePtr->getSourceVertex()].first.push_back(edgePtr); // outgoing from u
-        this->incidenceList[edgePtr->getDestinationVertex()].second.push_back(edgePtr); // ingoing to v
-        this->remainingEdgesNb++;
-    }
-
-    float getAverageDegree() {
-        return (float)remainingEdgesNb/(float)remainingVerticesNb;
-    }
-
-private:
-    vector<pair<vector<CHEdge*>, vector<CHEdge*>>> incidenceList;
-    int remainingVerticesNb = 0;
-    int remainingEdgesNb = 0;
-};
 
 class CH {
 /* This class implements Contracion Hierarchies preprocessing functions */
@@ -138,24 +15,24 @@ public:
     vector<vector<CHQueryEdge>> preprocess() {
         auto t1 = std::chrono::high_resolution_clock::now();
         this->buildVertexOrdering();
-        CHGraph g_H = constructCH();
+        this->constructCH();
         auto t2 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
         std::cout << "CH duration : " << duration/1000000.0 << " seconds" << endl;
-        vector<vector<CHQueryEdge>> g_star = convertToSearchGraph(g_H);
+        vector<vector<CHQueryEdge>> g_star = convertToSearchGraph(this->g_H);
         return g_star;
     }
 
 private:
-    CHGraph graph;
+    CHGraph<Edge, CHEdge> graph;
     vector<vector<Edge>> inputGraph;
     int n;
     set<pair<float, int>> vertexOrdering;
     vector<int> vertexOrderMap;
     vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering
     vector<int> deletedNeighbours;
-    CHGraph g_H = graph; // CH graph
-    CHGraph g_R = graph; // Remaining graph
+    CHGraph<Edge, CHEdge> g_H = graph; // CH graph
+    CHGraph<Edge, CHEdge> g_R = graph; // Remaining graph
     vector<float> vertexWeights; // Dijkstra weights (for memory optimisation)
     vector<float> vertexWeightsR; // Reference Dijkstra weights (for memory optimisation)
     vector<int> hops;
@@ -191,7 +68,7 @@ private:
         return 190*e + 120*d + 10*s;
     }
 
-    CHGraph constructCH() {
+    void constructCH() {
         int order = 0;
         while (!vertexOrdering.empty()) {
             int priorityVertex = (*(vertexOrdering.begin())).second;
@@ -221,8 +98,6 @@ private:
             if (100*order/(this->n-1) > 100*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<100*order/(this->n-1)<<" %\r"; cout.flush();}
             order++;
         }
-
-        return g_H;
     }
 
     void updateDeletedNeighbours(int deletedVertex) {
@@ -350,7 +225,7 @@ private:
         return make_pair(results, searchSpace);
     }
 
-    vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph g_H) {
+    vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph<Edge, CHEdge> g_H) {
         vector<vector<CHQueryEdge>> g_star = vector<vector<CHQueryEdge>>(this->n, vector<CHQueryEdge>());
         
         for (int u = 0; u<n; u++) {

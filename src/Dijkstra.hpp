@@ -3,9 +3,9 @@
 using std::set;
 
 template <class T>
-class Dijkstra {
+class DijkstraTemplate {
 public:
-    Dijkstra(vector<vector<T>>& graph, int s, int t) {
+    DijkstraTemplate(vector<vector<T>>& graph, int s, int t) {
         this->graph = graph;
         this->t = t;
         this->s = s;
@@ -85,9 +85,7 @@ public:
         print_vector(this->vertexWeights);
     }
 
-    virtual float getEdgeWeight(T e, float visitedVertexWeight) {
-        return e.getWeight();
-    }
+    virtual float getEdgeWeight(T e, float visitedVertexWeight) = 0;
   
 private:
     int t;
@@ -115,14 +113,23 @@ private:
     }
 };
 
-class DijkstraTD : public Dijkstra<TDEdge> {
+class Dijkstra : public DijkstraTemplate<Edge> {
 public:
-    DijkstraTD(vector<vector<TDEdge>>& graph, int s, int t, float startingTime): Dijkstra(graph, s, t) {
+    Dijkstra(vector<vector<Edge>>& graph, int s, int t): DijkstraTemplate<Edge>(graph, s, t) {}
+
+    float getEdgeWeight(Edge e, float visitedVertexWeight) {
+        return e.getWeight();
+    }
+};
+
+class DijkstraTD : public DijkstraTemplate<TDEdge> {
+public:
+    DijkstraTD(vector<vector<TDEdge>>& graph, int s, int t, float startingTime): DijkstraTemplate<TDEdge>(graph, s, t) {
         this->startingTime = startingTime;
     }
 
     float getEdgeWeight(TDEdge e, float visitedVertexWeight) {
-        return e.getWeight(startingTime + visitedVertexWeight);
+        return e.evaluate(startingTime + visitedVertexWeight);
     }
 
 private:

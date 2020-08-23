@@ -1,4 +1,3 @@
-
 #include <vector>
 #include <iostream>
 #include <chrono>
@@ -15,15 +14,15 @@ using std::string;
 #include "Edge.hpp"
 #include "utils.hpp"
 #include "Dijkstra.hpp"
-#include "TestGraph.hpp"
-#include "OSMGraph.hpp"
-#include "BarabasiAlbertGraph.hpp"
-#include "ErdosRenye.hpp"
+#include "Graph_Generation/OSMGraph.hpp"
+#include "Graph_Generation/BarabasiAlbertGraph.hpp"
+#include "Graph_Generation/ErdosRenye.hpp"
 #if (PARAMS_VIEW)
     #include "View.hpp"
 #endif
-#include "CH.hpp"
-#include "DijkstraCHQuery.hpp"
+#include "CH/CHGraph.hpp"
+#include "CH/CH.hpp"
+#include "CH/DijkstraCHQuery.hpp"
 #include "Benchmark.hpp"
 
 int main() {
@@ -31,14 +30,6 @@ int main() {
     initRandom();
     Clock clock("Program duration", false);
     
-    // TTF f1({make_pair(0,5), make_pair(10,0)});
-    // TTF f2({make_pair(0,0), make_pair(7,0), make_pair(7,5), make_pair(10,5)});
-    TTF f1 = randomTTF();
-    TTF f2 = randomTTF();
-    // cout << f1.evaluate(400);
-    // View::displayTTF({f1, f2, TTF::minimum(f1,f2)});
-    // View::displayTTF({f1, f2, TTF::chaining(f1,f2)});
-
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     osmGraph.printImportStats();
