@@ -36,18 +36,45 @@ public:
         return result;
     }
 
-    TTF chaining(TTF f1, TTF f2) {
-
-        return TTF(vector<pair<float,float>>());
+    static TTF chaining(TTF f1, TTF f2) {
+        vector<pair<float,float>> points;
+        int index1 = 0;
+        int index2 = 0;
+        int lap = 0;
+        
+        float f_12 = f1.points[0].second + f2.evaluate(f1.points[0].first+f1.points[0].second);
+        points.push_back(make_pair(f1.points[0].first, f_12));
+        while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
+            pair<float,float> p = f1.points[index1];
+            pair<float,float> q = f2.points[index2];
+            pair<float,float> next_p = f1.points[index1+1];
+            pair<float,float> next_q = f2.points[index2+1];
+            float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
+            if (t>next_p.first) {
+                float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
+                // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
+                // cout << f_12 - f_12_bis << endl;
+                points.push_back(make_pair(next_p.first, f_12));
+                index1++;
+            } else {
+                float f_12 = f1.evaluate(t) + next_q.second;
+                // float f_12_bis = interpolation(p, next_p, t) + next_q.second;
+                // cout << f_12 - f_12_bis << endl;
+                points.push_back(make_pair(t, f_12));
+                index2++;
+                if (index2==f2.points.size()-1) {
+                    index2 = 0;
+                    lap++;   // repetition of TTF if exceed period
+                }
+            }
+        }
+        return TTF(points);
     }
 
     static TTF minimum(TTF f1, TTF f2) {
         vector<pair<float,float>> points;
         int index1 = 0;
         int index2 = 0;
-        // float t = reverseChaining(f1.points[0], f1.points[1], f1.points[1].first+f1.points[1].second);
-        // cout << t << endl;
-        // cout << t + interpolation(f1.points[0], f1.points[1], t) << endl;
         if (f1.points[0].second <= f2.points[0].second) {
             points.push_back(f1.points[0]);
         } else {
@@ -100,14 +127,15 @@ private:
         return (distance_down * value_up + distance_up * value_down) / (distance_down + distance_up);
     }
 
-    // f(t) = ((p2.second - p1.second)*t + p1.first*p2.second + p2.first*p1.second) / (p2.first - p1.first); (interpolation)
+    // f(t) = ((p2.second - p1.second)*t - p1.first*p2.second + p2.first*p1.second) / (p2.first - p1.first); (interpolation)
     // Solves t + f(t) = t2 for given t2 and f 
     static float reverseChaining(pair<float,float> p1, pair<float,float> p2, float t2) {
-        float t = (t2*(p2.first - p1.first) - p1.first*p2.second - p2.first*p1.second) / (p2.second - p1.second + p2.first - p1.first);  
+        float num = (t2*(p2.first - p1.first) + p1.first*p2.second - p2.first*p1.second);
+        float den = (p2.second - p1.second + p2.first - p1.first);
+        float t = num / den;  
         return t;
     }
     
-
     static pair<float,float> intersection(pair<float,float> p, pair<float,float> p2, pair<float,float> q, pair<float,float> q2) {
         pair<float,float> r = p2 - p;
         pair<float,float> s = q2 - q;

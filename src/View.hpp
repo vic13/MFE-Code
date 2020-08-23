@@ -77,18 +77,17 @@ public:
                 x.push_back(point.first);
                 y.push_back(point.second);
             }
+            std::map<string,string> keywords;
+            keywords["marker"] = ".";
             if (i==ttfs.size()-1) {
-                std::map<string,string> keywords; 
                 keywords["linewidth"] = "5";
                 keywords["alpha"] = "0.3";
-                plt::plot(x, y, keywords);
-            } else {
-                plt::plot(x, y);
             }
+            plt::plot(x, y, keywords);
         }
         
-        plt::ylim(-5,15);
-        plt::xlim(-100,(int)TTF::period+100);
+        // plt::ylim(-1,20);
+        plt::xlim(-50,(int)TTF::period+50);
         plt::show();
     }
 

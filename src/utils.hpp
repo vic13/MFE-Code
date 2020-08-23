@@ -64,13 +64,20 @@ int randomInt(int moduloValue) {
 TTF randomTTF() {
     vector<pair<float,float>> points;
     float x = 0;
+    float y = 0;
+    points.push_back(make_pair(x,10*random01()));
     while (true) {
-        if (x>TTF::period) x=TTF::period;
-        float y = 10*random01();
+        float dx = 60*random01();
+        if (x+dx > TTF::period) dx=TTF::period-x;
+        float newY = 600*random01();
+        float dy = newY - y;
+        if (dy/dx < -1) { // not respect FIFO
+            dy = -0.999*dx;
+        }
+        y += dy;
+        x += dx;
         points.push_back(make_pair(x,y));
         if (x==TTF::period) break;
-        float dx = 1000*random01();
-        x += dx;
     }
     return TTF(points);
 }
