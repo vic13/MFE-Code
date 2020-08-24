@@ -1,5 +1,6 @@
 
 #include <math.h>
+#include <cmath>
 
 pair<float, float> operator -(const std::pair<float, float>& x, const std::pair<float, float>& y) {
     return make_pair(x.first - y.first, x.second - y.second);
@@ -25,13 +26,6 @@ public:
         setExtrema();
     }
 
-    void setExtrema() {
-        for (auto& point : this->points) {
-            if (point.second > maxima || maxima == -1) maxima = point.second;
-            if (point.second < minima || minima == -1) minima = point.second;
-        }
-    }
-
     float evaluate(float t) {
         t = fmod(t, period);
         // logarithmic search
@@ -51,32 +45,32 @@ public:
 
     static TTF chaining(TTF f1, TTF f2) {
         vector<pair<float,float>> points;
+        TTF f(points);
         int index1 = 0;
         int index2 = 0;
         int lap = 0;
         
         float f_12 = f1.points[0].second + f2.evaluate(f1.points[0].first+f1.points[0].second);
-        points.push_back(make_pair(f1.points[0].first, f_12));
+        f.tryToAddPoint(make_pair(f1.points[0].first, f_12));
         while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
-            cout << index1 << " : " << index2 << endl;
             pair<float,float> p = f1.points[index1];
             pair<float,float> q = f2.points[index2];
             pair<float,float> next_p = f1.points[index1+1];
             pair<float,float> next_q = f2.points[index2+1];
             float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
-            if (t>next_p.first) {
-                cout << "ho" << endl;
+            if (t>next_p.first || p.first == next_p.first) {
                 float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
                 // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
                 // cout << f_12 - f_12_bis << endl;
-                points.push_back(make_pair(next_p.first, f_12));
+                pair<float, float> newP = make_pair(next_p.first, f_12);
+                f.tryToAddPoint(newP);
                 index1++;
             } else {
-                cout << "hey" << endl;
                 float f_12 = f1.evaluate(t) + next_q.second;
                 // float f_12_bis = interpolation(p, next_p, t) + next_q.second;
                 // cout << f_12 - f_12_bis << endl;
-                points.push_back(make_pair(t, f_12));
+                pair<float, float> newP = make_pair(t, f_12);
+                f.tryToAddPoint(newP);
                 index2++;
                 if (index2==f2.points.size()-1) {
                     index2 = 0;
@@ -84,17 +78,18 @@ public:
                 }
             }
         }
-        return TTF(points);
+        return f;
     }
 
     static TTF minimum(TTF f1, TTF f2) {
         vector<pair<float,float>> points;
+        TTF f(points);
         int index1 = 0;
         int index2 = 0;
         if (f1.points[0].second <= f2.points[0].second) {
-            points.push_back(f1.points[0]);
+            f.tryToAddPoint(f1.points[0]);
         } else {
-            points.push_back(f2.points[0]);
+            f.tryToAddPoint(f2.points[0]);
         }
         while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
             pair<float,float> p = f1.points[index1];
@@ -102,29 +97,37 @@ public:
             pair<float,float> next_p = f1.points[index1+1];
             pair<float,float> next_q = f2.points[index2+1];
             pair<float,float> x = intersection(p, f1.points[index1+1], q, f2.points[index2+1]);
-            if (x.first != -1) points.push_back(x);
+            if (x.first != -1) f.tryToAddPoint(x);
             float t1 = next_p.first;
             float t2 = next_q.first;
             if (t1 < t2) {
                 if (next_p.second <= interpolation(q, next_q, t1)) {
-                    points.push_back(next_p);
+                    f.tryToAddPoint(next_p);
                 }
                 index1++;
             } else if (t1 > t2) {
                 if (next_q.second <= interpolation(p, next_p, t2)) {
-                    points.push_back(next_q);
+                    f.tryToAddPoint(next_q);
                 }
                 index2++;
             } else {
                 if (next_p.second <= next_q.second) {
-                    points.push_back(next_p);
+                    f.tryToAddPoint(next_p);
                 } else {
-                    points.push_back(next_q);
+                    f.tryToAddPoint(next_q);
                 }
                 index1++;
             }
         }
-        return TTF(points);
+        return f;
+    }
+
+    void print() {
+        cout << "------Print------" << endl;
+        for (auto& p : this->points) {
+            cout << "make_pair(" << p.first << "," << p.second << "),";
+        }
+        cout << endl << "-----------------" << endl;
     }
 
     vector<pair<float,float>> getPoints() {
@@ -144,6 +147,43 @@ private:
     float minima = -1;
     float maxima = -1;
 
+    void tryToAddPoint(pair<float,float> p) {
+        if (std::isinf(p.first) || std::isinf(p.second)) {
+            cout << "problem1 : " << p.first << " : " << p.second << endl;
+            exit(0);
+        }
+        if (points.size() == 0) {
+            addPoint(p);
+        } else {
+            if (p.first < points.back().first) {
+                cout << "problem1 : " << p.first << " : " << points.back().first << endl;
+                cout << "-------- : " << p.second << " : " << points.back().second << endl;
+                exit(0);
+            }
+            if (differentPoint(points.back(), p)) addPoint(p);
+        }
+    }
+
+    void addPoint(pair<float,float> p) {
+        points.push_back(p);
+        setExtrema(p);
+    }
+
+    void setExtrema() {
+        for (auto& p : this->points) {
+            setExtrema(p);
+        }
+    }
+
+    void setExtrema(pair<float,float> p) {
+        if (p.second > maxima || maxima == -1) maxima = p.second;
+        if (p.second < minima || minima == -1) minima = p.second;
+    }
+
+    static bool differentPoint(pair<float,float> previousPoint, pair<float,float> newPoint) {
+        return (previousPoint.first != newPoint.first || previousPoint.second != newPoint.second); 
+    }
+
     static float interpolation(pair<float,float> p1, pair<float,float> p2, float t) {
         float distance_down = (t - p1.first);
         float distance_up = (p2.first - t);
@@ -157,7 +197,7 @@ private:
     static float reverseChaining(pair<float,float> p1, pair<float,float> p2, float t2) {
         float num = (t2*(p2.first - p1.first) + p1.first*p2.second - p2.first*p1.second);
         float den = (p2.second - p1.second + p2.first - p1.first);
-        float t = num / den;  
+        float t = num / den;
         return t;
     }
     
@@ -167,7 +207,7 @@ private:
         // cout << "p : " << p.first << " " << p.second << "q : " << q.first << " " << q.second << "r : " << r.first << " " << r.second << "s : " << s.first << " " << s.second << endl;
         float x = cross(r,s);
         if (x == 0) {
-            cout << "parallel : " << endl;
+            // cout << "parallel : " << endl;
             return make_pair(-1,-1);                    // Parallel : no intersection
         } else {
             float t = cross(q-p, s) / x;

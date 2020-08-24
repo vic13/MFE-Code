@@ -13,6 +13,6 @@
 #define PARAMS_READ_CH_FROM_FILE                    false
 #define PARAMS_WRITE_CH_TO_FILE                     false                   // Only used if not 'PARAMS_READ_CH_FROM_FILE'
 #define PARAMS_SEED                                 1598118811                      // -1 for random seed
-#define PARAMS_QUERY_BENCHMARK                      true
+#define PARAMS_QUERY_BENCHMARK                      false
 #define PARAMS_NB_RUNS_QUERY_BENCHMARK              100
 #define PARAMS_VIEW                                 false

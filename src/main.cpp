@@ -32,13 +32,18 @@ int main() {
     initRandom();
     Clock clock("Program duration", false);
 
-    TTF f1({make_pair(0,10), make_pair(1000,10), make_pair(1000,11), make_pair(1440,10)});
-    TTF f2({make_pair(0,5), make_pair(1000,10), make_pair(1440,5)});
+    // TTF f1({
+    //     make_pair(0,10),make_pair(1440,10)
+    // });
+    // TTF f2({
+    //     make_pair(0,15),make_pair(0,25),make_pair(1440,15)
+    // });
     // View::displayTTF({f1,f2});
-    TTF f3 = TTF::chaining(f1,f2);
+    // TTF f3 = TTF::chaining(f1,f2);
+    // f3.print();
     // cout << f3.getPoints().size() << endl;
     // View::displayTTF({f1,f2,f3});
-    return 0;
+    // return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
@@ -48,8 +53,10 @@ int main() {
         View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates()); 
     #endif
 
-    TCH tch(convertToTDGraph(adjacencyList));
+    vector<vector<TDEdge>> adjacencyListTD = convertToTDGraph(adjacencyList);
+    TCH tch(adjacencyListTD);
     vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
+    print_graph_properties(adjacencyListTCH);
     return 0;
 
     vector<vector<CHQueryEdge>> adjacencyListCH;
@@ -58,6 +65,7 @@ int main() {
     } else {
         CH ch(adjacencyList);
         adjacencyListCH = ch.preprocess();
+        print_graph_properties(adjacencyListCH);
         if (PARAMS_WRITE_CH_TO_FILE) writeGraphToFile(PATH_CH_GRAPHS PARAMS_GRAPH_NAME CH_GRAPHS_EXTENSION, adjacencyListCH);
     }
 

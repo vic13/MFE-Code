@@ -68,6 +68,7 @@ protected:
 
     void constructCH() {
         int order = 0;
+        int a = 0;
         while (!vertexOrdering.empty()) {
             int priorityVertex = (*(vertexOrdering.begin())).second;
             // Lazy update : update ordering, and sample another vertex if it is no longer on top of the queue
@@ -76,7 +77,11 @@ protected:
                 continue;
             }
             vertexOrdering.erase(vertexOrdering.begin());
-            contractVertex(priorityVertex, false);
+            vector<int> res = contractVertex(priorityVertex, false);
+            // if (order >= 4740) {
+            //     a+=res[0];
+            //     cout << "order " << order << " ; " << a << endl;
+            // }
             updateDeletedNeighbours(priorityVertex); // Priority term
             g_R.removeVertex(priorityVertex);
             vertexOrderMap[priorityVertex] = order;
