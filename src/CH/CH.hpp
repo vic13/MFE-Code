@@ -1,7 +1,7 @@
 
-class CH : public CHTemplate<Edge, CHEdge, CHQueryEdge> {
+class CH : public CHTemplate<Edge, CHEdge, CHQueryEdge, float> {
 public:
-    CH(vector<vector<Edge>> inputGraph) : CHTemplate<Edge, CHEdge, CHQueryEdge>(inputGraph) {}
+    CH(vector<vector<Edge>> inputGraph) : CHTemplate<Edge, CHEdge, CHQueryEdge, float>(inputGraph) {}
 
     vector<int> contractVertex(int vertexNb, bool simulation) {
         int addedShortcuts = 0;
@@ -44,7 +44,6 @@ public:
                                 g_R.addEdge(edgePtr);
                                 g_H.addEdge(edgePtr);
                             }
-                            
                         }
                     }
                 }
@@ -111,7 +110,6 @@ public:
                 // Remove edge
                 g_R.removeEdge(edge);
                 g_H.removeEdge(edge);
-
             }
         }
         // Return result

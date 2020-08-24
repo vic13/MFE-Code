@@ -1,7 +1,7 @@
 #include <unordered_set>
 using std::unordered_set;
 
-template <class T_Edge, class T_CHEdge>
+template <class T_Edge, class T_CHEdge, class T_weight>
 class CHGraph {
 public:
     CHGraph(vector<vector<T_Edge>> inputGraph) {
@@ -95,13 +95,13 @@ public:
         this->remainingEdgesNb--;
     }
 
-    bool updateEdge(int u, int v, float newWeight) {
+    bool updateEdge(int u, int v, T_weight newWeight) {
         bool alreadyEdge = false;
         for (auto& edgePtr : this->incidenceList[u].first) { // outgoing from u
             if (edgePtr->getDestinationVertex() == v) {
                 // There exists a u-v edge : it should be replaced
                 alreadyEdge = true;
-                edgePtr->setWeight(newWeight);
+                edgePtr->setMinWeight(newWeight);
             }
         }
         return alreadyEdge;

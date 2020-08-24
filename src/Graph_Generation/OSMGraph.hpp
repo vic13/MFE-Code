@@ -145,8 +145,7 @@ public:
             if (edge.getDestinationVertex() == v) {
                 // There exists a u-v edge : it should be replaced by minimum weight
                 alreadyEdge = true;
-                float minWeight = fmin(edge.getWeight(), newWeight);
-                edge.setWeight(minWeight);
+                edge.setMinWeight(newWeight);
             }
         }
         if (!alreadyEdge) {

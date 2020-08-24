@@ -31,7 +31,15 @@ int main() {
     cout << endl << "Hello world !" << endl << endl;
     initRandom();
     Clock clock("Program duration", false);
-    
+
+    TTF f1({make_pair(0,10), make_pair(1000,10), make_pair(1000,11), make_pair(1440,10)});
+    TTF f2({make_pair(0,5), make_pair(1000,10), make_pair(1440,5)});
+    // View::displayTTF({f1,f2});
+    TTF f3 = TTF::chaining(f1,f2);
+    // cout << f3.getPoints().size() << endl;
+    // View::displayTTF({f1,f2,f3});
+    return 0;
+
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     osmGraph.printImportStats();
@@ -39,6 +47,10 @@ int main() {
     #if (PARAMS_VIEW) 
         View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates()); 
     #endif
+
+    TCH tch(convertToTDGraph(adjacencyList));
+    vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
+    return 0;
 
     vector<vector<CHQueryEdge>> adjacencyListCH;
     if (PARAMS_READ_CH_FROM_FILE) {

@@ -1,4 +1,4 @@
-template <class T_Edge, class T_CHEdge, class T_CHQueryEdge>
+template <class T_Edge, class T_CHEdge, class T_CHQueryEdge, class T_weight>
 class CHTemplate {
 /* This class implements Contracion Hierarchies preprocessing functions */
 public:
@@ -23,14 +23,14 @@ public:
     }
 
 protected:
-    CHGraph<T_Edge, T_CHEdge> graph;
+    CHGraph<T_Edge, T_CHEdge, T_weight> graph;
     int n;
     set<pair<float, int>> vertexOrdering;
     vector<int> vertexOrderMap;
     vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering
     vector<int> deletedNeighbours;
-    CHGraph<T_Edge, T_CHEdge> g_H = graph; // CH graph
-    CHGraph<T_Edge, T_CHEdge> g_R = graph; // Remaining graph
+    CHGraph<T_Edge, T_CHEdge, T_weight> g_H = graph; // CH graph
+    CHGraph<T_Edge, T_CHEdge, T_weight> g_R = graph; // Remaining graph
     vector<float> vertexWeights; // Dijkstra weights (for memory optimisation)
     vector<float> vertexWeightsR; // Reference Dijkstra weights (for memory optimisation)
     vector<int> hops;
@@ -104,7 +104,7 @@ protected:
         }
     }
 
-    vector<vector<T_CHQueryEdge>> convertToSearchGraph(CHGraph<T_Edge, T_CHEdge> g_H) {
+    vector<vector<T_CHQueryEdge>> convertToSearchGraph(CHGraph<T_Edge, T_CHEdge, T_weight> g_H) {
         vector<vector<T_CHQueryEdge>> g_star = vector<vector<T_CHQueryEdge>>(this->n, vector<T_CHQueryEdge>());
         for (int u = 0; u<n; u++) {
             vector<T_CHEdge*> edgePtrs = g_H.getIncidenceList()[u].first;

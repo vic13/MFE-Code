@@ -86,7 +86,7 @@ public:
             plt::plot(x, y, keywords);
         }
         
-        // plt::ylim(-1,20);
+        plt::ylim(-1,20);
         plt::xlim(-50,(int)TTF::period+50);
         plt::show();
     }

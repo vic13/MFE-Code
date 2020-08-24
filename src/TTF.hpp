@@ -13,10 +13,23 @@ pair<float, float> operator *(const float x, const std::pair<float, float>& y) {
 
 class TTF {
 public:
-    constexpr static float period = 1440;
+    inline constexpr static float period = 1440;
 
     TTF(vector<pair<float,float>> points) {
         this->points = points;
+        setExtrema();
+    }
+
+    TTF(float weight) {
+        this->points = {make_pair(0, weight), make_pair(period, weight)};
+        setExtrema();
+    }
+
+    void setExtrema() {
+        for (auto& point : this->points) {
+            if (point.second > maxima || maxima == -1) maxima = point.second;
+            if (point.second < minima || minima == -1) minima = point.second;
+        }
     }
 
     float evaluate(float t) {
@@ -45,18 +58,21 @@ public:
         float f_12 = f1.points[0].second + f2.evaluate(f1.points[0].first+f1.points[0].second);
         points.push_back(make_pair(f1.points[0].first, f_12));
         while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
+            cout << index1 << " : " << index2 << endl;
             pair<float,float> p = f1.points[index1];
             pair<float,float> q = f2.points[index2];
             pair<float,float> next_p = f1.points[index1+1];
             pair<float,float> next_q = f2.points[index2+1];
             float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
             if (t>next_p.first) {
+                cout << "ho" << endl;
                 float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
                 // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
                 // cout << f_12 - f_12_bis << endl;
                 points.push_back(make_pair(next_p.first, f_12));
                 index1++;
             } else {
+                cout << "hey" << endl;
                 float f_12 = f1.evaluate(t) + next_q.second;
                 // float f_12_bis = interpolation(p, next_p, t) + next_q.second;
                 // cout << f_12 - f_12_bis << endl;
@@ -114,10 +130,19 @@ public:
     vector<pair<float,float>> getPoints() {
         return this->points;
     }
+
+    float getMaxima() {
+        return this->maxima;
+    }
     
+    float getMinima() {
+        return this->minima;
+    }
 
 private:
     vector<pair<float,float>> points;
+    float minima = -1;
+    float maxima = -1;
 
     static float interpolation(pair<float,float> p1, pair<float,float> p2, float t) {
         float distance_down = (t - p1.first);

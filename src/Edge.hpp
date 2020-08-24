@@ -15,8 +15,10 @@ public:
         return this->destinationVertex;
     }
 
-    void setWeight(float weight) {
-        this->weight = weight;
+    void setMinWeight(float weight) {
+        if (weight < this->weight) {
+            this->weight = weight;
+        }
     }
 
 protected:
@@ -74,8 +76,8 @@ public:
         return this->destinationVertex;
     }
 
-    void setWeight(TTF ttf) {
-        this->ttf = ttf;
+    void setMinWeight(TTF ttf) {
+        this->ttf = TTF::minimum(ttf, this->ttf);
     }
 
 protected:
@@ -91,6 +93,14 @@ public:
 
     int getSourceVertex() {
         return this->sourceVertex;
+    }
+
+    float getMaxima() {
+        return this->ttf.getMaxima();
+    }
+
+    float getMinima() {
+        return this->ttf.getMinima();
     }
 
 private:

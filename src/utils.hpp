@@ -82,6 +82,18 @@ TTF randomTTF() {
     return TTF(points);
 }
 
+vector<vector<TDEdge>> convertToTDGraph(vector<vector<Edge>> graph) {
+    vector<vector<TDEdge>> tdGraph;
+    for (auto& edges : graph) {
+        vector<TDEdge> tdEdges;
+        for (auto& edge : edges) {
+            tdEdges.push_back(TDEdge(edge.getDestinationVertex(), TTF(edge.getWeight())));
+        }
+        tdGraph.push_back(tdEdges);
+    }
+    return tdGraph;
+}
+
 template <typename T>
 void printNetwork(vector<vector<T>> graph, int nbVertices) {
     for (int a=0; a<nbVertices; a++) {
