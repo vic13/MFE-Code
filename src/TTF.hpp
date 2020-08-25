@@ -14,7 +14,7 @@ pair<float, float> operator *(const float x, const std::pair<float, float>& y) {
 
 class TTF {
 public:
-    inline constexpr static float period = 1440;
+    inline constexpr static float period = 300;
 
     TTF(vector<pair<float,float>> points) {
         this->points = points;
@@ -53,8 +53,8 @@ public:
         // cout << f2.getPoints().size() << endl;
         while (f2.getPoints()[i].first + lap*period < f1.getPoints()[0].second) {
             i++;
-            // if (i==f2.getPoints().size()) {i=1; lap++;}
-            // cout << i << endl;
+            if (i==f2.getPoints().size()) {exit(0); i=1; lap++;}
+            cout << i << endl;
         }
         int j = 0;
         while (true) {

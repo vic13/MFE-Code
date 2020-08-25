@@ -32,12 +32,13 @@ int main() {
     initRandom();
     Clock clock("Program duration", false);
 
-    // TTF f1({
-    //     make_pair(0,10),make_pair(TTF::period,10)
-    // });
-    // TTF f2({
-    //     make_pair(0,15),make_pair(1,25),make_pair(TTF::period,15)
-    // });
+    float r = 10;
+    TTF f1({
+        make_pair(0,10*r),make_pair(200,7*r),make_pair(TTF::period,8*r)
+    });
+    TTF f2({
+        make_pair(0,15*r),make_pair(30,25*r),make_pair(TTF::period,10*r)
+    });
     // TTF f1({
     //     make_pair(0,10),make_pair(TTF::period,10)
     // });
@@ -50,8 +51,8 @@ int main() {
     // View::displayTTF({f1,f2});
     // f3.print();
     // View::displayTTF({f1,f2,f3});
-    TTF f1 = randomTTF();
-    TTF f2 = randomTTF();
+    // TTF f1 = randomTTF();
+    // TTF f2 = randomTTF();
     // View::displayTTF({f1,f2});
     TTF f3 = TTF::chaining(f1,f2);
     View::displayTTF({f1,f2,f3});
