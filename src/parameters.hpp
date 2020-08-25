@@ -15,4 +15,4 @@
 #define PARAMS_SEED                                 1598118811                      // -1 for random seed
 #define PARAMS_QUERY_BENCHMARK                      false
 #define PARAMS_NB_RUNS_QUERY_BENCHMARK              100
-#define PARAMS_VIEW                                 false
+#define PARAMS_VIEW                                 true

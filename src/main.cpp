@@ -50,7 +50,11 @@ int main() {
     // View::displayTTF({f1,f2});
     // f3.print();
     // View::displayTTF({f1,f2,f3});
-    // return 0;
+    TTF f1 = randomTTF();
+    TTF f2 = randomTTF();
+    TTF f3 = TTF::chaining(f1,f2);
+    View::displayTTF({f1,f2,f3});
+    return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();

@@ -14,7 +14,7 @@ pair<float, float> operator *(const float x, const std::pair<float, float>& y) {
 
 class TTF {
 public:
-    inline constexpr static float period = 1440;
+    inline constexpr static float period = 144;
 
     TTF(vector<pair<float,float>> points) {
         this->points = points;
@@ -45,52 +45,52 @@ public:
         return result;
     }
 
-    // static TTF chaining(TTF f1, TTF f2) {
-    //     vector<pair<float,float>> points;
-    //     TTF f(points);
-    //     int i = 0;
-    //     while (f2.getPoints()[i].first < f1.getPoints()[0].second) i++;
-    //     int j = 0;
-    //     int lap = 0;
-    //     while (true) {
-    //         float bend_x = 0;
-    //         float bend_y = 0;
-    //         if (j==f1.getPoints().size()) exit(0);
-    //         if (i==f2.getPoints().size()) {i=1; lap++;}
-    //         pair<float,float> p = f1.getPoints()[j];
-    //         pair<float,float> q = f2.getPoints()[i];
-    //         if (q.first+lap*period == p.first+p.second) {
-    //             bend_x = p.first;
-    //             bend_y = q.second + p.second;
-    //             i++;
-    //             j++;
-    //         } else if (q.first+lap*period < p.first+p.second) {
-    //             pair<float,float> previous_p = f1.getPoints()[j-1];
-    //             // bend_x = reverseChaining(previous_p, p, q.first);
-    //             float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
-    //             bend_x = (1/m)*(q.first - previous_p.first - previous_p.second) + previous_p.first;
-    //             bend_y = q.first + q.second - bend_x;
-    //             i++;
-    //         } else {
-    //             pair<float,float> previous_q = f2.getPoints()[i-1];
-    //             float m = (q.second - previous_q.second)/(q.first - previous_q.first);
-    //             bend_x = p.first;
-    //             bend_y = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
-    //             j++;
-    //         }
-    //         f.addPoint(make_pair(modulo(bend_x, period), bend_y));
-    //         if (bend_x>=period) break;
-    //     }
-    //     f.setExtrema();
-    //     return f;
-    // }
+    static TTF chaining(TTF f1, TTF f2) {
+        vector<pair<float,float>> points;
+        TTF f(points);
+        int i = 0;
+        while (f2.getPoints()[i].first < f1.getPoints()[0].second) i++;
+        int j = 0;
+        int lap = 0;
+        while (true) {
+            float bend_x = 0;
+            float bend_y = 0;
+            if (j==f1.getPoints().size()) exit(0);
+            if (i==f2.getPoints().size()) {i=1; lap++;}
+            pair<float,float> p = f1.getPoints()[j];
+            pair<float,float> q = f2.getPoints()[i];
+            if (q.first+lap*period == p.first+p.second) {
+                bend_x = p.first;
+                bend_y = q.second + p.second;
+                i++;
+                j++;
+            } else if (q.first+lap*period < p.first+p.second) {
+                pair<float,float> previous_p = f1.getPoints()[j-1];
+                // bend_x = reverseChaining(previous_p, p, q.first);
+                float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
+                bend_x = (1/m)*(q.first - previous_p.first - previous_p.second) + previous_p.first;
+                bend_y = q.first + q.second - bend_x;
+                i++;
+            } else {
+                pair<float,float> previous_q = f2.getPoints()[i-1];
+                float m = (q.second - previous_q.second)/(q.first - previous_q.first);
+                bend_x = p.first;
+                bend_y = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
+                j++;
+            }
+            f.tryToAddPoint(make_pair(modulo(bend_x, period), bend_y));
+            if (bend_x>=period) break;
+        }
+        f.setExtrema();
+        return f;
+    }
 
     static float modulo(float a, float b) {
         if (a==b) return a;
         return a - b*floor(a/b);
     }
 
-    static TTF chaining(TTF f1, TTF f2) {
+    static TTF chaining2(TTF f1, TTF f2) {
         vector<pair<float,float>> points;
         TTF f(points);
         int index1 = 0;
@@ -198,6 +198,10 @@ private:
     float maxima = -1;
 
     void tryToAddPoint(pair<float,float> p) {
+        if (p.first<0 || p.second<0) {
+            cout << "problem0 : " << p.first << " : " << p.second << endl;
+            exit(0);
+        }
         if (std::isinf(p.first) || std::isinf(p.second)) {
             cout << "problem1 : " << p.first << " : " << p.second << endl;
             exit(0);
