@@ -52,6 +52,7 @@ int main() {
     // View::displayTTF({f1,f2,f3});
     TTF f1 = randomTTF();
     TTF f2 = randomTTF();
+    // View::displayTTF({f1,f2});
     TTF f3 = TTF::chaining(f1,f2);
     View::displayTTF({f1,f2,f3});
     return 0;

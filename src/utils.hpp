@@ -63,14 +63,16 @@ int randomInt(int moduloValue) {
 
 TTF randomTTF() {
     vector<pair<float,float>> points;
+    float max = 600;
     float x = 0;
-    float y = 0;
-    points.push_back(make_pair(x,10*random01()));
+    float y = max;
+    points.push_back(make_pair(x,y));
     while (true) {
         float dx = 60*random01();
         if (x+dx > TTF::period) dx=TTF::period-x;
-        float newY = 600*random01();
+        float newY = max*random01();
         float dy = newY - y;
+        // cout << dy/dx << endl;
         if (dy/dx < -1) { // not respect FIFO
             dy = -0.999*dx;
         }
