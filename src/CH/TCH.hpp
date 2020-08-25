@@ -52,6 +52,7 @@ public:
                 }
             }
         }
+        // if (!simulation) cout << addedShortcuts << endl;
         return vector<int>({addedShortcuts, searchSpace});
     }
 

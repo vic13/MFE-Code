@@ -6,8 +6,8 @@ public:
         bool correct = true;
         float eps = 0.002;
 
-        print_graph_properties(adjacencyList);
-        print_graph_properties(adjacencyListCH);
+        GraphUtils::printGraphProperties(adjacencyList);
+        GraphUtils::printGraphProperties(adjacencyListCH);
 
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
@@ -15,8 +15,8 @@ public:
         int avgSearchSpaceDijkstraCH = 0;
 
         for (int i = 0; i<nbRuns; i++) {
-            int s = randomInt(adjacencyList.size());
-            int t = randomInt(adjacencyList.size());
+            int s = Random::randomInt(adjacencyList.size());
+            int t = Random::randomInt(adjacencyList.size());
 
             Dijkstra dijkstra(adjacencyList, s, t);
             DijkstraCHQuery dijkstraCH(adjacencyListCH, s, t);

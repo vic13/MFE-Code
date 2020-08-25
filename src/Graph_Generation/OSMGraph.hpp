@@ -92,7 +92,7 @@ public:
         // Remove non-connected components
         vector<vector<Edge>> connectedGraph;
         while (this->connectedRatio < 0.5) {
-            int s = randomInt(adjacencyList.size());
+            int s = Random::randomInt(adjacencyList.size());
             connectedGraph = transformToStronglyConnectedGraph(adjacencyList, s);
             this->connectedRatio = (float)connectedGraph.size()/(float)adjacencyList.size();
         }
@@ -106,7 +106,7 @@ public:
         Dijkstra fromS(graph, s, -1); // t set to -1 to disable stopping criteria
         fromS.compute();
         vector<float> weightsFromS = fromS.getWeights();
-        vector<vector<Edge>> reversedGraph = reverseGraph(graph);
+        vector<vector<Edge>> reversedGraph = GraphUtils::reverseGraph(graph);
         Dijkstra toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
         toS.compute();
         vector<float> weightsToS = toS.getWeights();

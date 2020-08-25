@@ -14,7 +14,7 @@ pair<float, float> operator *(const float x, const std::pair<float, float>& y) {
 
 class TTF {
 public:
-    inline constexpr static float period = 300;
+    inline constexpr static float period = 1440;
 
     TTF(vector<pair<float,float>> points) {
         this->points = points;
@@ -65,22 +65,22 @@ public:
             pair<float,float> p = f1.getPoints()[j];
             pair<float,float> q = f2.getPoints()[i];
             if (q.first+lap*period == p.first+p.second) {
-                cout << "1 : lap : " << lap << endl;
+                // cout << "1 : lap : " << lap << endl;
                 bend_x = p.first;
                 bend_y = q.second + p.second;
                 i++;
                 j++;
             } else if (q.first+lap*period < p.first+p.second) {
-                cout << "2 : lap : " << lap << endl;
+                // cout << "2 : lap : " << lap << endl;
                 if (j==0) {cout << "problem j2" << endl; exit(0);}
                 pair<float,float> previous_p = f1.getPoints()[j-1];
-                bend_x = reverseChaining(previous_p, p, q.first+lap*TTF::period);
-                // float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
-                // bend_x = (1/m)*(q.first - previous_p.first - previous_p.second) + previous_p.first;
+                // bend_x = reverseChaining(previous_p, p, q.first+lap*TTF::period);
+                float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
+                bend_x = (1/m)*(q.first+lap*TTF::period - previous_p.first - previous_p.second) + previous_p.first;
                 bend_y = q.first + q.second - bend_x +lap*TTF::period;
                 i++;
             } else {
-                cout << "3 : lap : " << lap << endl;
+                // cout << "3 : lap : " << lap << endl;
                 if (i==0) {cout << "problem i1" << endl; exit(0);}
                 pair<float,float> previous_q = f2.getPoints()[i-1];
                 float m = (q.second - previous_q.second)/(q.first - previous_q.first);
@@ -182,6 +182,48 @@ public:
         return f;
     }
 
+    bool respectsFIFO() {
+        float eps = 0;
+        float previous_first = -1;
+        float previous_second = -1;
+        if (this->points.front().second < this->points.back().second) return false;
+        for (auto& p : this->points) {
+            if (previous_first != -1) {
+                float slope = (p.second-previous_second)/(p.first-previous_first);
+                if (slope < -1+eps) {
+                    cout << p.first << endl;
+                    return false;
+                }
+            }
+            previous_first = p.first;
+            previous_second = p.second;
+        }
+        return true;
+    }
+
+    static TTF randomTTF() {
+        vector<pair<float,float>> points;
+        float max = 600;
+        float x = 0;
+        float y = max;
+        points.push_back(make_pair(x,y));
+        while (true) {
+            float dx = 60*Random::random01();
+            if (x+dx > TTF::period) dx=TTF::period-x;
+            float newY = max*Random::random01();
+            float dy = newY - y;
+            // cout << dy/dx << endl;
+            if (dy/dx < -1) { // not respect FIFO
+                dy = -0.999*dx;
+            }
+            y += dy;
+            x += dx;
+            points.push_back(make_pair(x,y));
+            if (x==TTF::period) break;
+        }
+        return TTF(points);
+    }
+
     void print() {
         cout << "------Print------" << endl;
         for (auto& p : this->points) {
@@ -219,7 +261,7 @@ private:
         if (points.size() == 0) {
             addPoint(p);
         } else {
-            if (p.first < points.back().first) {
+            if (p.first < points.back().first && differentPoint(points.back(), p)) {
                 cout << "problem2 : " << p.first << " : " << points.back().first << endl;
                 cout << "-------- : " << p.second << " : " << points.back().second << endl;
                 exit(0);
@@ -244,7 +286,8 @@ private:
     }
 
     static bool differentPoint(pair<float,float> previousPoint, pair<float,float> newPoint) {
-        return (previousPoint.first != newPoint.first || previousPoint.second != newPoint.second); 
+        float eps = 0.001;
+        return (abs(previousPoint.first - newPoint.first) > eps || abs(previousPoint.second - newPoint.second) > eps); 
     }
 
     static float interpolation(pair<float,float> p1, pair<float,float> p2, float t) {
@@ -258,8 +301,15 @@ private:
     // f(t) = ((p2.second - p1.second)*t - p1.first*p2.second + p2.first*p1.second) / (p2.first - p1.first); (interpolation)
     // Solves t + f(t) = t2 for given t2 and f 
     static float reverseChaining(pair<float,float> p1, pair<float,float> p2, float t2) {
+        cout << "_" << p1.first << endl;
+        cout << "_" << p2.first << endl;
+        cout << "_" << p1.second << endl;
+        cout << "_" << p2.second << endl;
+        cout << "_" << t2 << endl;
         float num = (t2*(p2.first - p1.first) + p1.first*p2.second - p2.first*p1.second);
         float den = (p2.second - p1.second + p2.first - p1.first);
+        cout << "num : " << num << endl;
+        cout << "den : " << num << endl;
         float t = num / den;
         return t;
     }

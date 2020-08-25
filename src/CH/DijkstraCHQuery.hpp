@@ -135,7 +135,7 @@ public:
     }
 
     void printVertexWeights() {
-        print_vector(*(this->vertexWeights));
+        GraphUtils::printVector(*(this->vertexWeights));
     }
   
 
