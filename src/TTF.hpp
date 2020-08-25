@@ -53,14 +53,14 @@ public:
         // cout << f2.getPoints().size() << endl;
         while (f2.getPoints()[i].first + lap*period < f1.getPoints()[0].second) {
             i++;
-            if (i==f2.getPoints().size()) {exit(0); i=1; lap++;}
-            cout << i << endl;
+            if (i==f2.getPoints().size()) {i=0; lap++;}
+            // cout << i << endl;
         }
         int j = 0;
         while (true) {
             float bend_x = 0;
             float bend_y = 0;
-            if (j==f1.getPoints().size()) exit(0);
+            if (j==f1.getPoints().size()) {cout << "problem j1" << endl; exit(0);}
             if (i==f2.getPoints().size()) {i=0; lap++;} // TODO : i=0 ou 1
             pair<float,float> p = f1.getPoints()[j];
             pair<float,float> q = f2.getPoints()[i];
@@ -72,6 +72,7 @@ public:
                 j++;
             } else if (q.first+lap*period < p.first+p.second) {
                 cout << "2 : lap : " << lap << endl;
+                if (j==0) {cout << "problem j2" << endl; exit(0);}
                 pair<float,float> previous_p = f1.getPoints()[j-1];
                 bend_x = reverseChaining(previous_p, p, q.first+lap*TTF::period);
                 // float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
@@ -80,6 +81,7 @@ public:
                 i++;
             } else {
                 cout << "3 : lap : " << lap << endl;
+                if (i==0) {cout << "problem i1" << endl; exit(0);}
                 pair<float,float> previous_q = f2.getPoints()[i-1];
                 float m = (q.second - previous_q.second)/(q.first - previous_q.first);
                 bend_x = p.first;
@@ -208,11 +210,11 @@ private:
     void tryToAddPoint(pair<float,float> p) {
         if (p.first<0 || p.second<0) {
             cout << "problem0 : " << p.first << " : " << p.second << endl;
-            // exit(0);
+            exit(0);
         }
         if (std::isinf(p.first) || std::isinf(p.second)) {
             cout << "problem1 : " << p.first << " : " << p.second << endl;
-            // exit(0);
+            exit(0);
         }
         if (points.size() == 0) {
             addPoint(p);
@@ -220,7 +222,7 @@ private:
             if (p.first < points.back().first) {
                 cout << "problem2 : " << p.first << " : " << points.back().first << endl;
                 cout << "-------- : " << p.second << " : " << points.back().second << endl;
-                // exit(0);
+                exit(0);
             }
             if (differentPoint(points.back(), p)) addPoint(p);
         }

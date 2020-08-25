@@ -34,7 +34,7 @@ int main() {
 
     float r = 10;
     TTF f1({
-        make_pair(0,10*r),make_pair(200,7*r),make_pair(TTF::period,8*r)
+        make_pair(0,5*10*r),make_pair(100,5*9*r),make_pair(101,5*9.5*r),make_pair(200,5*8*r),make_pair(TTF::period,5*9*r)
     });
     TTF f2({
         make_pair(0,15*r),make_pair(30,25*r),make_pair(TTF::period,10*r)
