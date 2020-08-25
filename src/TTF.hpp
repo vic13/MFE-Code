@@ -14,7 +14,7 @@ pair<float, float> operator *(const float x, const std::pair<float, float>& y) {
 
 class TTF {
 public:
-    inline constexpr static float period = 100;
+    inline constexpr static float period = 1440;
 
     TTF(vector<pair<float,float>> points) {
         this->points = points;
@@ -27,9 +27,9 @@ public:
     }
 
     float evaluate(float t) {
-        cout << "t : " <<  t << endl;
+        // cout << "t : " <<  t << endl;
         t = fmod(t, period);
-        cout << "mod : " << t << endl;
+        // cout << "mod : " << t << endl;
         // logarithmic search
         auto it = std::lower_bound(this->points.begin(), this->points.end(), make_pair(t, 0.0f));
         int index_up = std::distance(points.begin(), it);
@@ -45,89 +45,90 @@ public:
         return result;
     }
 
-    static TTF chaining(TTF f1, TTF f2) {
-        vector<pair<float,float>> points;
-        TTF f(points);
-        int i = 0;
-        while (f2.getPoints()[i].first < f1.getPoints()[0].second) i++;
-        int j = 0;
-        int lap = 0;
-        while (true) {
-            float bend_x = 0;
-            float bend_y = 0;
-            if (j==f1.getPoints().size()) exit(0);
-            if (i==f2.getPoints().size()) {i=1; lap++;}
-            pair<float,float> p = f1.getPoints()[j];
-            pair<float,float> q = f2.getPoints()[i];
-            if (q.first+lap*period == p.first+p.second) {
-                bend_x = p.first;
-                bend_y = q.second + p.second;
-                i++;
-                j++;
-            } else if (q.first+lap*period < p.first+p.second) {
-                pair<float,float> previous_p = f1.getPoints()[j-1];
-                // bend_x = reverseChaining(previous_p, p, q.first);
-                float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
-                bend_x = (1/m)*(q.first - previous_p.first - previous_p.second) + previous_p.first;
-                bend_y = q.first + q.second - bend_x;
-                i++;
-            } else {
-                pair<float,float> previous_q = f2.getPoints()[i-1];
-                float m = (q.second - previous_q.second)/(q.first - previous_q.first);
-                bend_x = p.first;
-                bend_y = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
-                j++;
-            }
-            f.addPoint(make_pair(modulo(bend_x, period), bend_y));
-            if (bend_x>=period) break;
-        }
-        f.setExtrema();
-        return f;
-    }
+    // static TTF chaining(TTF f1, TTF f2) {
+    //     vector<pair<float,float>> points;
+    //     TTF f(points);
+    //     int i = 0;
+    //     while (f2.getPoints()[i].first < f1.getPoints()[0].second) i++;
+    //     int j = 0;
+    //     int lap = 0;
+    //     while (true) {
+    //         float bend_x = 0;
+    //         float bend_y = 0;
+    //         if (j==f1.getPoints().size()) exit(0);
+    //         if (i==f2.getPoints().size()) {i=1; lap++;}
+    //         pair<float,float> p = f1.getPoints()[j];
+    //         pair<float,float> q = f2.getPoints()[i];
+    //         if (q.first+lap*period == p.first+p.second) {
+    //             bend_x = p.first;
+    //             bend_y = q.second + p.second;
+    //             i++;
+    //             j++;
+    //         } else if (q.first+lap*period < p.first+p.second) {
+    //             pair<float,float> previous_p = f1.getPoints()[j-1];
+    //             // bend_x = reverseChaining(previous_p, p, q.first);
+    //             float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
+    //             bend_x = (1/m)*(q.first - previous_p.first - previous_p.second) + previous_p.first;
+    //             bend_y = q.first + q.second - bend_x;
+    //             i++;
+    //         } else {
+    //             pair<float,float> previous_q = f2.getPoints()[i-1];
+    //             float m = (q.second - previous_q.second)/(q.first - previous_q.first);
+    //             bend_x = p.first;
+    //             bend_y = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
+    //             j++;
+    //         }
+    //         f.addPoint(make_pair(modulo(bend_x, period), bend_y));
+    //         if (bend_x>=period) break;
+    //     }
+    //     f.setExtrema();
+    //     return f;
+    // }
 
     static float modulo(float a, float b) {
         if (a==b) return a;
         return a - b*floor(a/b);
     }
 
-    // static TTF chaining(TTF f1, TTF f2) {
-    //     vector<pair<float,float>> points;
-    //     TTF f(points);
-    //     int index1 = 0;
-    //     int index2 = 0;
-    //     int lap = 0;
+    static TTF chaining(TTF f1, TTF f2) {
+        vector<pair<float,float>> points;
+        TTF f(points);
+        int index1 = 0;
+        int index2 = 0;
+        int lap = 0;
         
-    //     float f_12 = f1.points[0].second + f2.evaluate(f1.points[0].first+f1.points[0].second);
-    //     f.tryToAddPoint(make_pair(f1.points[0].first, f_12));
-    //     while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
-    //         pair<float,float> p = f1.points[index1];
-    //         pair<float,float> q = f2.points[index2];
-    //         pair<float,float> next_p = f1.points[index1+1];
-    //         pair<float,float> next_q = f2.points[index2+1];
-    //         float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
-    //         // if (t<p.first) cout << "HERE" << endl;
-    //         if (t>next_p.first || p.first == next_p.first) {
-    //             float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
-    //             // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
-    //             // cout << f_12 - f_12_bis << endl;
-    //             pair<float, float> newP = make_pair(next_p.first, f_12);
-    //             f.tryToAddPoint(newP);
-    //             index1++;
-    //         } else {
-    //             float f_12 = f1.evaluate(t) + next_q.second;
-    //             // float f_12_bis = interpolation(p, next_p, t) + next_q.second;
-    //             // cout << f_12 - f_12_bis << endl;
-    //             pair<float, float> newP = make_pair(t, f_12);
-    //             f.tryToAddPoint(newP);
-    //             index2++;
-    //             if (index2==f2.points.size()-1) {
-    //                 index2 = 0;
-    //                 lap++;   // repetition of TTF if exceed period
-    //             }
-    //         }
-    //     }
-    //     return f;
-    // }
+        float f_12 = f1.points[0].second + f2.evaluate(f1.points[0].first+f1.points[0].second);
+        f.tryToAddPoint(make_pair(f1.points[0].first, f_12));
+        while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
+            pair<float,float> p = f1.points[index1];
+            pair<float,float> q = f2.points[index2];
+            pair<float,float> next_p = f1.points[index1+1];
+            pair<float,float> next_q = f2.points[index2+1];
+            float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
+            // if (t<p.first) cout << "HERE" << endl;
+            if (t>next_p.first || p.first == next_p.first) {
+                float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
+                // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
+                // cout << f_12 - f_12_bis << endl;
+                pair<float, float> newP = make_pair(next_p.first, f_12);
+                f.tryToAddPoint(newP);
+                index1++;
+            } else {
+                float f_12 = f1.evaluate(t) + next_q.second;
+                // float f_12_bis = interpolation(p, next_p, t) + next_q.second;
+                // cout << f_12 - f_12_bis << endl;
+                pair<float, float> newP = make_pair(t, f_12);
+                f.tryToAddPoint(newP);
+                index2++;
+                if (index2==f2.points.size()-1) {
+                    index2 = 0;
+                    lap++;   // repetition of TTF if exceed period
+                }
+            }
+        }
+        f.setExtrema();
+        return f;
+    }
 
     static TTF minimum(TTF f1, TTF f2) {
         vector<pair<float,float>> points;
