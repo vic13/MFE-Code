@@ -27,7 +27,9 @@ public:
     }
 
     float evaluate(float t) {
+        cout << "t : " <<  t << endl;
         t = fmod(t, period);
+        cout << "mod : " << t << endl;
         // logarithmic search
         auto it = std::lower_bound(this->points.begin(), this->points.end(), make_pair(t, 0.0f));
         int index_up = std::distance(points.begin(), it);
@@ -41,6 +43,55 @@ public:
         }
         
         return result;
+    }
+
+    static TTF chaining2(TTF f1, TTF f2) {
+        vector<pair<float,float>> points;
+        TTF f(points);
+        int i = 0;
+        while (f2.getPoints()[i].first < f1.getPoints()[0].second) i++;
+        cout << "hey " << i << endl;
+        int j = 0;
+        int lap = 0;
+        while (true) {
+            float bend_x = 0;
+            float bend_y = 0;
+            if (j==f1.getPoints().size()) exit(0);
+            if (i==f2.getPoints().size()) {i=1; lap++;}
+            pair<float,float> p = f1.getPoints()[j];
+            pair<float,float> q = f2.getPoints()[i];
+            if (q.first+lap*period == p.first+p.second) {
+                bend_x = p.first;
+                bend_y = q.second + p.second;
+                i++;
+                j++;
+                cout << "1" << endl;
+            } else if (q.first+lap*period < p.first+p.second) {
+                pair<float,float> previous_p = f1.getPoints()[j-1];
+                // bend_x = reverseChaining(previous_p, p, q.first);
+                float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
+                bend_x = (1/m)*(q.first - previous_p.first - previous_p.second) + previous_p.first;
+                bend_y = q.first + q.second - bend_x;
+                i++;
+                cout << "2" << endl;
+            } else {
+                pair<float,float> previous_q = f2.getPoints()[i-1];
+                float m = (q.second - previous_q.second)/(q.first - previous_q.first);
+                bend_x = p.first;
+                cout << "3" << endl;
+                bend_y = previous_q.second + m*(p.first + p.second - previous_q.first) + p.second;
+                j++;
+            }
+            cout << bend_x << " : " << bend_y << endl;
+            if (bend_x>=period) break;
+            f.addPoint(make_pair(modulo(bend_x, period), bend_y));
+        }
+        f.setExtrema();
+        return f;
+    }
+
+    static float modulo(float a, float b) {
+        return a - b*floor(a/b);
     }
 
     static TTF chaining(TTF f1, TTF f2) {
@@ -58,6 +109,7 @@ public:
             pair<float,float> next_p = f1.points[index1+1];
             pair<float,float> next_q = f2.points[index2+1];
             float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
+            // if (t<p.first) cout << "HERE" << endl;
             if (t>next_p.first || p.first == next_p.first) {
                 float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
                 // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
@@ -119,6 +171,7 @@ public:
                 index1++;
             }
         }
+        f.setExtrema();
         return f;
     }
 
@@ -156,7 +209,7 @@ private:
             addPoint(p);
         } else {
             if (p.first < points.back().first) {
-                cout << "problem1 : " << p.first << " : " << points.back().first << endl;
+                cout << "problem2 : " << p.first << " : " << points.back().first << endl;
                 cout << "-------- : " << p.second << " : " << points.back().second << endl;
                 exit(0);
             }
@@ -166,7 +219,6 @@ private:
 
     void addPoint(pair<float,float> p) {
         points.push_back(p);
-        setExtrema(p);
     }
 
     void setExtrema() {

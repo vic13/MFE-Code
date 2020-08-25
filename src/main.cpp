@@ -33,17 +33,24 @@ int main() {
     Clock clock("Program duration", false);
 
     // TTF f1({
-    //     make_pair(0,10),make_pair(1440,10)
+    //     make_pair(0,10),make_pair(TTF::period,10)
     // });
     // TTF f2({
-    //     make_pair(0,15),make_pair(0,25),make_pair(1440,15)
+    //     make_pair(0,15),make_pair(1,25),make_pair(TTF::period,15)
     // });
+    TTF f1({
+        make_pair(0,10),make_pair(TTF::period,9)
+    });
+    TTF f2({
+        make_pair(0,15),make_pair(1,15),make_pair(2,25),make_pair(3,35),make_pair(TTF::period,13)
+    });
     // View::displayTTF({f1,f2});
-    // TTF f3 = TTF::chaining(f1,f2);
+    TTF f3 = TTF::chaining2(f1,f2);
+    cout << f3.getPoints().size() << endl;
+    // View::displayTTF({f1,f2});
     // f3.print();
-    // cout << f3.getPoints().size() << endl;
-    // View::displayTTF({f1,f2,f3});
-    // return 0;
+    View::displayTTF({f1,f2,f3});
+    return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
