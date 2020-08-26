@@ -91,6 +91,7 @@ public:
             f.tryToAddPoint(make_pair(modulo(bend_x, period), bend_y));
             if (bend_x>=period) break;
         }
+        if (!f.respectsFIFO()) exit(0);
         f.setExtrema();
         return f;
     }
@@ -100,45 +101,46 @@ public:
         return a - b*floor(a/b);
     }
 
-    static TTF chaining2(TTF f1, TTF f2) {
-        vector<pair<float,float>> points;
-        TTF f(points);
-        int index1 = 0;
-        int index2 = 0;
-        int lap = 0;
+    // static TTF chaining2(TTF f1, TTF f2) {
+    //     vector<pair<float,float>> points;
+    //     TTF f(points);
+    //     int index1 = 0;
+    //     int index2 = 0;
+    //     int lap = 0;
         
-        float f_12 = f1.points[0].second + f2.evaluate(f1.points[0].first+f1.points[0].second);
-        f.tryToAddPoint(make_pair(f1.points[0].first, f_12));
-        while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
-            pair<float,float> p = f1.points[index1];
-            pair<float,float> q = f2.points[index2];
-            pair<float,float> next_p = f1.points[index1+1];
-            pair<float,float> next_q = f2.points[index2+1];
-            float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
-            // if (t<p.first) cout << "HERE" << endl;
-            if (t>next_p.first || p.first == next_p.first) {
-                float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
-                // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
-                // cout << f_12 - f_12_bis << endl;
-                pair<float, float> newP = make_pair(next_p.first, f_12);
-                f.tryToAddPoint(newP);
-                index1++;
-            } else {
-                float f_12 = f1.evaluate(t) + next_q.second;
-                // float f_12_bis = interpolation(p, next_p, t) + next_q.second;
-                // cout << f_12 - f_12_bis << endl;
-                pair<float, float> newP = make_pair(t, f_12);
-                f.tryToAddPoint(newP);
-                index2++;
-                if (index2==f2.points.size()-1) {
-                    index2 = 0;
-                    lap++;   // repetition of TTF if exceed period
-                }
-            }
-        }
-        f.setExtrema();
-        return f;
-    }
+    //     float f_12 = f1.points[0].second + f2.evaluate(f1.points[0].first+f1.points[0].second);
+    //     f.tryToAddPoint(make_pair(f1.points[0].first, f_12));
+    //     while (index1<f1.points.size()-1 && index2<f2.points.size()-1) {
+    //         pair<float,float> p = f1.points[index1];
+    //         pair<float,float> q = f2.points[index2];
+    //         pair<float,float> next_p = f1.points[index1+1];
+    //         pair<float,float> next_q = f2.points[index2+1];
+    //         float t = reverseChaining(p, next_p, next_q.first+lap*TTF::period);
+    //         // if (t<p.first) cout << "HERE" << endl;
+    //         if (t>next_p.first || p.first == next_p.first) {
+    //             float f_12 = next_p.second + f2.evaluate(next_p.first+next_p.second);
+    //             // float f_12_bis = next_p.second + interpolation(q, next_q, next_p.first+next_p.second-lap*TTF::period);
+    //             // cout << f_12 - f_12_bis << endl;
+    //             pair<float, float> newP = make_pair(next_p.first, f_12);
+    //             f.tryToAddPoint(newP);
+    //             index1++;
+    //         } else {
+    //             float f_12 = f1.evaluate(t) + next_q.second;
+    //             // float f_12_bis = interpolation(p, next_p, t) + next_q.second;
+    //             // cout << f_12 - f_12_bis << endl;
+    //             pair<float, float> newP = make_pair(t, f_12);
+    //             f.tryToAddPoint(newP);
+    //             index2++;
+    //             if (index2==f2.points.size()-1) {
+    //                 index2 = 0;
+    //                 lap++;   // repetition of TTF if exceed period
+    //             }
+    //         }
+    //     }
+    //     if (!f.respectsFIFO()) exit(0);
+    //     f.setExtrema();
+    //     return f;
+    // }
 
     static TTF minimum(TTF f1, TTF f2) {
         vector<pair<float,float>> points;
@@ -178,19 +180,30 @@ public:
                 index1++;
             }
         }
+        if (!f.respectsFIFO()) exit(0);
         f.setExtrema();
         return f;
     }
 
     bool respectsFIFO() {
-        float eps = 0;
         float previous_first = -1;
         float previous_second = -1;
-        if (this->points.front().second < this->points.back().second) return false;
+        float frontBackDif = points.front().second - points.back().second;
+        if (frontBackDif < 0) {
+            float eps = 0.001;
+            if (abs(frontBackDif) < eps) {
+                cout << points.back().first << endl;
+                points.back().second = points.front().second; // Correct
+                cout << points.back().first << endl;
+                cout << "Corrected FIFO" << endl;
+            } else {
+                return false;
+            }
+        }
         for (auto& p : this->points) {
             if (previous_first != -1) {
                 float slope = (p.second-previous_second)/(p.first-previous_first);
-                if (slope < -1+eps) {
+                if (slope < -1) {
                     cout << p.first << endl;
                     return false;
                 }
@@ -258,26 +271,26 @@ private:
             cout << "problem1 : " << p.first << " : " << p.second << endl;
             exit(0);
         }
-        if (points.size() == 0) {
-            addPoint(p);
-        } else {
-            if (p.first < points.back().first && differentPoint(points.back(), p)) {
-                cout << "problem2 : " << p.first << " : " << points.back().first << endl;
-                cout << "-------- : " << p.second << " : " << points.back().second << endl;
-                exit(0);
-            }
-            if (differentPoint(points.back(), p)) addPoint(p);
-        }
+        // if (points.size() == 0) {
+        //     addPoint(p);
+        // } else {
+        //     if (p.first < points.back().first && differentPoint(points.back(), p)) {
+        //         cout << "problem2 : " << p.first << " : " << points.back().first << endl;
+        //         cout << "-------- : " << p.second << " : " << points.back().second << endl;
+        //         exit(0);
+        //     }
+        //     if (differentPoint(points.back(), p)) addPoint(p);
+        // }
+        addPoint(p);
     }
 
     void addPoint(pair<float,float> p) {
+        if (points.size()>=2 && colinear(points[points.size()-2], points[points.size()-1], p)) points.pop_back();
         points.push_back(p);
     }
 
     void setExtrema() {
-        for (auto& p : this->points) {
-            setExtrema(p);
-        }
+        for (auto& p : this->points) setExtrema(p);
     }
 
     void setExtrema(pair<float,float> p) {
@@ -285,10 +298,20 @@ private:
         if (p.second < minima || minima == -1) minima = p.second;
     }
 
-    static bool differentPoint(pair<float,float> previousPoint, pair<float,float> newPoint) {
+    static bool colinear(pair<float,float> p1, pair<float,float> p2, pair<float,float> p3) {
+        if (p1.first==p2.first && p2.first==p3.first) return true;
         float eps = 0.001;
-        return (abs(previousPoint.first - newPoint.first) > eps || abs(previousPoint.second - newPoint.second) > eps); 
+        float potentialDifference = p2.second - interpolation(p1, p3, p2.first);
+        // cout << p2.second << endl;
+        // cout << interpolation(p1, p3, p2.first) << endl;
+        // cout << potentialDifference << endl;
+        return (abs(potentialDifference) < eps);
     }
+
+    // static bool differentPoint(pair<float,float> previousPoint, pair<float,float> newPoint) {
+    //     float eps = 0.001;
+    //     return (abs(previousPoint.first - newPoint.first) > eps || abs(previousPoint.second - newPoint.second) > eps); 
+    // }
 
     static float interpolation(pair<float,float> p1, pair<float,float> p2, float t) {
         float distance_down = (t - p1.first);

@@ -54,7 +54,7 @@ int main() {
     // View::displayTTF({f1,f2});
     // f3.print();
     // View::displayTTF({f1,f2,f3});
-    // TTF f1 = TTF::randomTTF();
+    TTF f1 = TTF::randomTTF();
     // TTF f2 = TTF::randomTTF();
     // View::displayTTF({f1,f2});
     // Clock clock2("chaining2", false);
@@ -68,20 +68,18 @@ int main() {
     // clock1.lap(true);
     
     // View::displayTTF({f1,f2,f3});
-    // TTF f0(3);
-    // for (int i=0; i<1000; i++) {
-    //     cout << i << " : " << f0.getPoints().size() << endl;
-    //     TTF f(Random::random01()*10);
-    //     f0 = TTF::chaining(f0, f);
-    //     if (!f0.respectsFIFO()) {
-    //         cout << i << endl;
-    //         cout <<std::setprecision(9)<< f0.getPoints().front().second << endl;
-    //         cout <<std::setprecision(9)<< f0.getPoints().back().second << endl;
-    //         break;
-    //     }
-    // }
-    // View::displayTTF({f0});
-    // return 0;
+    cout <<std::setprecision(9) << endl;
+    TTF f0(3);
+    for (int i=0; i<=10; i++) {
+        cout << i << " : " << f0.getPoints().size() << endl;
+        TTF f1(Random::random01()*10);
+        TTF f2(Random::random01()*10);
+        f0 = TTF::minimum(f0, f1);
+        f0 = TTF::chaining(f0, f2);
+        if (f0.getPoints().size() != 2) {cout << i << endl; break;}
+    }
+    View::displayTTF({f0});
+    return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
