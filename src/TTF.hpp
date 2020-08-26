@@ -91,7 +91,7 @@ public:
             f.tryToAddPoint(make_pair(modulo(bend_x, period), bend_y));
             if (bend_x>=period) break;
         }
-        if (!f.respectsFIFO()) {cout << "FIFO chain" << endl; exit(0);}
+        if (!f.respectsFIFO()) {cout << "FIFO chain" << endl; /*exit(0);*/}
         f.setExtrema();
         return f;
     }
@@ -197,6 +197,7 @@ public:
                 cout << points.back().first << endl;
                 cout << "Corrected FIFO" << endl;
             } else {
+                cout << "Problem FIFO back front" << endl;
                 return false;
             }
         }
@@ -204,14 +205,53 @@ public:
             if (previous_first != -1) {
                 float slope = (p.second-previous_second)/(p.first-previous_first);
                 if (slope < -1) {
-                    cout << slope << endl;
-                    cout << p.first << endl;
-                    // return false;
+                    // cout << slope << endl;
+                    // cout << p.first << endl;
+                    float eps2 = 0.0001;
+                    if (slope < -1-eps2) {
+                        cout << "Problem FIFO slope" << endl;
+                        cout << slope << endl;
+                        cout << previous_first << endl;
+                        cout << previous_second << endl;
+                        cout << p.first << endl;
+                        cout << p.second << endl;
+                        return false;
+                    }
                 }
             }
             previous_first = p.first;
             previous_second = p.second;
         }
+        return true;
+    }
+
+    bool isTransitTTF() {
+        float previous_first = -1;
+        float previous_second = -1;
+        for (pair<float,float> p : points) {
+            if (previous_first != -1) {
+                if (p.first == previous_first && p.second > previous_second) {
+                    // step
+                    // cout << "step" << endl;
+                } else if (p.first > previous_first && p.first-previous_first == previous_second-p.second) {
+                    // -1 slope
+                    // cout << "slope" << endl;
+                } else {
+                    cout << "lqsjfdl" << endl;
+                    cout << (p.first > previous_first) << " ----- " << (p.first-previous_first == previous_second-p.second) << endl;
+                    cout << p.first-previous_first << endl;
+                    cout << previous_second-p.second << endl;
+                    cout << p.first << endl;
+                    cout << p.second << endl;
+                    cout << previous_first << endl;
+                    cout << previous_second << endl;
+                    return false;
+                }
+            }
+            previous_first = p.first;
+            previous_second = p.second;
+        }
+        if (points.back().second < points.back().second) return false;
         return true;
     }
 
@@ -221,7 +261,7 @@ public:
         int x = 0;
         points.push_back(make_pair(x,0));
         while (true) {
-            int waitingTime = Random::randomInt(max);
+            int waitingTime = 1+Random::randomInt(max);
             if (waitingTime > period-x) {
                 waitingTime = period-x;
             }
@@ -278,13 +318,30 @@ private:
         //     }
         //     if (differentPoint(points.back(), p)) addPoint(p);
         // }
+        if (points.size()!=0 && p.first==points.back().first && p.second==points.back().second) return;
         addPoint(p);
     }
 
     void addPoint(pair<float,float> p) {
-        if (points.size()>=2 && colinear(points[points.size()-2], points[points.size()-1], p)) points.pop_back();
+        // if (points.size()>=2 && colinear(points[points.size()-2], points[points.size()-1], p)) points.pop_back();
+        if (points.size() != 0 && p.first < points.back().first) {
+            cout << "problem2 : " << p.first << " : " << points.back().first << endl;
+            cout << "-------- : " << p.second << " : " << points.back().second << endl;
+            exit(0);
+        }
+        // Correct slope
+        // if (points.size() != 0 && p.first != points.back().first) {
+        //     float slope = (p.second-points.back().second)/(p.first-points.back().first);
+        //     if (slope < -1) {
+        //         // cout << "slope : " << slope << endl;
+        //         p.second = points.back().second - (p.first - points.back().first);
+        //         // cout << "new slope : " <<  (p.second-points.back().second)/(p.first-points.back().first) << endl;
+        //     }
+        // }
         points.push_back(p);
     }
+
+    
 
     void setExtrema() {
         for (auto& p : this->points) setExtrema(p);

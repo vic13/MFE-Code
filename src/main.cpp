@@ -42,12 +42,19 @@ int main() {
     // TTF f2({
     //     make_pair(0,15*r),make_pair(30,25*r),make_pair(TTF::period,10*r)
     // });
-    // TTF f1({
-    //     make_pair(0,10),make_pair(TTF::period,10)
-    // });
-    // TTF f2({
-    //     make_pair(0,15),make_pair(100,15),make_pair(100,25),make_pair(300,35),make_pair(TTF::period,15)
-    // });
+    TTF f1({
+        make_pair(0,0),make_pair(0,1186),make_pair(1186,0),make_pair(1186,1440-1186),make_pair(1440,0)
+    });
+    TTF f2({
+        make_pair(0,0),make_pair(0,1186),make_pair(1186,0),make_pair(1186,1440-1186),make_pair(1440,0)
+    });
+    // View::displayTTF({f1,f2});
+    cout << "valid : " << f1.isTransitTTF() << endl;
+    cout << "valid : " << f2.isTransitTTF() << endl;
+    TTF f3 = TTF::chaining(f1,f2);
+    View::displayTTF({f1, f2, f3});
+    cout << "valid : " << f3.isTransitTTF() << endl;
+    return 0;
 
     // View::displayTTF({f1,f2});
     // TTF f3 = TTF::chaining(f1,f2);
@@ -69,25 +76,41 @@ int main() {
     // clock1.lap(true);
     
     // View::displayTTF({f1,f2,f3});
-    cout <<std::setprecision(9) << endl;
-    TTF f0 = TTF::randomTransitTTF();
-    for (int i=0; i<=100; i++) {
-        cout << i << " : " << f0.getPoints().size() << endl;
-        TTF f1 = TTF::randomTransitTTF();
-        // f0 = TTF::minimum(f0, f1);
-        f0 = TTF::chaining(f0, f1);
-        // if (f0.getPoints().size() != 2) {cout << i << endl; break;}
-    }
-    View::displayTTF({f0});
-    return 0;
+    // cout <<std::setprecision(9) << endl;
+    // TTF f0 = TTF::randomTransitTTF();
+    // cout << f0.isTransitTTF() << endl;
+    // for (int i=0; i<=100; i++) {
+    //     cout << i << " : " << f0.getPoints().size() << endl;
+    //     TTF f1 = TTF::randomTransitTTF();
+    //     cout << "a" << endl;
+    //     if (!f1.isTransitTTF()) exit(0);
+    //     cout << "b" << endl;
+    //     // f0 = TTF::minimum(f0, f1);
+    //     TTF f0Save = f0;
+    //     if (Random::random01() < 0.5) {
+    //         f0 = TTF::chaining(f0, f1);
+    //     } else {
+    //         f0 = TTF::chaining(f1, f0);
+    //     }
+    //     cout << "c" << endl;
+    //     if (!f0.isTransitTTF()) {
+    //         f0Save.print();
+    //         f1.print();
+    //         break;
+    //     }
+    //     cout << "d" << endl;
+    //     // if (f0.getPoints().size() != 2) {cout << i << endl; break;}
+    // }
+    // View::displayTTF({f0});
+    // return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     osmGraph.printImportStats();
     GraphUtils::printGraphProperties(adjacencyList);
-    #if (PARAMS_VIEW) 
-        View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
-    #endif
+    // #if (PARAMS_VIEW) 
+    //     View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
+    // #endif
 
     vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
     TCH tch(adjacencyListTD);

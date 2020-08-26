@@ -41,6 +41,7 @@ protected:
 
     void buildVertexOrdering() {
         for (int vertexNb = 0; vertexNb < this->n; vertexNb++) {
+            cout << vertexNb << endl;
             float priorityScore = calcPriorityScore(vertexNb);
             vertexOrderingScores.push_back(priorityScore);
             vertexOrdering.insert(make_pair(priorityScore, vertexNb));
@@ -67,6 +68,7 @@ protected:
     }
 
     void constructCH() {
+        cout << "a" << endl;
         int order = 0;
         while (!vertexOrdering.empty()) {
             int priorityVertex = (*(vertexOrdering.begin())).second;
@@ -93,7 +95,8 @@ protected:
             }
 
             // Print progress
-            if (100*order/(this->n-1) > 100*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<100*order/(this->n-1)<<" %\r"; cout.flush();}
+            cout << order << endl;
+            // if (100*order/(this->n-1) > 100*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<100*order/(this->n-1)<<" %\r"; cout.flush();}
             order++;
         }
     }

@@ -103,15 +103,15 @@ public:
             }
         }
         // On-the-fly edge reduction
-        for (int edgeIndex = 0; edgeIndex < g_R.getIncidenceList()[s].first.size(); edgeIndex++) {
-            CHEdge* edge = g_R.getIncidenceList()[s].first[edgeIndex];
-            float newWeight = vertexWeights[edge->getDestinationVertex()];
-            if (newWeight != -1 && newWeight < edge->getWeight()) {
-                // Remove edge
-                g_R.removeEdge(edge);
-                g_H.removeEdge(edge);
-            }
-        }
+        // for (int edgeIndex = 0; edgeIndex < g_R.getIncidenceList()[s].first.size(); edgeIndex++) {
+        //     CHEdge* edge = g_R.getIncidenceList()[s].first[edgeIndex];
+        //     float newWeight = vertexWeights[edge->getDestinationVertex()];
+        //     if (newWeight != -1 && newWeight < edge->getWeight()) {
+        //         // Remove edge
+        //         g_R.removeEdge(edge);
+        //         g_H.removeEdge(edge);
+        //     }
+        // }
         // Return result
         for (int i = 0; i < t_list.size(); i++) {
             int t = t_list[i];
