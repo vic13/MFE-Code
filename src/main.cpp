@@ -48,13 +48,14 @@ int main() {
     // TTF f2({
     //     make_pair(0,15),make_pair(100,15),make_pair(100,25),make_pair(300,35),make_pair(TTF::period,15)
     // });
+
     // View::displayTTF({f1,f2});
     // TTF f3 = TTF::chaining(f1,f2);
     // cout << f3.getPoints().size() << endl;
     // View::displayTTF({f1,f2});
     // f3.print();
     // View::displayTTF({f1,f2,f3});
-    TTF f1 = TTF::randomTTF();
+    // TTF f1 = TTF::randomTTF();
     // TTF f2 = TTF::randomTTF();
     // View::displayTTF({f1,f2});
     // Clock clock2("chaining2", false);
@@ -69,14 +70,13 @@ int main() {
     
     // View::displayTTF({f1,f2,f3});
     cout <<std::setprecision(9) << endl;
-    TTF f0(3);
-    for (int i=0; i<=10; i++) {
+    TTF f0 = TTF::randomTransitTTF();
+    for (int i=0; i<=100; i++) {
         cout << i << " : " << f0.getPoints().size() << endl;
-        TTF f1(Random::random01()*10);
-        TTF f2(Random::random01()*10);
-        f0 = TTF::minimum(f0, f1);
-        f0 = TTF::chaining(f0, f2);
-        if (f0.getPoints().size() != 2) {cout << i << endl; break;}
+        TTF f1 = TTF::randomTransitTTF();
+        // f0 = TTF::minimum(f0, f1);
+        f0 = TTF::chaining(f0, f1);
+        // if (f0.getPoints().size() != 2) {cout << i << endl; break;}
     }
     View::displayTTF({f0});
     return 0;

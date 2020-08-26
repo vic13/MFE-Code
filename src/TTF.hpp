@@ -91,7 +91,7 @@ public:
             f.tryToAddPoint(make_pair(modulo(bend_x, period), bend_y));
             if (bend_x>=period) break;
         }
-        if (!f.respectsFIFO()) exit(0);
+        if (!f.respectsFIFO()) {cout << "FIFO chain" << endl; exit(0);}
         f.setExtrema();
         return f;
     }
@@ -180,7 +180,7 @@ public:
                 index1++;
             }
         }
-        if (!f.respectsFIFO()) exit(0);
+        if (!f.respectsFIFO()) {cout << "FIFO min" << endl; exit(0);}
         f.setExtrema();
         return f;
     }
@@ -204,8 +204,9 @@ public:
             if (previous_first != -1) {
                 float slope = (p.second-previous_second)/(p.first-previous_first);
                 if (slope < -1) {
+                    cout << slope << endl;
                     cout << p.first << endl;
-                    return false;
+                    // return false;
                 }
             }
             previous_first = p.first;
@@ -214,26 +215,22 @@ public:
         return true;
     }
 
-    static TTF randomTTF() {
+    static TTF randomTransitTTF() {
         vector<pair<float,float>> points;
-        float max = 600;
-        float x = 0;
-        float y = max;
-        points.push_back(make_pair(x,y));
+        int max = 60;
+        int x = 0;
+        points.push_back(make_pair(x,0));
         while (true) {
-            float dx = 60*Random::random01();
-            if (x+dx > TTF::period) dx=TTF::period-x;
-            float newY = max*Random::random01();
-            float dy = newY - y;
-            // cout << dy/dx << endl;
-            if (dy/dx < -1) { // not respect FIFO
-                dy = -0.999*dx;
+            int waitingTime = Random::randomInt(max);
+            if (waitingTime > period-x) {
+                waitingTime = period-x;
             }
-            y += dy;
-            x += dx;
-            points.push_back(make_pair(x,y));
-            if (x==TTF::period) break;
+            points.push_back(make_pair(x, waitingTime));
+            points.push_back(make_pair(x + waitingTime, 0));
+            x += waitingTime;
+            if (x==period) break;
         }
+        
         return TTF(points);
     }
 
