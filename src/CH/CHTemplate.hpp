@@ -41,7 +41,7 @@ protected:
 
     void buildVertexOrdering() {
         for (int vertexNb = 0; vertexNb < this->n; vertexNb++) {
-            cout << vertexNb << endl;
+            // cout << vertexNb << endl;
             float priorityScore = calcPriorityScore(vertexNb);
             vertexOrderingScores.push_back(priorityScore);
             vertexOrdering.insert(make_pair(priorityScore, vertexNb));
@@ -68,7 +68,6 @@ protected:
     }
 
     void constructCH() {
-        cout << "a" << endl;
         int order = 0;
         while (!vertexOrdering.empty()) {
             int priorityVertex = (*(vertexOrdering.begin())).second;
@@ -95,8 +94,8 @@ protected:
             }
 
             // Print progress
-            cout << order << endl;
-            // if (100*order/(this->n-1) > 100*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<100*order/(this->n-1)<<" %\r"; cout.flush();}
+            // cout << order << endl;
+            if (100*order/(this->n-1) > 100*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<100*order/(this->n-1)<<" %\r"; cout.flush();}
             order++;
         }
     }
@@ -107,23 +106,7 @@ protected:
         }
     }
 
-    vector<vector<T_CHQueryEdge>> convertToSearchGraph(CHGraph<T_Edge, T_CHEdge, T_weight> g_H) {
-        vector<vector<T_CHQueryEdge>> g_star = vector<vector<T_CHQueryEdge>>(this->n, vector<T_CHQueryEdge>());
-        for (int u = 0; u<n; u++) {
-            vector<T_CHEdge*> edgePtrs = g_H.getIncidenceList()[u].first;
-            for (auto& edgePtr : edgePtrs) {
-                int v = edgePtr->getDestinationVertex();
-                bool direction = (vertexOrderMap[u] < vertexOrderMap[v]);
-                if (direction) {
-                    g_star[u].push_back(T_CHQueryEdge(v, edgePtr->getWeight(), direction));
-                } else {
-                    g_star[v].push_back(T_CHQueryEdge(u, edgePtr->getWeight(), direction));
-                }
-                
-            }
-        }
-        return g_star;
-    }
+    virtual vector<vector<T_CHQueryEdge>> convertToSearchGraph(CHGraph<T_Edge, T_CHEdge, T_weight> g_H) = 0;
 
     virtual vector<int> contractVertex(int vertexNb, bool simulation) = 0;
 };

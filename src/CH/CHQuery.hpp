@@ -1,12 +1,8 @@
 
-#include <set>
-using std::set;
-#include <queue>
-using std::queue;
 
-class DijkstraCHQuery {
+class CHQuery {
 public:
-    DijkstraCHQuery(vector<vector<CHQueryEdge>>& graph, int s, int t) {
+    CHQuery(vector<vector<CHQueryEdge>>& graph, int s, int t) {
         this->graph = graph;
         this->t = t;
         this->s = s;

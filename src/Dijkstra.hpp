@@ -1,6 +1,4 @@
 
-#include <set>
-using std::set;
 
 template <class T>
 class DijkstraTemplate {
@@ -28,6 +26,7 @@ public:
                 return true;
             } else {
                 for (auto& e : graph[visitedVertexNb]) {
+                    if (!relaxingCondition(e)) continue;
                     float neighbourCurrentWeight = vertexWeights[e.getDestinationVertex()];
                     float neighbourNewWeight = visitedVertexWeight + getEdgeWeight(e, visitedVertexWeight);
                     if ((neighbourCurrentWeight == -1.0f) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
@@ -86,8 +85,9 @@ public:
     }
 
     virtual float getEdgeWeight(T e, float visitedVertexWeight) = 0;
+    virtual bool relaxingCondition(T e) = 0;
   
-private:
+protected:
     int t;
     int s;
     vector<vector<T>> graph;
@@ -120,6 +120,10 @@ public:
     float getEdgeWeight(Edge e, float visitedVertexWeight) {
         return e.getWeight();
     }
+
+    bool relaxingCondition(Edge e) {
+        return true;
+    }
 };
 
 class DijkstraTD : public DijkstraTemplate<TDEdge> {
@@ -132,6 +136,11 @@ public:
         return e.evaluate(startingTime + visitedVertexWeight);
     }
 
+    bool relaxingCondition(TDEdge e) {
+        return true;
+    }
+
 private:
     float startingTime;
 };
+

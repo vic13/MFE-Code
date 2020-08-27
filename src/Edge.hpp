@@ -109,8 +109,9 @@ private:
 
 class TCHQueryEdge : public TDEdge {
 public:
-    TCHQueryEdge(int destinationVertex, TTF ttf, bool direction): TDEdge(destinationVertex, ttf) {
+    TCHQueryEdge(int destinationVertex, TTF ttf, bool direction, bool reversed = false): TDEdge(destinationVertex, ttf) {
         this->direction = direction;
+        this->reversed = reversed;
     }
 
     bool isSameDirection(bool direction) {
@@ -121,6 +122,20 @@ public:
         return this->direction;
     }
 
+    bool isReversed() {
+        return this->reversed;
+    }
+
+    bool isReachable() {
+        return this->reachable;
+    }
+
+    void markReachable() {
+        this->reachable = true;
+    }
+
 private:
     bool direction; // true -> up; false -> down
+    bool reachable = false;
+    bool reversed;
 };

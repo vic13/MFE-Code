@@ -1,6 +1,9 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
+#include <set>
+#include <queue>
+
 
 using std::cout;
 using std::endl;
@@ -8,6 +11,8 @@ using std::vector;
 using std::pair;
 using std::make_pair;
 using std::string;
+using std::set;
+using std::queue;
 
 #include "parameters.hpp"
 #include "Utils/Random.hpp"
@@ -27,7 +32,8 @@ using std::string;
 #include "CH/CHTemplate.hpp"
 #include "CH/CH.hpp"
 #include "CH/TCH.hpp"
-#include "CH/DijkstraCHQuery.hpp"
+#include "CH/CHQuery.hpp"
+#include "CH/TCHQuery.hpp"
 #include "Benchmark.hpp"
 
 int main() {
@@ -88,6 +94,20 @@ int main() {
     TCH tch(adjacencyListTD);
     vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
     GraphUtils::printGraphProperties(adjacencyListTCH);
+
+    for (int i = 0; i<10; i++) {
+        int s = Random::randomInt(adjacencyList.size());
+        int t = Random::randomInt(adjacencyList.size());
+        float startingTime = TTF::period*Random::random01();
+        DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
+        cout << dijkstraTD.compute() << endl;
+        cout << dijkstraTD.getPathWeight() << endl;
+
+        DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
+        dijkstraTCH.markReachable();
+        cout << dijkstraTCH.compute() << endl;
+        cout << dijkstraTCH.getPathWeight() << endl;
+    }
     return 0;
 
     vector<vector<CHQueryEdge>> adjacencyListCH;

@@ -103,20 +103,38 @@ public:
             }
         }
         // On-the-fly edge reduction
-        // for (int edgeIndex = 0; edgeIndex < g_R.getIncidenceList()[s].first.size(); edgeIndex++) {
-        //     CHEdge* edge = g_R.getIncidenceList()[s].first[edgeIndex];
-        //     float newWeight = vertexWeights[edge->getDestinationVertex()];
-        //     if (newWeight != -1 && newWeight < edge->getWeight()) {
-        //         // Remove edge
-        //         g_R.removeEdge(edge);
-        //         g_H.removeEdge(edge);
-        //     }
-        // }
+        for (int edgeIndex = 0; edgeIndex < g_R.getIncidenceList()[s].first.size(); edgeIndex++) {
+            CHEdge* edge = g_R.getIncidenceList()[s].first[edgeIndex];
+            float newWeight = vertexWeights[edge->getDestinationVertex()];
+            if (newWeight != -1 && newWeight < edge->getWeight()) {
+                // Remove edge
+                g_R.removeEdge(edge);
+                g_H.removeEdge(edge);
+            }
+        }
         // Return result
         for (int i = 0; i < t_list.size(); i++) {
             int t = t_list[i];
             results[i] = vertexWeights[t];
         }
         return make_pair(results, searchSpace);
+    }
+
+    vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph<Edge, CHEdge, float> g_H) {
+        vector<vector<CHQueryEdge>> g_star = vector<vector<CHQueryEdge>>(this->n, vector<CHQueryEdge>());
+        for (int u = 0; u<n; u++) {
+            vector<CHEdge*> edgePtrs = g_H.getIncidenceList()[u].first;
+            for (auto& edgePtr : edgePtrs) {
+                int v = edgePtr->getDestinationVertex();
+                bool direction = (vertexOrderMap[u] < vertexOrderMap[v]);
+                if (direction) {
+                    g_star[u].push_back(CHQueryEdge(v, edgePtr->getWeight(), direction));
+                } else {
+                    g_star[v].push_back(CHQueryEdge(u, edgePtr->getWeight(), direction));
+                }
+                
+            }
+        }
+        return g_star;
     }
 };

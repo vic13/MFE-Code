@@ -114,4 +114,18 @@ public:
         }
         return make_pair(results, searchSpace);
     }
+
+    vector<vector<TCHQueryEdge>> convertToSearchGraph(CHGraph<TDEdge, TCHEdge, TTF> g_H) {
+        vector<vector<TCHQueryEdge>> g_star = vector<vector<TCHQueryEdge>>(this->n, vector<TCHQueryEdge>());
+        for (int u = 0; u<n; u++) {
+            vector<TCHEdge*> edgePtrs = g_H.getIncidenceList()[u].first;
+            for (auto& edgePtr : edgePtrs) {
+                int v = edgePtr->getDestinationVertex();
+                bool direction = (vertexOrderMap[u] < vertexOrderMap[v]);
+                g_star[u].push_back(TCHQueryEdge(v, edgePtr->getWeight(), direction));
+                if (!direction) g_star[v].push_back(TCHQueryEdge(u, edgePtr->getWeight(), direction, true));
+            }
+        }
+        return g_star;
+    }
 };
