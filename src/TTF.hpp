@@ -321,20 +321,20 @@ private:
     static float correctFloat(float a) {
         float deltaInt = a - (int)a;
         if (deltaInt != 0) {
-            float eps = 0.00001;
+            float eps = 0.0001;
             if (deltaInt > 0.5) {
                 deltaInt = ceilf(a) - a;
                 if (deltaInt < eps) {
                     a = ceilf(a);
                 } else {
-                    cout << "problem4" << endl;
+                    cout << "problem4 : " << deltaInt << endl;
                     exit(0);
                 }
             } else {
                 if (deltaInt < eps) {
                     a = (int)a;
                 } else {
-                    cout << "problem4" << endl;
+                    cout << "problem4 : " << deltaInt << endl;
                     exit(0);
                 }
             }

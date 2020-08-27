@@ -51,30 +51,30 @@ int main() {
     // cout << "valid : " << f3.isTransitTTF() << endl;
     // return 0;
     
-    TTF f0 = TTF::randomTransitTTF();
-    cout << f0.isTransitTTF() << endl;
-    for (int i=0; i<=10000; i++) {
-        cout << i << " : " << f0.getPoints().size() << endl;
-        TTF f1 = TTF::randomTransitTTF();
-        if (!f1.isTransitTTF()) exit(0);
-        TTF f0Save = f0;
-        float r = Random::random01();
-        if (r < 0.3) {
-            f0 = TTF::chaining(f0, f1);
-        } else if (r<0.6) {
-            f0 = TTF::chaining(f1, f0);
-        } else {
-            f0 = TTF::minimum(f0, f1);
-        }
-        if (!f0.respectsFIFO()) exit(0);
-        if (!f0.isTransitTTF()) {
-            f0Save.print();
-            f1.print();
-            break;
-        }
-    }
-    View::displayTTF({f0});
-    return 0;
+    // TTF f0 = TTF::randomTransitTTF();
+    // cout << f0.isTransitTTF() << endl;
+    // for (int i=0; i<=10000; i++) {
+    //     cout << i << " : " << f0.getPoints().size() << endl;
+    //     TTF f1 = TTF::randomTransitTTF();
+    //     if (!f1.isTransitTTF()) exit(0);
+    //     TTF f0Save = f0;
+    //     float r = Random::random01();
+    //     if (r < 0.3) {
+    //         f0 = TTF::chaining(f0, f1);
+    //     } else if (r<0.6) {
+    //         f0 = TTF::chaining(f1, f0);
+    //     } else {
+    //         f0 = TTF::minimum(f0, f1);
+    //     }
+    //     if (!f0.respectsFIFO()) exit(0);
+    //     if (!f0.isTransitTTF()) {
+    //         f0Save.print();
+    //         f1.print();
+    //         break;
+    //     }
+    // }
+    // View::displayTTF({f0});
+    // return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
