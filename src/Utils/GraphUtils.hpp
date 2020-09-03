@@ -35,16 +35,21 @@ public:
     template <typename T>
     static void printGraphProperties(vector<vector<T>> graph) {
         int nbVertices = graph.size();
-        int nbEdges = 0;
-
-        for (auto& vertexEdges : graph) {
-            nbEdges += vertexEdges.size();
-        }
+        int nbEdges = getNbEdges(graph);
 
         cout << "------- Graph properties -------" << endl;
         cout << "#Vertices : " << nbVertices << endl;
         cout << "#Edges : " << nbEdges << endl;
         cout << "--------------------------------" << endl;
+    }
+
+    template <typename T>
+    static int getNbEdges(vector<vector<T>> graph) {
+        int nbEdges = 0;
+        for (auto& vertexEdges : graph) {
+            nbEdges += vertexEdges.size();
+        }
+        return nbEdges;
     }
 
     static vector<vector<Edge>> reverseGraph(vector<vector<Edge>>& graph) {

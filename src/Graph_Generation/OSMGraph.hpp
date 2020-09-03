@@ -83,6 +83,7 @@ public:
 
                 // If two-way street : add opposite edge
                 if (feature["properties"]["tags"]["oneway"].is_null() || feature["properties"]["tags"]["oneway"] == "no") {
+                    this->nbTwoWay++;
                     addEdge(adjacencyList, targetVertex, sourceVertex, weight);
                 }
 
@@ -96,6 +97,8 @@ public:
             connectedGraph = transformToStronglyConnectedGraph(adjacencyList, s);
             this->connectedRatio = (float)connectedGraph.size()/(float)adjacencyList.size();
         }
+        this->finalGraphVertices = connectedGraph.size();
+        this->finalGraphEdges = GraphUtils::getNbEdges(connectedGraph);
 
         return connectedGraph;
     }
@@ -163,10 +166,12 @@ public:
     void printImportStats() {
         cout << "------- Data Importation Stats -------" << endl;
         cout << "The original data had " << this->nbVertices << " vertices and " << this->nbEdges << " edges." << endl;
-        cout << this->nbLoopEdges << " loop edges ignored : " <<  "(" << 100*(float)this->nbLoopEdges/(float)this->nbEdges << "%)" << endl;
-        cout << this->nbParallelEdges << " parallel edges ignored (minimum weight taken) : " <<  "(" << 100*(float)this->nbParallelEdges/(float)this->nbEdges << "%)" << endl;
+        cout << this->nbTwoWay <<  " (" << 100*(float)this->nbTwoWay/(float)this->nbEdges << "%)" << " two-way streets (added opposite edge)" << endl;
+        cout << this->nbLoopEdges <<  " (" << 100*(float)this->nbLoopEdges/(float)this->nbEdges << "%)" << " loop edges (ignored)" << endl;
+        cout << this->nbParallelEdges <<  " (" << 100*(float)this->nbParallelEdges/(float)this->nbEdges << "%)" << " parallel edges (minimum weight taken)" << endl;
         cout << "Max speed estimated for " << this->nbEdgesWithoutMaxSpeed << " edges " << "(" << 100*(float)this->nbEdgesWithoutMaxSpeed/(float)this->nbEdges << "%)" << endl;
-        cout << "Removed non strongly-connected vertices : " << this->connectedRatio*100 << "% of vertices kept." << endl;
+        cout << "Transformed to strongly-connected graph : " << this->connectedRatio*100 << "% of vertices kept." << endl;
+        cout << "The generated graph has " << this->finalGraphVertices << " vertices and " << this->finalGraphEdges << " edges." << endl;
         cout << "--------------------------------------" << endl;
     }
 
@@ -178,6 +183,9 @@ private:
     int nbParallelEdges = 0;
     int nbEdges = 0;
     int nbVertices = 0;
+    int nbTwoWay = 0;
+    int finalGraphEdges = 0;
+    int finalGraphVertices = 0;
     float connectedRatio = 0;
     
     json importJson() {

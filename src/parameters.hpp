@@ -9,7 +9,7 @@
 #define GRAPH_NAME_4                                "graph_4_be_ctr"        // Not on github because too large
 #define GRAPH_NAME_5                                "graph_5_be"            // Not on github because too large
 
-#define PARAMS_GRAPH_NAME                           GRAPH_NAME_1
+#define PARAMS_GRAPH_NAME                           GRAPH_NAME_3
 #define PARAMS_READ_CH_FROM_FILE                    false
 #define PARAMS_WRITE_CH_TO_FILE                     false                   // Only used if not 'PARAMS_READ_CH_FROM_FILE'
 #define PARAMS_SEED                                 1598118811                      // -1 for random seed
