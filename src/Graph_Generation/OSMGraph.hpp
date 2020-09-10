@@ -74,7 +74,7 @@ public:
                 // Compute edge weight 
                 float time_h = length_km / maxSpeed_kmh;
                 float time_s = time_h * 3600;
-                float weight = time_s;
+                int weight = (int)time_s;
 
                 // Add edge to graph
                 int sourceVertex = sourceVertexId - 1; // -1 cause first vertex has id=1
@@ -142,7 +142,7 @@ public:
         return stronglyConnectedGraph;
     }
 
-    void addEdge(vector<vector<Edge>>& adjacencyList, int u, int v, float newWeight) {
+    void addEdge(vector<vector<Edge>>& adjacencyList, int u, int v, int newWeight) {
         bool alreadyEdge = false;
         for (auto& edge : adjacencyList[u]) {
             if (edge.getDestinationVertex() == v) {
@@ -153,7 +153,7 @@ public:
         }
         if (!alreadyEdge) {
             // Add edge
-            Edge edge(v, (int)newWeight);
+            Edge edge(v, newWeight);
             adjacencyList[u].push_back(edge);
         }
         this->nbParallelEdges += alreadyEdge;

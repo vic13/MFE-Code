@@ -5,8 +5,8 @@ public:
         for (auto& edges : graph) {
             vector<TDEdge> tdEdges;
             for (auto& edge : edges) {
-                // tdEdges.push_back(TDEdge(edge.getDestinationVertex(), TTF((int)edge.getWeight())));
-                tdEdges.push_back(TDEdge(edge.getDestinationVertex(), TTF::randomTransitTTF()));
+                tdEdges.push_back(TDEdge(edge.getDestinationVertex(), TTF((int)edge.getWeight())));
+                // tdEdges.push_back(TDEdge(edge.getDestinationVertex(), TTF::randomTransitTTF()));
             }
             tdGraph.push_back(tdEdges);
         }

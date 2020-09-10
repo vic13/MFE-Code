@@ -51,24 +51,14 @@ int main() {
     // });
     // TTF f1 = TTF::randomTransitTTF();
     // TTF f2 = TTF::randomTransitTTF();
-    // View::displayTTF({f1,f2});
-    // TTF f3 = TTF::minimum(f1,f2);
-    // cout << "valid : " << f1.isTransitTTF() << endl;
-    // cout << "valid : " << f2.isTransitTTF() << endl;
-    // TTF f3 = TTF::chaining(f1,f2);
-    // View::displayTTF({f1, f2, f3});
-    // cout << "valid : " << f3.isTransitTTF() << endl;
     // return 0;
     
     // TTF f0 = TTF::randomTransitTTF();
-    // cout << f0.isTransitTTF() << endl;
     // for (int i=0; i<=986; i++) {
     //     cout << i << " : " << f0.getPoints().size() << endl;
     //     TTF f1 = TTF::randomTransitTTF();
     //     if (Random::random01() < 0.5) {
     //         f1 = TTF(1+Random::randomInt(100));
-    //         cout << f1.getPoints()[0].second << endl;
-    //         cout << f0.getPoints()[0].second << endl;
     //     }
     //     float r = Random::random01();
     //     if (r < 0.3) {
@@ -93,28 +83,25 @@ int main() {
     // #endif
 
     vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
-    cout << "a" << endl;
     TCH tch(adjacencyListTD);
-    cout << "b" << endl;
     vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
-    cout << "c" << endl;
     GraphUtils::printGraphProperties(adjacencyListTCH);
-    return 0;
-
-    // for (int i = 0; i<10; i++) {
-    //     int s = Random::randomInt(adjacencyList.size());
-    //     int t = Random::randomInt(adjacencyList.size());
-    //     float startingTime = TTF::period*Random::random01();
-    //     DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
-    //     cout << dijkstraTD.compute() << endl;
-    //     cout << dijkstraTD.getPathWeight() << endl;
-
-    //     DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
-    //     dijkstraTCH.markReachable();
-    //     cout << dijkstraTCH.compute() << endl;
-    //     cout << dijkstraTCH.getPathWeight() << endl;
-    // }
     // return 0;
+
+    for (int i = 0; i<10; i++) {
+        int s = Random::randomInt(adjacencyList.size());
+        int t = Random::randomInt(adjacencyList.size());
+        float startingTime = TTF::period*Random::random01();
+        DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
+        dijkstraTD.compute();
+        cout << dijkstraTD.getPathWeight() << endl;
+
+        DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
+        dijkstraTCH.markReachable();
+        dijkstraTCH.compute();
+        cout << dijkstraTCH.getPathWeight() << endl;
+    }
+    return 0;
 
     vector<vector<CHQueryEdge>> adjacencyListCH;
     if (PARAMS_READ_CH_FROM_FILE) {

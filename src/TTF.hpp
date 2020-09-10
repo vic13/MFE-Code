@@ -14,7 +14,7 @@ pair<int, int> operator *(const int x, const std::pair<int, int>& y) {
 
 class TTF {
 public:
-    inline constexpr static int period = 1440;
+    inline constexpr static int period = 60*60*24; // 1 day in seconds
 
     TTF(vector<pair<int,int>> points) {
         this->points = points;
@@ -57,33 +57,32 @@ public:
             int bend_x = 0;
             int bend_y = 0;
             if (j==f1.getPoints().size()) {cout << "problem j1" << endl; exit(0);}
-            if (i==f2.getPoints().size()) {i=0; lap++;} // TODO : i=0 ou 1
+            if (i==f2.getPoints().size()) {i=0; lap++;}
             pair<int,int> p = f1.getPoints()[j];
             pair<int,int> q = f2.getPoints()[i];
             if (q.first+lap*period == p.first+p.second) {
                 bend_x = p.first;
                 bend_y = q.second + p.second;
-                // i++;
                 j++;
             } else if (q.first+lap*period < p.first+p.second) {
                 if (j==0) {cout << "problem j2" << endl; exit(0);}
                 pair<int,int> previous_p = f1.getPoints()[j-1];
                 if (p.first != previous_p.first) {
-                    float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
-                    bend_x = (1/m)*(q.first+lap*TTF::period - previous_p.first - previous_p.second) + previous_p.first;
-                    bend_y = q.first + q.second - bend_x +lap*TTF::period;
+                    double m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
+                    double bend_x_double = (1/m)*(q.first+lap*TTF::period - previous_p.first - previous_p.second) + previous_p.first;
+                    bend_x = correctFloat(bend_x_double);
                 } else {
                     bend_x = previous_p.first;
-                    bend_y = q.first + q.second - bend_x +lap*TTF::period;
-                    // TODO
                 }
+                bend_y = q.first + q.second - bend_x +lap*TTF::period;
                 i++;
             } else {
                 if (i==0) {cout << "problem i1" << endl; exit(0);}
                 pair<int,int> previous_q = f2.getPoints()[i-1];
-                float m = (q.second - previous_q.second)/(q.first - previous_q.first);
+                double m = (q.second - previous_q.second)/(q.first - previous_q.first);
                 bend_x = p.first;
-                bend_y = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
+                double bend_y_double = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
+                bend_y = correctFloat(bend_y_double);
                 j++;
             }
             f.tryToAddPoint(make_pair(modulo(bend_x, period), bend_y));
@@ -145,16 +144,9 @@ public:
     bool respectsFIFO() {
         int previous_first = -1;
         int previous_second = -1;
-        int frontBackDif = points.front().second - points.back().second;
-        if (frontBackDif < 0) {
-            float eps = 0.001;
-            if (abs(frontBackDif) < eps) {
-                points.back().second = points.front().second; // Correct
-                cout << "Corrected FIFO" << endl;
-            } else {
-                cout << "Problem FIFO back front" << endl;
-                return false;
-            }
+        if (points.front().second < points.back().second) {
+            cout << "Problem FIFO back front" << endl;
+            return false;
         }
         for (auto& p : this->points) {
             if (previous_first != -1) {
@@ -169,39 +161,14 @@ public:
         return true;
     }
 
-    bool isTransitTTF() {
-        int previous_first = -1;
-        int previous_second = -1;
-        for (pair<int,int> p : points) {
-            if (previous_first != -1) {
-                if (p.first == previous_first && p.second > previous_second) {
-                    // step
-                } else if (p.first > previous_first && p.first-previous_first == previous_second-p.second) {
-                    // -1 slope
-                } else {
-                    cout << "Not transit TTF" << endl;
-                    cout << (p.first > previous_first) << " ----- " << (p.first-previous_first == previous_second-p.second) << endl;
-                    cout << "dx : " << p.first-previous_first << endl;
-                    cout << "dy : " << previous_second-p.second << endl;
-                    cout << "pr : (" << previous_first << "," << previous_second << ")" << endl;
-                    cout << "p : (" << p.first << "," << p.second << ")" << endl;
-                    return false;
-                }
-            }
-            previous_first = p.first;
-            previous_second = p.second;
-        }
-        if (points.back().second < points.back().second) return false;
-        return true;
-    }
-
     static TTF randomTransitTTF() {
         vector<pair<int,int>> points;
-        int max = 60;
+        int max = 60*60; // max waiting time : 1h
+        int min = 60; // min waiting time : 1min
         int x = 0;
         points.push_back(make_pair(x,0));
         while (true) {
-            int waitingTime = 1+Random::randomInt(max);
+            int waitingTime = min+Random::randomInt(max-min);
             if (waitingTime > period-x) {
                 waitingTime = period-x;
             }
@@ -272,22 +239,20 @@ private:
     }
 
     static bool colinear(pair<int,int> p1, pair<int,int> p2, pair<int,int> p3) {
-        if (p1.first==p2.first && p2.first==p3.first) return true;
-        float eps = 0.00001;
-        float potentialDifference = p2.second - interpolation(p1, p3, p2.first);
-        return (abs(potentialDifference) < eps);
+        return ((p2.second-p1.second)*(p3.first-p2.first) == (p3.second-p2.second)*(p2.first-p1.first));
     }
 
     static bool samePoint(pair<int,int> p, pair<int,int> q) {
         return (p.first == q.first && p.second == q.second);
     }
 
-    static float interpolation(pair<int,int> p1, pair<int,int> p2, int t) {
-        float distance_down = (t - p1.first);
-        float distance_up = (p2.first - t);
-        float value_down = p1.second;
-        float value_up = p2.second;
-        return (distance_down * value_up + distance_up * value_down) / (distance_down + distance_up);
+    static int interpolation(pair<int,int> p1, pair<int,int> p2, int t) {
+        int distance_down = (t - p1.first);
+        int distance_up = (p2.first - t);
+        int value_down = p1.second;
+        int value_up = p2.second;
+        double result = (double)(distance_down * value_up + distance_up * value_down) / (double)(distance_down + distance_up);
+        return correctFloat(result);
     }
     
     static pair<int,int> intersection(pair<int,int> p, pair<int,int> p2, pair<int,int> q, pair<int,int> q2) {
@@ -297,11 +262,11 @@ private:
         if (cp == 0) {
             return make_pair(-1,-1);                    // Parallel : no intersection
         } else {
-            float t = (float)cross(q-p, s) / (float)cp;
-            float u = (float)cross(q-p, r) / (float)cp;
+            double t = (double)cross(q-p, s) / (double)cp;
+            double u = (double)cross(q-p, r) / (double)cp;
             if (t>= 0 && t<= 1 && u>= 0 && u<= 1) {
-                float x_first = p.first + (t*r.first);
-                float x_second = p.second + (t*r.second);
+                double x_first = p.first + (t*r.first);
+                double x_second = p.second + (t*r.second);
                 pair<int,int> x_correct = make_pair(correctFloat(x_first), correctFloat(x_second));
                 return x_correct;                       // Intersection
             } else {
@@ -310,10 +275,10 @@ private:
         }
     }
 
-    static int correctFloat(float a) {
-        float deltaInt = a - (int)a;
+    static int correctFloat(double a) {
+        double deltaInt = a - (int)a;
         if (deltaInt != 0) {
-            float eps = 0.0001;
+            double eps = 1.0e-10;
             if (deltaInt > 0.5) {
                 deltaInt = ceilf(a) - a;
                 if (deltaInt < eps) {
