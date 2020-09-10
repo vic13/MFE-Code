@@ -42,14 +42,17 @@ int main() {
     cout << std::setprecision(9) << endl;
     Clock clock("Program duration", false);
 
-    // float r = 10;
+    // int r = 10;
     // TTF f1({
     //     make_pair(0,5*10*r),make_pair(100,5*9*r),make_pair(101,5*9.5*r),make_pair(200,5*8*r),make_pair(TTF::period,5*9*r)
     // });
     // TTF f2({
     //     make_pair(0,15*r),make_pair(30,25*r),make_pair(TTF::period,10*r)
     // });
-    // // View::displayTTF({f1,f2});
+    // TTF f1 = TTF::randomTransitTTF();
+    // TTF f2 = TTF::randomTransitTTF();
+    // View::displayTTF({f1,f2});
+    // TTF f3 = TTF::minimum(f1,f2);
     // cout << "valid : " << f1.isTransitTTF() << endl;
     // cout << "valid : " << f2.isTransitTTF() << endl;
     // TTF f3 = TTF::chaining(f1,f2);
@@ -59,11 +62,14 @@ int main() {
     
     // TTF f0 = TTF::randomTransitTTF();
     // cout << f0.isTransitTTF() << endl;
-    // for (int i=0; i<=10000; i++) {
+    // for (int i=0; i<=986; i++) {
     //     cout << i << " : " << f0.getPoints().size() << endl;
     //     TTF f1 = TTF::randomTransitTTF();
-    //     if (!f1.isTransitTTF()) exit(0);
-    //     TTF f0Save = f0;
+    //     if (Random::random01() < 0.5) {
+    //         f1 = TTF(1+Random::randomInt(100));
+    //         cout << f1.getPoints()[0].second << endl;
+    //         cout << f0.getPoints()[0].second << endl;
+    //     }
     //     float r = Random::random01();
     //     if (r < 0.3) {
     //         f0 = TTF::chaining(f0, f1);
@@ -72,13 +78,9 @@ int main() {
     //     } else {
     //         f0 = TTF::minimum(f0, f1);
     //     }
-    //     if (!f0.respectsFIFO()) exit(0);
-    //     if (!f0.isTransitTTF()) {
-    //         f0Save.print();
-    //         f1.print();
-    //         break;
-    //     }
     // }
+    // TTF f0 = TTF::randomTransitTTF();
+    // cout << f0.evaluate(10) << endl;
     // View::displayTTF({f0});
     // return 0;
 
@@ -90,10 +92,14 @@ int main() {
     //     View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
     // #endif
 
-    // vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
-    // TCH tch(adjacencyListTD);
-    // vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
-    // GraphUtils::printGraphProperties(adjacencyListTCH);
+    vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
+    cout << "a" << endl;
+    TCH tch(adjacencyListTD);
+    cout << "b" << endl;
+    vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
+    cout << "c" << endl;
+    GraphUtils::printGraphProperties(adjacencyListTCH);
+    return 0;
 
     // for (int i = 0; i<10; i++) {
     //     int s = Random::randomInt(adjacencyList.size());

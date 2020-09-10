@@ -32,7 +32,6 @@ public:
             avgDijkstraCH += std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
             avgSearchSpaceDijkstra += dijkstra.getSearchSpace();
             avgSearchSpaceDijkstraCH += dijkstraCH.getSearchSpace();
-            dijkstra.printVertexWeights();
 
             if (dijkstra.getPathWeight() != dijkstraCH.getPathWeight()) {
                 cout << "Wrong for s : " << s << " and t : " << t << " - w1 : " << dijkstra.getPathWeight() << " and w2 : " << dijkstraCH.getPathWeight() << " dw : " << dijkstraCH.getPathWeight()-dijkstra.getPathWeight() << endl;

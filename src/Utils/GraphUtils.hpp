@@ -28,7 +28,7 @@ public:
     template <typename T>
     static void printVector(std::vector<T> const &input) {
         cout << "[";
-        std::copy(input.begin(), input.end(), std::ostream_iterator<float>(cout, " "));
+        std::copy(input.begin(), input.end(), std::ostream_iterator<int>(cout, " "));
         cout << "]" << endl;
     }
 

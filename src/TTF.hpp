@@ -27,9 +27,7 @@ public:
     }
 
     int evaluate(int t) {
-        // cout << "t : " <<  t << endl;
         t = fmod(t, period);
-        // cout << "mod : " << t << endl;
         // logarithmic search
         auto it = std::lower_bound(this->points.begin(), this->points.end(), make_pair(t, 0));
         int index_up = std::distance(points.begin(), it);
@@ -50,15 +48,12 @@ public:
         TTF f(points);
         int lap = 0;
         int i = 0;
-        // cout << f2.getPoints().size() << endl;
         while (f2.getPoints()[i].first + lap*period < f1.getPoints()[0].second) {
             i++;
             if (i==f2.getPoints().size()) {i=0; lap++;}
-            // cout << i << endl;
         }
         int j = 0;
         while (true) {
-            // cout << endl << "indexes : " << j << " ; " << i << endl;
             int bend_x = 0;
             int bend_y = 0;
             if (j==f1.getPoints().size()) {cout << "problem j1" << endl; exit(0);}
@@ -66,21 +61,24 @@ public:
             pair<int,int> p = f1.getPoints()[j];
             pair<int,int> q = f2.getPoints()[i];
             if (q.first+lap*period == p.first+p.second) {
-                // cout << "1 : lap : " << lap << endl;
                 bend_x = p.first;
                 bend_y = q.second + p.second;
                 // i++;
                 j++;
             } else if (q.first+lap*period < p.first+p.second) {
-                // cout << "2 : lap : " << lap << endl;
                 if (j==0) {cout << "problem j2" << endl; exit(0);}
                 pair<int,int> previous_p = f1.getPoints()[j-1];
-                float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
-                bend_x = (1/m)*(q.first+lap*TTF::period - previous_p.first - previous_p.second) + previous_p.first;
-                bend_y = q.first + q.second - bend_x +lap*TTF::period;
+                if (p.first != previous_p.first) {
+                    float m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
+                    bend_x = (1/m)*(q.first+lap*TTF::period - previous_p.first - previous_p.second) + previous_p.first;
+                    bend_y = q.first + q.second - bend_x +lap*TTF::period;
+                } else {
+                    bend_x = previous_p.first;
+                    bend_y = q.first + q.second - bend_x +lap*TTF::period;
+                    // TODO
+                }
                 i++;
             } else {
-                // cout << "3 : lap : " << lap << endl;
                 if (i==0) {cout << "problem i1" << endl; exit(0);}
                 pair<int,int> previous_q = f2.getPoints()[i-1];
                 float m = (q.second - previous_q.second)/(q.first - previous_q.first);
@@ -88,7 +86,6 @@ public:
                 bend_y = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
                 j++;
             }
-            // cout << "point : " << bend_x << " ; " << bend_y << endl;
             f.tryToAddPoint(make_pair(modulo(bend_x, period), bend_y));
             if (bend_x>=period) break;
         }
@@ -152,9 +149,7 @@ public:
         if (frontBackDif < 0) {
             float eps = 0.001;
             if (abs(frontBackDif) < eps) {
-                cout << points.back().first << endl;
                 points.back().second = points.front().second; // Correct
-                cout << points.back().first << endl;
                 cout << "Corrected FIFO" << endl;
             } else {
                 cout << "Problem FIFO back front" << endl;
@@ -163,8 +158,7 @@ public:
         }
         for (auto& p : this->points) {
             if (previous_first != -1) {
-                float slope = (p.second-previous_second)/(p.first-previous_first);
-                if (slope < -1) {
+                if (p.second-previous_second < -(p.first-previous_first)) {
                     cout << "Problem FIFO slope" << endl;
                     return false;
                 }
@@ -296,52 +290,49 @@ private:
         return (distance_down * value_up + distance_up * value_down) / (distance_down + distance_up);
     }
     
-    static pair<float,float> intersection(pair<int,int> p, pair<int,int> p2, pair<int,int> q, pair<int,int> q2) {
+    static pair<int,int> intersection(pair<int,int> p, pair<int,int> p2, pair<int,int> q, pair<int,int> q2) {
         pair<int,int> r = p2 - p;
         pair<int,int> s = q2 - q;
         int cp = cross(r,s);
         if (cp == 0) {
-            // cout << "parallel : " << endl;
             return make_pair(-1,-1);                    // Parallel : no intersection
         } else {
-            int t = cross(q-p, s) / cp;
-            int u = cross(q-p, r) / cp;
+            float t = (float)cross(q-p, s) / (float)cp;
+            float u = (float)cross(q-p, r) / (float)cp;
             if (t>= 0 && t<= 1 && u>= 0 && u<= 1) {
-                pair<int,int> x = p + (t*r);
-                // x.first = correctFloat(x.first);
-                // x.second = correctFloat(x.second);
-                return x;                       // Intersection
+                float x_first = p.first + (t*r.first);
+                float x_second = p.second + (t*r.second);
+                pair<int,int> x_correct = make_pair(correctFloat(x_first), correctFloat(x_second));
+                return x_correct;                       // Intersection
             } else {
-                // cout << "no intersection : " << endl;
                 return make_pair(-1,-1);                // No intersection
             }
         }
     }
 
-    // static int correctFloat(float a) {
-    //     float deltaInt = a - (int)a;
-    //     if (deltaInt != 0) {
-    //         float eps = 0.0001;
-    //         if (deltaInt > 0.5) {
-    //             deltaInt = ceilf(a) - a;
-    //             if (deltaInt < eps) {
-    //                 a = ceilf(a);
-    //             } else {
-    //                 cout << "problem4 : " << deltaInt << endl;
-    //                 exit(0);
-    //             }
-    //         } else {
-    //             if (deltaInt < eps) {
-    //                 a = (int)a;
-    //             } else {
-    //                 cout << "problem4 : " << deltaInt << endl;
-    //                 exit(0);
-    //             }
-    //         }
-    //         // cout << deltaInt << endl;
-    //     }
-    //     return a;
-    // }
+    static int correctFloat(float a) {
+        float deltaInt = a - (int)a;
+        if (deltaInt != 0) {
+            float eps = 0.0001;
+            if (deltaInt > 0.5) {
+                deltaInt = ceilf(a) - a;
+                if (deltaInt < eps) {
+                    a = ceilf(a);
+                } else {
+                    cout << "problem4 : " << deltaInt << endl;
+                    exit(0);
+                }
+            } else {
+                if (deltaInt < eps) {
+                    a = (int)a;
+                } else {
+                    cout << "problem4 : " << deltaInt << endl;
+                    exit(0);
+                }
+            }
+        }
+        return a;
+    }
 
     static int cross(pair<int,int> v1, pair<int,int> v2) { // Returns the 2D cross product of the 2 specified vectors
         return (v1.first * v2.second - v1.second * v2.first);
