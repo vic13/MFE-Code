@@ -90,25 +90,25 @@ int main() {
     //     View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
     // #endif
 
-    vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
-    TCH tch(adjacencyListTD);
-    vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
-    GraphUtils::printGraphProperties(adjacencyListTCH);
+    // vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
+    // TCH tch(adjacencyListTD);
+    // vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
+    // GraphUtils::printGraphProperties(adjacencyListTCH);
 
-    for (int i = 0; i<10; i++) {
-        int s = Random::randomInt(adjacencyList.size());
-        int t = Random::randomInt(adjacencyList.size());
-        float startingTime = TTF::period*Random::random01();
-        DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
-        cout << dijkstraTD.compute() << endl;
-        cout << dijkstraTD.getPathWeight() << endl;
+    // for (int i = 0; i<10; i++) {
+    //     int s = Random::randomInt(adjacencyList.size());
+    //     int t = Random::randomInt(adjacencyList.size());
+    //     float startingTime = TTF::period*Random::random01();
+    //     DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
+    //     cout << dijkstraTD.compute() << endl;
+    //     cout << dijkstraTD.getPathWeight() << endl;
 
-        DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
-        dijkstraTCH.markReachable();
-        cout << dijkstraTCH.compute() << endl;
-        cout << dijkstraTCH.getPathWeight() << endl;
-    }
-    return 0;
+    //     DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
+    //     dijkstraTCH.markReachable();
+    //     cout << dijkstraTCH.compute() << endl;
+    //     cout << dijkstraTCH.getPathWeight() << endl;
+    // }
+    // return 0;
 
     vector<vector<CHQueryEdge>> adjacencyListCH;
     if (PARAMS_READ_CH_FROM_FILE) {

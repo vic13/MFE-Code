@@ -1,11 +1,11 @@
 
 class DijkstraTCH : public DijkstraTemplate<TCHQueryEdge> {
 public:
-    DijkstraTCH(vector<vector<TCHQueryEdge>>& graph, int s, int t, float startingTime): DijkstraTemplate<TCHQueryEdge>(graph, s, t) {
+    DijkstraTCH(vector<vector<TCHQueryEdge>>& graph, int s, int t, int startingTime): DijkstraTemplate<TCHQueryEdge>(graph, s, t) {
         this->startingTime = startingTime;
     }
 
-    float getEdgeWeight(TCHQueryEdge e, float visitedVertexWeight) {
+    int getEdgeWeight(TCHQueryEdge e, int visitedVertexWeight) {
         return e.evaluate(startingTime + visitedVertexWeight);
     }
 
@@ -43,5 +43,5 @@ public:
     }
 
 private:
-    float startingTime;
+    int startingTime;
 };

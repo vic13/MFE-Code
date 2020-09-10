@@ -69,14 +69,14 @@ public:
     static void displayTTF(vector<TTF> ttfs) {
         
         plt::figure_size(700, 400);
-        float max = -1;
-        float min = -1;
+        int max = -1;
+        int min = -1;
         for (int i = 0; i<ttfs.size(); i++) {
             TTF f = ttfs[i];
             if (f.getMaxima() > max || max==-1) max=f.getMaxima();
             if (f.getMinima() < min || min==-1) min=f.getMinima();
-            vector<float> x;
-            vector<float> y;
+            vector<int> x;
+            vector<int> y;
             for (auto& point : f.getPoints()) {
                 x.push_back(point.first);
                 y.push_back(point.second);
@@ -90,7 +90,7 @@ public:
             plt::plot(x, y, keywords);
         }
         
-        plt::ylim(-5.0f,max+5);
+        plt::ylim(-5,max+5);
         plt::xlim(-30,(int)TTF::period+30);
         plt::show();
     }

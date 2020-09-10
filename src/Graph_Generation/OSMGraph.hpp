@@ -108,11 +108,11 @@ public:
 
         Dijkstra fromS(graph, s, -1); // t set to -1 to disable stopping criteria
         fromS.compute();
-        vector<float> weightsFromS = fromS.getWeights();
+        vector<int> weightsFromS = fromS.getWeights();
         vector<vector<Edge>> reversedGraph = GraphUtils::reverseGraph(graph);
         Dijkstra toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
         toS.compute();
-        vector<float> weightsToS = toS.getWeights();
+        vector<int> weightsToS = toS.getWeights();
 
         vector<bool> verticesToKeep(graph.size(), true);
         vector<int> offsets;
@@ -153,7 +153,7 @@ public:
         }
         if (!alreadyEdge) {
             // Add edge
-            Edge edge(v, newWeight);
+            Edge edge(v, (int)newWeight);
             adjacencyList[u].push_back(edge);
         }
         this->nbParallelEdges += alreadyEdge;

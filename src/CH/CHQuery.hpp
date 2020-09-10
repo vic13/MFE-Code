@@ -15,8 +15,8 @@ public:
         this->vertexParents_up = initVertexParents();
         this->vertexParents_down = initVertexParents();
         this->vertexParents = &vertexParents_up;
-        this->stallingDistances_up = vector<float>(graph.size(), -1);
-        this->stallingDistances_down = vector<float>(graph.size(), -1);
+        this->stallingDistances_up = vector<int>(graph.size(), -1);
+        this->stallingDistances_down = vector<int>(graph.size(), -1);
         this->stallingDistances = &stallingDistances_up;
     }
 
@@ -27,9 +27,9 @@ public:
             setDirection();
 
             // pop first vertex in the set
-            pair<float, int> visitedVertex = *(vertexSet->begin());
+            pair<int, int> visitedVertex = *(vertexSet->begin());
             vertexSet->erase(vertexSet->begin());
-            float visitedVertexWeight = visitedVertex.first;
+            int visitedVertexWeight = visitedVertex.first;
             int visitedVertexNb = visitedVertex.second;
             updateD(visitedVertexNb);
 
@@ -44,17 +44,17 @@ public:
 
             for (auto& e : graph[visitedVertexNb]) {
                 if (e.isSameDirection(direction)) {
-                    float neighbourCurrentWeight = (*vertexWeights)[e.getDestinationVertex()];
-                    float neighbourNewWeight = visitedVertexWeight + e.getWeight();
-                    if ((neighbourCurrentWeight == -1.0f) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
+                    int neighbourCurrentWeight = (*vertexWeights)[e.getDestinationVertex()];
+                    int neighbourNewWeight = visitedVertexWeight + e.getWeight();
+                    if ((neighbourCurrentWeight == -1) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
                         (*stallingDistances)[e.getDestinationVertex()] = -1; // Unstall
-                        if (neighbourCurrentWeight != -1.0f) {                                                              
+                        if (neighbourCurrentWeight != -1) {                                                              
                             // if current weight not infinite : vertex already in queue : DELETE before inserting the updated vertex
-                            pair<float, int> currentNeighbour = make_pair(neighbourCurrentWeight, e.getDestinationVertex());
+                            pair<int, int> currentNeighbour = make_pair(neighbourCurrentWeight, e.getDestinationVertex());
                             vertexSet->erase(vertexSet->find(currentNeighbour));
                         }
                         // INSERT in queue
-                        pair<float, int> newNeighbour = make_pair(neighbourNewWeight, e.getDestinationVertex());
+                        pair<int, int> newNeighbour = make_pair(neighbourNewWeight, e.getDestinationVertex());
                         vertexSet->insert(newNeighbour);
                         // UPDATE weight + parent
                         (*vertexWeights)[e.getDestinationVertex()] = neighbourNewWeight;
@@ -67,12 +67,12 @@ public:
         return (d != -1);
     }
 
-    void stallOnDemand(int u, float du) {
+    void stallOnDemand(int u, int du) {
         if ((*stallingDistances)[u] == -1) {
             for (auto& e : graph[u]) {
                 if (!e.isSameDirection(direction)) {
                     int v = e.getDestinationVertex();
-                    float dv = (*vertexWeights)[v];
+                    int dv = (*vertexWeights)[v];
                     if ((dv != -1) && (dv + e.getWeight() < du)) {
                         (*stallingDistances)[u] = dv + e.getWeight();
                         // stallPropagate(u);
@@ -84,7 +84,6 @@ public:
     }
 
     void stallPropagate(int u) {
-        float delta = 0.001;
         queue<int> q({u});
         while (!q.empty()) {
             int x = q.front();
@@ -92,8 +91,8 @@ public:
             for (auto& edge : graph[x]) {
                 if (edge.isSameDirection(direction)) {
                     int v = edge.getDestinationVertex();
-                    float newDistance = (*stallingDistances)[x] + edge.getWeight();
-                    if (((*vertexWeights)[v] == -1) || ((*stallingDistances)[v] != -1) || ((*vertexWeights)[v] <= newDistance + delta)) { // if unreached, already stalled, or no better distance
+                    int newDistance = (*stallingDistances)[x] + edge.getWeight();
+                    if (((*vertexWeights)[v] == -1) || ((*stallingDistances)[v] != -1) || ((*vertexWeights)[v] <= newDistance)) { // if unreached, already stalled, or no better distance
                         continue;
                     }
                     (*stallingDistances)[v] = newDistance;
@@ -103,7 +102,7 @@ public:
         }
     }
 
-    float getPathWeight() {
+    int getPathWeight() {
         return this->d;
     }
 
@@ -140,31 +139,31 @@ private:
     int s;
     vector<vector<CHQueryEdge>> graph;
     bool direction = true; // Start with the upward search
-    set<pair<float, int>>* vertexSet;
-    set<pair<float, int>> vertexSet_up;
-    set<pair<float, int>> vertexSet_down;
-    vector<float>* vertexWeights;
-    vector<float> vertexWeights_up;
-    vector<float> vertexWeights_down;
+    set<pair<int, int>>* vertexSet;
+    set<pair<int, int>> vertexSet_up;
+    set<pair<int, int>> vertexSet_down;
+    vector<int>* vertexWeights;
+    vector<int> vertexWeights_up;
+    vector<int> vertexWeights_down;
     vector<int>* vertexParents;
     vector<int> vertexParents_up;
     vector<int> vertexParents_down;
-    vector<float>* stallingDistances;
-    vector<float> stallingDistances_up;
-    vector<float> stallingDistances_down;
-    float weight_upward_search = 0;
-    float weight_downward_search = 0;
-    float d = -1; // best path weight so far (-1 : infinity)
+    vector<int>* stallingDistances;
+    vector<int> stallingDistances_up;
+    vector<int> stallingDistances_down;
+    int weight_upward_search = 0;
+    int weight_downward_search = 0;
+    int d = -1; // best path weight so far (-1 : infinity)
     int searchSpace = 0;
 
-    set<pair<float, int>> initVertexSet(int s) {
-        set<pair<float, int>> vertexSet;
-        vertexSet.insert(make_pair(0.0f, s)); 
+    set<pair<int, int>> initVertexSet(int s) {
+        set<pair<int, int>> vertexSet;
+        vertexSet.insert(make_pair(0, s)); 
         return vertexSet;
     }
 
-    vector<float> initVertexWeights(int s) {
-        vector<float> vertexWeights(graph.size(), -1); // -1 corresponds to infinite weight
+    vector<int> initVertexWeights(int s) {
+        vector<int> vertexWeights(graph.size(), -1); // -1 corresponds to infinite weight
         vertexWeights[s] = 0;
         return vertexWeights;
     }
@@ -173,7 +172,7 @@ private:
         return vector<int>(graph.size(), -1); // -1 corresponds to no parent
     }
 
-    bool checkStoppingCriteria(float visitedWeight) {
+    bool checkStoppingCriteria(int visitedWeight) {
         // Check min queue weight
         if (this->direction) {
             weight_upward_search = visitedWeight;
@@ -181,7 +180,7 @@ private:
             weight_downward_search = visitedWeight;
         }
 
-        float minQueueWeight = fmin(weight_downward_search, weight_upward_search);
+        int minQueueWeight = fmin(weight_downward_search, weight_upward_search);
         return (this->d != -1 && this->d <= minQueueWeight); // No possible better path can be found
     }
 
@@ -204,8 +203,8 @@ private:
     }
 
     void updateD(int visitedVertexNb) {
-        float weight_up = this->vertexWeights_up[visitedVertexNb];
-        float weight_down = this->vertexWeights_down[visitedVertexNb];
+        int weight_up = this->vertexWeights_up[visitedVertexNb];
+        int weight_down = this->vertexWeights_down[visitedVertexNb];
         if (weight_up != -1 && weight_down != -1) { // vertex reached in both direction
             if (weight_up + weight_down < this->d || this->d == -1) {
                 this->d = weight_up + weight_down;

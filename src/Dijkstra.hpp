@@ -16,9 +16,9 @@ public:
         while (!vertexSet.empty()) {
             searchSpace++;
             // pop first vertex in the set
-            pair<float, int> visitedVertex = *(vertexSet.begin());
+            pair<int, int> visitedVertex = *(vertexSet.begin());
             vertexSet.erase(vertexSet.begin());
-            float visitedVertexWeight = visitedVertex.first;
+            int visitedVertexWeight = visitedVertex.first;
             int visitedVertexNb = visitedVertex.second;
 
             if (visitedVertexNb == t) {
@@ -27,16 +27,16 @@ public:
             } else {
                 for (auto& e : graph[visitedVertexNb]) {
                     if (!relaxingCondition(e)) continue;
-                    float neighbourCurrentWeight = vertexWeights[e.getDestinationVertex()];
-                    float neighbourNewWeight = visitedVertexWeight + getEdgeWeight(e, visitedVertexWeight);
-                    if ((neighbourCurrentWeight == -1.0f) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
-                        if (neighbourCurrentWeight != -1.0f) {                                                              
+                    int neighbourCurrentWeight = vertexWeights[e.getDestinationVertex()];
+                    int neighbourNewWeight = visitedVertexWeight + getEdgeWeight(e, visitedVertexWeight);
+                    if ((neighbourCurrentWeight == -1) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
+                        if (neighbourCurrentWeight != -1) {                                                              
                             // if current weight not infinite : vertex already in queue : DELETE before inserting the updated vertex
-                            pair<float, int> currentNeighbour = make_pair(neighbourCurrentWeight, e.getDestinationVertex());
+                            pair<int, int> currentNeighbour = make_pair(neighbourCurrentWeight, e.getDestinationVertex());
                             vertexSet.erase(vertexSet.find(currentNeighbour));
                         }
                         // INSERT in queue
-                        pair<float, int> newNeighbour = make_pair(neighbourNewWeight, e.getDestinationVertex());
+                        pair<int, int> newNeighbour = make_pair(neighbourNewWeight, e.getDestinationVertex());
                         vertexSet.insert(newNeighbour);
                         // UPDATE weight + parent
                         vertexWeights[e.getDestinationVertex()] = neighbourNewWeight;
@@ -49,11 +49,11 @@ public:
         return false;
     }
 
-    float getPathWeight() {
+    int getPathWeight() {
         return this->vertexWeights[this->t];
     }
 
-    vector<float> getWeights() {
+    vector<int> getWeights() {
         return this->vertexWeights;
     }
 
@@ -84,26 +84,26 @@ public:
         GraphUtils::printVector(this->vertexWeights);
     }
 
-    virtual float getEdgeWeight(T e, float visitedVertexWeight) = 0;
+    virtual int getEdgeWeight(T e, int visitedVertexWeight) = 0;
     virtual bool relaxingCondition(T e) = 0;
   
 protected:
     int t;
     int s;
     vector<vector<T>> graph;
-    set<pair<float, int>> vertexSet;
-    vector<float> vertexWeights;
+    set<pair<int, int>> vertexSet;
+    vector<int> vertexWeights;
     vector<int> vertexParents;
     int searchSpace = 0;
 
-    set<pair<float, int>> initVertexSet(int s) {
-        set<pair<float, int>> vertexSet;
-        vertexSet.insert(make_pair(0.0f, s)); 
+    set<pair<int, int>> initVertexSet(int s) {
+        set<pair<int, int>> vertexSet;
+        vertexSet.insert(make_pair(0, s)); 
         return vertexSet;
     }
 
-    vector<float> initVertexWeights(int s) {
-        vector<float> vertexWeights(graph.size(), -1); // -1 corresponds to infinite weight
+    vector<int> initVertexWeights(int s) {
+        vector<int> vertexWeights(graph.size(), -1); // -1 corresponds to infinite weight
         vertexWeights[s] = 0;
         return vertexWeights;
     }
@@ -117,7 +117,7 @@ class Dijkstra : public DijkstraTemplate<Edge> {
 public:
     Dijkstra(vector<vector<Edge>>& graph, int s, int t): DijkstraTemplate<Edge>(graph, s, t) {}
 
-    float getEdgeWeight(Edge e, float visitedVertexWeight) {
+    int getEdgeWeight(Edge e, int visitedVertexWeight) {
         return e.getWeight();
     }
 
@@ -128,11 +128,11 @@ public:
 
 class DijkstraTD : public DijkstraTemplate<TDEdge> {
 public:
-    DijkstraTD(vector<vector<TDEdge>>& graph, int s, int t, float startingTime): DijkstraTemplate<TDEdge>(graph, s, t) {
+    DijkstraTD(vector<vector<TDEdge>>& graph, int s, int t, int startingTime): DijkstraTemplate<TDEdge>(graph, s, t) {
         this->startingTime = startingTime;
     }
 
-    float getEdgeWeight(TDEdge e, float visitedVertexWeight) {
+    int getEdgeWeight(TDEdge e, int visitedVertexWeight) {
         return e.evaluate(startingTime + visitedVertexWeight);
     }
 
@@ -141,6 +141,6 @@ public:
     }
 
 private:
-    float startingTime;
+    int startingTime;
 };
 

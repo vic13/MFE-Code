@@ -5,8 +5,8 @@ public:
     CHTemplate(vector<vector<T_Edge>> inputGraph) : graph(inputGraph) {
         this->n = inputGraph.size();
         this->deletedNeighbours = vector<int>(this->n, 0);
-        this->vertexWeights = vector<float>(this->n, -1);
-        this->vertexWeightsR = vector<float>(this->n, -1);
+        this->vertexWeights = vector<int>(this->n, -1);
+        this->vertexWeightsR = vector<int>(this->n, -1);
         this->hops = vector<int>(this->n, 0);
         this->hopsR = vector<int>(this->n, 0);
     }
@@ -31,12 +31,12 @@ protected:
     vector<int> deletedNeighbours;
     CHGraph<T_Edge, T_CHEdge, T_weight> g_H = graph; // CH graph
     CHGraph<T_Edge, T_CHEdge, T_weight> g_R = graph; // Remaining graph
-    vector<float> vertexWeights; // Dijkstra weights (for memory optimisation)
-    vector<float> vertexWeightsR; // Reference Dijkstra weights (for memory optimisation)
+    vector<int> vertexWeights; // Dijkstra weights (for memory optimisation)
+    vector<int> vertexWeightsR; // Reference Dijkstra weights (for memory optimisation)
     vector<int> hops;
     vector<int> hopsR;
     vector<int> hopLimits = vector<int>({1, 2, 3, 5});
-    vector<float> hopTresholds = vector<float>({3.3, 7, 8});
+    vector<float> hopTresholds = vector<float>({3.3, 7, 10});
     int hopIndex = 0;
 
     void buildVertexOrdering() {

@@ -21,7 +21,7 @@ public:
         vector<CHQueryEdge> edges;
         string s;
         int dest = 0;
-        float w = 0;
+        int w = 0;
         bool direction = 0;
         int state = 0;
         while (getline(ifs, s, ',')) {

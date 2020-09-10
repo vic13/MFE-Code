@@ -2,12 +2,12 @@
 class Edge {
 public:
     
-    Edge(int destinationVertex, float weight) {
+    Edge(int destinationVertex, int weight) {
         this->destinationVertex = destinationVertex;
         this->weight = weight;
     }
 
-    float getWeight() {
+    int getWeight() {
         return this->weight;
     }
 
@@ -15,7 +15,7 @@ public:
         return this->destinationVertex;
     }
 
-    void setMinWeight(float weight) {
+    void setMinWeight(int weight) {
         if (weight < this->weight) {
             this->weight = weight;
         }
@@ -23,12 +23,12 @@ public:
 
 protected:
     int destinationVertex;
-    float weight;
+    int weight;
 };
 
 class CHEdge : public Edge {
 public:
-    CHEdge(int sourceVertex, int destinationVertex, float weight): Edge(destinationVertex, weight) {
+    CHEdge(int sourceVertex, int destinationVertex, int weight): Edge(destinationVertex, weight) {
         this->sourceVertex = sourceVertex;
     }
 
@@ -42,7 +42,7 @@ private:
 
 class CHQueryEdge : public Edge {
 public:
-    CHQueryEdge(int destinationVertex, float weight, bool direction): Edge(destinationVertex, weight) {
+    CHQueryEdge(int destinationVertex, int weight, bool direction): Edge(destinationVertex, weight) {
         this->direction = direction;
     }
 
@@ -68,7 +68,7 @@ public:
         return this->ttf;
     }
 
-    float evaluate(float t=0) {
+    int evaluate(int t=0) {
         return this->ttf.evaluate(t);
     }
 
@@ -95,11 +95,11 @@ public:
         return this->sourceVertex;
     }
 
-    float getMaxima() {
+    int getMaxima() {
         return this->ttf.getMaxima();
     }
 
-    float getMinima() {
+    int getMinima() {
         return this->ttf.getMinima();
     }
 
