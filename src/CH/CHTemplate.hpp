@@ -17,14 +17,20 @@ public:
         this->constructCH();
         auto t2 = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-        std::cout << "CH duration : " << duration/1000000.0 << " seconds" << endl;
+        this->preprocessingTime = duration/1000000.0;
+        std::cout << "CH duration : " << preprocessingTime << " seconds" << endl;
         vector<vector<T_CHQueryEdge>> g_star = convertToSearchGraph(this->g_H);
         return g_star;
+    }
+
+    float getPreprocessingTime() {
+        return this->preprocessingTime;
     }
 
 protected:
     CHGraph<T_Edge, T_CHEdge, T_weight> graph;
     int n;
+    float preprocessingTime;
     set<pair<float, int>> vertexOrdering;
     vector<int> vertexOrderMap;
     vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering

@@ -26,6 +26,17 @@ public:
     }
 
     template <typename T>
+    static int getSize(vector<vector<T>> graph) {
+        int size = 0;
+        for (auto& edges : graph) {
+            for (auto& edge : edges) {
+                size += sizeof(edge);
+            }
+        }
+        return size;
+    }
+
+    template <typename T>
     static void printVector(std::vector<T> const &input) {
         cout << "[";
         std::copy(input.begin(), input.end(), std::ostream_iterator<int>(cout, " "));

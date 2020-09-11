@@ -77,31 +77,30 @@ int main() {
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
     vector<vector<Edge>> adjacencyList = osmGraph.build();
     osmGraph.printImportStats();
-    GraphUtils::printGraphProperties(adjacencyList);
     // #if (PARAMS_VIEW) 
     //     View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
     // #endif
 
-    vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
-    TCH tch(adjacencyListTD);
-    vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
-    GraphUtils::printGraphProperties(adjacencyListTCH);
+    // vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
+    // TCH tch(adjacencyListTD);
+    // vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
+    // GraphUtils::printGraphProperties(adjacencyListTCH);
     // return 0;
 
-    for (int i = 0; i<10; i++) {
-        int s = Random::randomInt(adjacencyList.size());
-        int t = Random::randomInt(adjacencyList.size());
-        float startingTime = TTF::period*Random::random01();
-        DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
-        dijkstraTD.compute();
-        cout << dijkstraTD.getPathWeight() << endl;
+    // for (int i = 0; i<10; i++) {
+    //     int s = Random::randomInt(adjacencyList.size());
+    //     int t = Random::randomInt(adjacencyList.size());
+    //     float startingTime = TTF::period*Random::random01();
+    //     DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
+    //     dijkstraTD.compute();
+    //     cout << dijkstraTD.getPathWeight() << endl;
 
-        DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
-        dijkstraTCH.markReachable();
-        dijkstraTCH.compute();
-        cout << dijkstraTCH.getPathWeight() << endl;
-    }
-    return 0;
+    //     DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
+    //     dijkstraTCH.markReachable();
+    //     dijkstraTCH.compute();
+    //     cout << dijkstraTCH.getPathWeight() << endl;
+    // }
+    // return 0;
 
     vector<vector<CHQueryEdge>> adjacencyListCH;
     if (PARAMS_READ_CH_FROM_FILE) {
@@ -109,10 +108,11 @@ int main() {
     } else {
         CH ch(adjacencyList);
         adjacencyListCH = ch.preprocess();
-        GraphUtils::printGraphProperties(adjacencyListCH);
         if (PARAMS_WRITE_CH_TO_FILE) IO::writeGraphToFile(PATH_CH_GRAPHS PARAMS_GRAPH_NAME CH_GRAPHS_EXTENSION, adjacencyListCH);
+        if (PARAMS_PREPROCESSING_BENCHMARK) Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime());
     }
 
+    
     if (PARAMS_QUERY_BENCHMARK) Benchmark::queryBenchmark(adjacencyList, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
     
     clock.lap(true);

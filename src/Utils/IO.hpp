@@ -13,6 +13,13 @@ public:
             }
             ofs << ";,";
         }
+        ofs.close();
+    }
+
+    static void writeToFile(const char* filePath, string s) {
+        std::ofstream ofs(filePath);
+        ofs << s;
+        ofs.close();
     }
 
     static vector<vector<CHQueryEdge>> readGraphFromFile(const char* filePath) {
@@ -44,6 +51,7 @@ public:
                 }
             }
         }
+        ifs.close();
         return graph;
     }
 };

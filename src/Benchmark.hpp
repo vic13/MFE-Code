@@ -5,9 +5,6 @@ public:
     static void queryBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns) {
         bool correct = true;
 
-        GraphUtils::printGraphProperties(adjacencyList);
-        GraphUtils::printGraphProperties(adjacencyListCH);
-
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
         int avgSearchSpaceDijkstra = 0;
@@ -35,19 +32,33 @@ public:
 
             if (dijkstra.getPathWeight() != dijkstraCH.getPathWeight()) {
                 cout << "Wrong for s : " << s << " and t : " << t << " - w1 : " << dijkstra.getPathWeight() << " and w2 : " << dijkstraCH.getPathWeight() << " dw : " << dijkstraCH.getPathWeight()-dijkstra.getPathWeight() << endl;
-                correct = false;
+                exit(0);
             }
             
         }
-        cout << "------- Dijkstra vs CH Query -------" << endl;
-        correct ? cout << "Correct" << endl : cout << "!!! NOT CORRECT !!!" << endl;
-        cout << "Average time dijkstra : " << avgDijkstra/(1000.0*nbRuns) << " ms" << endl;
-        cout << "Average time dijkstraCH : " << avgDijkstraCH/(1000.0*nbRuns) << " ms" << endl;
-        cout << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
-        cout << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << " settled nodes" << endl;
-        cout << "Average search space dijkstraCH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << " settled nodes" << endl;
-        cout << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
-        cout << "------------------------------------" << endl;
+        stringstream ss(stringstream::in | stringstream::out);
+        ss << "Nb runs : " << nbRuns << endl;
+        ss << "Average time dijkstra (ms) : " << avgDijkstra/(1000.0*nbRuns) << endl;
+        ss << "Average time CH (ms) : " << avgDijkstraCH/(1000.0*nbRuns) << endl;
+        ss << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
+        ss << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << endl;
+        ss << "Average search space CH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << endl;
+        ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
+        IO::writeToFile(PATH_BENCHMARKS PARAMS_GRAPH_NAME "-query" BENCHMARKS_EXTENSION, ss.str());
+    }
+
+    static void preprocessingBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, float preprocessingTime) {
+        int sizeBase = GraphUtils::getSize(adjacencyList);
+        int sizeCH = GraphUtils::getSize(adjacencyListCH);
+        stringstream ss(stringstream::in | stringstream::out);
+        ss << "Nb vertices : " << adjacencyList.size() << endl;
+        ss << "Nb edges base graph : " << GraphUtils::getNbEdges(adjacencyList) << endl;
+        ss << "Nb edges CH : " << GraphUtils::getNbEdges(adjacencyListCH) << endl;
+        ss << "Size base graph (B) : " << sizeBase << endl;
+        ss << "Size CH graph (B) : " << sizeCH << endl;
+        ss << "Memory Overhead (B/vertex) : " << (float)(sizeCH-sizeBase)/(float)adjacencyList.size() << endl;
+        ss << "Preprossessing time : " << preprocessingTime << endl;
+        IO::writeToFile(PATH_BENCHMARKS PARAMS_GRAPH_NAME "-preprocessing" BENCHMARKS_EXTENSION, ss.str());
     }
 
 };
