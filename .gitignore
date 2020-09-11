@@ -3,3 +3,5 @@
 .vscode/
 src/graph_data_OSM/graph_4_be_ctr.json
 src/graph_data_OSM/graph_5_be.json
+src/graph_data_CH/graph_4_be_ctr.txt
+src/graph_data_CH/graph_5_be.txt

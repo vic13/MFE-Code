@@ -39,8 +39,10 @@ public:
             }
 
             // Stall-on-demand
-            stallOnDemand(visitedVertexNb, visitedVertexWeight);
-            if ((*stallingDistances)[visitedVertexNb] != -1) continue;
+            #if (PARAMS_QUERY_STALL) 
+                stallOnDemand(visitedVertexNb, visitedVertexWeight);
+                if ((*stallingDistances)[visitedVertexNb] != -1) continue;
+            #endif
 
             for (auto& e : graph[visitedVertexNb]) {
                 if (e.isSameDirection(direction)) {

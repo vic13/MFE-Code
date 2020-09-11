@@ -44,7 +44,11 @@ public:
         ss << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << endl;
         ss << "Average search space CH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << endl;
         ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
-        IO::writeToFile(PATH_BENCHMARKS PARAMS_GRAPH_NAME "-query" BENCHMARKS_EXTENSION, ss.str());
+        if (PARAMS_QUERY_STALL) {
+            IO::writeToFile(PATH_BENCHMARKS PARAMS_GRAPH_NAME "-query" BENCHMARKS_EXTENSION, ss.str());
+        } else {
+            IO::writeToFile(PATH_BENCHMARKS PARAMS_GRAPH_NAME "-query-no_stall" BENCHMARKS_EXTENSION, ss.str());
+        }
     }
 
     static void preprocessingBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, float preprocessingTime) {
@@ -57,7 +61,7 @@ public:
         ss << "Size base graph (B) : " << sizeBase << endl;
         ss << "Size CH graph (B) : " << sizeCH << endl;
         ss << "Memory Overhead (B/vertex) : " << (float)(sizeCH-sizeBase)/(float)adjacencyList.size() << endl;
-        ss << "Preprossessing time : " << preprocessingTime << endl;
+        ss << "Preprossessing time (s) : " << preprocessingTime << endl;
         IO::writeToFile(PATH_BENCHMARKS PARAMS_GRAPH_NAME "-preprocessing" BENCHMARKS_EXTENSION, ss.str());
     }
 
