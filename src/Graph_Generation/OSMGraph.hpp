@@ -12,7 +12,7 @@ public:
         this->osmFilePath = osmFilePath;
     }
 
-    vector<vector<Edge>> build() {
+    vector<vector<Edge>> build(bool car) {
         json j = importJson();
         json features = j["features"];
 
@@ -41,18 +41,20 @@ public:
                 }
                 
                 // Compute max speed
-                float maxSpeed_kmh = 0.0f;
-                if (feature["properties"]["tags"]["maxspeed"].is_null()) {
-                    maxSpeed_kmh = estimateMaxSpeed(feature["properties"]["tags"]["highway"]);
-                } else {
-                    string maxspeed_str = feature["properties"]["tags"]["maxspeed"];
-                    try {
-                        maxSpeed_kmh = std::stof(maxspeed_str);
-                    } 
-                    catch (std::invalid_argument const &e) {
+                float maxSpeed_kmh = 5.0f; // Assume 5km/h walking speed
+                if (car) {
+                    if (feature["properties"]["tags"]["maxspeed"].is_null()) {
                         maxSpeed_kmh = estimateMaxSpeed(feature["properties"]["tags"]["highway"]);
+                    } else {
+                        string maxspeed_str = feature["properties"]["tags"]["maxspeed"];
+                        try {
+                            maxSpeed_kmh = std::stof(maxspeed_str);
+                        } 
+                        catch (std::invalid_argument const &e) {
+                            maxSpeed_kmh = estimateMaxSpeed(feature["properties"]["tags"]["highway"]);
+                        }
+                        catch (std::out_of_range const &e) {cout << "maxspeed cast error (out of range) : " << maxspeed_str << endl; exit(0);}
                     }
-                    catch (std::out_of_range const &e) {cout << "maxspeed cast error (out of range) : " << maxspeed_str << endl; exit(0);}
                 }
                 
                 // Compute edge length

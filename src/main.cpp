@@ -75,7 +75,7 @@ int main() {
     // return 0;
 
     OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
-    vector<vector<Edge>> adjacencyList = osmGraph.build();
+    vector<vector<Edge>> adjacencyList = osmGraph.build(false);
     osmGraph.printImportStats();
     // #if (PARAMS_VIEW) 
     //     View::displayNetwork(adjacencyList, osmGraph.getVerticesCoordinates());
