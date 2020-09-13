@@ -16,7 +16,7 @@ public:
         ofs.close();
     }
 
-    static void writeToFile(const char* filePath, string s) {
+    static void writeToFile(string filePath, string s) {
         std::ofstream ofs(filePath);
         ofs << s;
         ofs.close();

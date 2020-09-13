@@ -155,7 +155,7 @@ public:
         }
         if (!alreadyEdge) {
             // Add edge
-            Edge edge(v, newWeight);
+            Edge edge(v, (int)newWeight);
             adjacencyList[u].push_back(edge);
         }
         this->nbParallelEdges += alreadyEdge;
@@ -175,6 +175,25 @@ public:
         cout << "Transformed to strongly-connected graph : " << this->connectedRatio*100 << "% of vertices kept." << endl;
         cout << "The generated graph has " << this->finalGraphVertices << " vertices and " << this->finalGraphEdges << " edges." << endl;
         cout << "--------------------------------------" << endl;
+    }
+
+    /*
+    Returns the distance (in km) between two points expressed by their latitude and longitude. 
+    It computes the euclidean distance between the two points, which is a good approx if the points are reasonably close (compared to the scale of the earth).
+    */
+    float distanceLatLong(float lat1, float long1, float lat2, float long2) {
+        float phi1 = 90.0f-lat1;
+        float phi2 = 90.0f-lat2;
+        float phi1Radians = degreesToRadians(phi1);
+        float phi2Radians = degreesToRadians(phi2);
+        float theta1Radians = degreesToRadians(long1);
+        float theta2Radians = degreesToRadians(long2);
+
+        float R_EARTH = 6371; // in kilometers
+        CartesianCoordinate p1 = sphericalToCartesian(R_EARTH, theta1Radians, phi1Radians);
+        CartesianCoordinate p2 = sphericalToCartesian(R_EARTH, theta2Radians, phi2Radians);
+
+        return distance(p1, p2);
     }
 
 private:
@@ -217,25 +236,6 @@ private:
         float y;
         float z;
     } CartesianCoordinate;
-
-    /*
-    Returns the distance (in km) between two points expressed by their latitude and longitude. 
-    It computes the euclidean distance between the two points, which is a good approx if the points are reasonably close (compared to the scale of the earth).
-    */
-    float distanceLatLong(float lat1, float long1, float lat2, float long2) {
-        float phi1 = 90.0f-lat1;
-        float phi2 = 90.0f-lat2;
-        float phi1Radians = degreesToRadians(phi1);
-        float phi2Radians = degreesToRadians(phi2);
-        float theta1Radians = degreesToRadians(long1);
-        float theta2Radians = degreesToRadians(long2);
-
-        float R_EARTH = 6371; // in kilometers
-        CartesianCoordinate p1 = sphericalToCartesian(R_EARTH, theta1Radians, phi1Radians);
-        CartesianCoordinate p2 = sphericalToCartesian(R_EARTH, theta2Radians, phi2Radians);
-
-        return distance(p1, p2);
-    }
 
     float distance(CartesianCoordinate p1, CartesianCoordinate p2) {
         return sqrt(pow(p1.x-p2.x, 2) + pow(p1.y-p2.y, 2) + pow(p1.z-p2.z, 2));
