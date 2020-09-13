@@ -93,7 +93,7 @@ public:
         vector<pair<float, float>> coord = osmGraph.getVerticesCoordinates();
 
         vector<int> nbs({0, 10, 50, 100, 200});
-        vector<float> speeds({1e-10, 15, 30, 90, 1e10});
+        vector<float> speeds({0.1, 5, 15, 30, 90, 1e10});
         for (int nb : nbs) {
             for (float speed_kmh : speeds) {
                 vector<vector<Edge>> adjacencyListMulti = adjacencyList;
