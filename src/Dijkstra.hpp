@@ -27,6 +27,7 @@ public:
             } else {
                 for (auto& e : graph[visitedVertexNb]) {
                     if (!relaxingCondition(e)) continue;
+                    relaxedEdges++;
                     int neighbourCurrentWeight = vertexWeights[e.getDestinationVertex()];
                     int neighbourNewWeight = visitedVertexWeight + getEdgeWeight(e, visitedVertexWeight);
                     if ((neighbourCurrentWeight == -1) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
@@ -59,6 +60,10 @@ public:
 
     int getSearchSpace() {
         return this->searchSpace;
+    }
+
+    int getRelaxedEdges() {
+        return this->relaxedEdges;
     }
 
     vector<int> getPath() {
@@ -95,6 +100,7 @@ protected:
     vector<int> vertexWeights;
     vector<int> vertexParents;
     int searchSpace = 0;
+    int relaxedEdges = 0;
 
     set<pair<int, int>> initVertexSet(int s) {
         set<pair<int, int>> vertexSet;

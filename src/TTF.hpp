@@ -161,9 +161,8 @@ public:
         return true;
     }
 
-    static TTF randomTransitTTF() {
+    static TTF randomTransitTTF(int max) {
         vector<pair<int,int>> points;
-        int max = 60*60; // max waiting time : 1h
         int min = 60; // min waiting time : 1min
         int x = 0;
         points.push_back(make_pair(x,0));

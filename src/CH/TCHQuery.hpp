@@ -3,6 +3,7 @@ class DijkstraTCH : public DijkstraTemplate<TCHQueryEdge> {
 public:
     DijkstraTCH(vector<vector<TCHQueryEdge>>& graph, int s, int t, int startingTime): DijkstraTemplate<TCHQueryEdge>(graph, s, t) {
         this->startingTime = startingTime;
+        this->vertexReached = vector<bool>(graph.size(), false);
     }
 
     int getEdgeWeight(TCHQueryEdge e, int visitedVertexWeight) {
@@ -13,11 +14,10 @@ public:
         return (e.getDirection() || e.isReachable()); // Up or reachable down
     }
 
-    void markReachable() {
-        vector<bool> vertexReached = vector<bool>(graph.size(), false);
+    int markReachable() {
         vertexReached[t] = true;
         queue<int> q({t});
-        int i = 0;
+        int searchSpace = 0;
         while (!q.empty()) {
             int x = q.front();
             q.pop();
@@ -34,14 +34,15 @@ public:
                     if (!vertexReached[v]) {
                         vertexReached[v] = true;
                         q.push(v);
-                        i++;
+                        searchSpace++;
                     }
                 }
             }
         }
-        cout << "Backward search space : " << i << endl;
+        return searchSpace;
     }
 
 private:
     int startingTime;
+    vector<bool> vertexReached;
 };

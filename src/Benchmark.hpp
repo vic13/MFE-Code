@@ -3,8 +3,6 @@
 class Benchmark {
 public:
     static void queryBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns, string additionalInfo = "") {
-        bool correct = true;
-
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
         int avgSearchSpaceDijkstra = 0;
@@ -46,14 +44,80 @@ public:
         ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
         stringstream filePath(stringstream::in | stringstream::out);
         if (PARAMS_QUERY_STALL) {
-            filePath << PATH_BENCHMARKS PARAMS_GRAPH_NAME "-query" << additionalInfo << BENCHMARKS_EXTENSION;
+            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query" << additionalInfo << BENCHMARKS_EXTENSION;
         } else {
-            filePath << PATH_BENCHMARKS PARAMS_GRAPH_NAME "-query-no_stall" << additionalInfo << BENCHMARKS_EXTENSION;
+            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query-no_stall" << additionalInfo << BENCHMARKS_EXTENSION;
         }
         IO::writeToFile(filePath.str(), ss.str());
     }
 
-    static void preprocessingBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, float preprocessingTime, string additionalInfo = "") {
+    static void queryBenchmarkTD(vector<vector<TDEdge>> adjacencyList, vector<vector<TCHQueryEdge>> adjacencyListCH, int nbRuns, string additionalInfo = "") {
+        auto avgDijkstra = 0.0;
+        auto avgDijkstraCH = 0.0;
+        auto avgBackwardSearch = 0.0;
+        int avgSearchSpaceDijkstra = 0;
+        int avgSearchSpaceDijkstraCH = 0;
+        int avgRelaxedDijkstra = 0;
+        int avgRelaxedCH = 0;
+        int avgSearchSapceBackwardSearch = 0;
+
+        for (int i = 0; i<nbRuns; i++) {
+            // cout << i << endl;
+            int s = Random::randomInt(adjacencyList.size());
+            int t = Random::randomInt(adjacencyList.size());
+            int startingTime = Random::randomInt(TTF::period);
+
+            DijkstraTD dijkstra(adjacencyList, s, t, startingTime);
+            DijkstraTCH dijkstraCH(adjacencyListCH, s, t, startingTime);
+            
+            auto t1 = std::chrono::high_resolution_clock::now();
+            bool c1 = dijkstra.compute();
+            auto t2 = std::chrono::high_resolution_clock::now();
+            int backwardSearchSpace = dijkstraCH.markReachable();
+            auto t3 = std::chrono::high_resolution_clock::now();
+            bool c2 = dijkstraCH.compute();
+            auto t4 = std::chrono::high_resolution_clock::now();
+
+            if (!c1 || !c2) {cout << "Problem Benchmark : No solution found" << endl; exit(0);}
+
+            avgDijkstra += std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+            avgDijkstraCH += std::chrono::duration_cast<std::chrono::microseconds>(t4 - t2).count();
+            avgBackwardSearch += std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
+            avgSearchSpaceDijkstra += dijkstra.getSearchSpace();
+            avgSearchSpaceDijkstraCH += dijkstraCH.getSearchSpace();
+            avgRelaxedDijkstra += dijkstra.getRelaxedEdges();
+            avgRelaxedCH += dijkstraCH.getRelaxedEdges();
+            avgSearchSapceBackwardSearch += backwardSearchSpace;
+
+            if (dijkstra.getPathWeight() != dijkstraCH.getPathWeight()) {
+                cout << "Wrong for s : " << s << " and t : " << t << " - w1 : " << dijkstra.getPathWeight() << " and w2 : " << dijkstraCH.getPathWeight() << " dw : " << dijkstraCH.getPathWeight()-dijkstra.getPathWeight() << endl;
+                exit(0);
+            }
+            
+        }
+        stringstream ss(stringstream::in | stringstream::out);
+        ss << "Nb runs : " << nbRuns << endl;
+        ss << "Average time dijkstra (ms) : " << avgDijkstra/(1000.0*nbRuns) << endl;
+        ss << "Average time CH (ms) : " << avgDijkstraCH/(1000.0*nbRuns) << endl;
+        ss << "Average time backward search (ms) : " << avgBackwardSearch/(1000.0*nbRuns) << endl;
+        ss << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
+        ss << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << endl;
+        ss << "Average search space CH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << endl;
+        ss << "Average backward search space : " << (float)avgSearchSapceBackwardSearch/(nbRuns) << endl;
+        ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
+        ss << "Average relaxed edges Dijkstra : " << (float)avgRelaxedDijkstra/(nbRuns) << endl;
+        ss << "Average relaxed edges CH : " << (float)avgRelaxedCH/(nbRuns) << endl;
+        stringstream filePath(stringstream::in | stringstream::out);
+        if (PARAMS_QUERY_STALL) {
+            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query" << additionalInfo << BENCHMARKS_EXTENSION;
+        } else {
+            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query-no_stall" << additionalInfo << BENCHMARKS_EXTENSION;
+        }
+        IO::writeToFile(filePath.str(), ss.str());
+    }
+
+    template <typename T_Edge, typename T_CHQueryEdge>
+    static void preprocessingBenchmark(vector<vector<T_Edge>> adjacencyList, vector<vector<T_CHQueryEdge>> adjacencyListCH, float preprocessingTime, string additionalInfo = "") {
         int sizeBase = GraphUtils::getSize(adjacencyList);
         int sizeCH = GraphUtils::getSize(adjacencyListCH);
         stringstream ss(stringstream::in | stringstream::out);
@@ -65,7 +129,7 @@ public:
         ss << "Memory Overhead (B/vertex) : " << (float)(sizeCH-sizeBase)/(float)adjacencyList.size() << endl;
         ss << "Preprossessing time (s) : " << preprocessingTime << endl;
         stringstream filePath(stringstream::in | stringstream::out);
-        filePath << PATH_BENCHMARKS PARAMS_GRAPH_NAME "-preprocessing" << additionalInfo << BENCHMARKS_EXTENSION;
+        filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-preprocessing" << additionalInfo << BENCHMARKS_EXTENSION;
         IO::writeToFile(filePath.str(), ss.str());
     }
 
@@ -127,9 +191,45 @@ public:
     }
 
     static void exp3() {
-        // vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
-        // TCH tch(adjacencyListTD);
-        // vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
+        OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
+        vector<vector<Edge>> adjacencyList = osmGraph.build(false);
+        osmGraph.printImportStats();
+        vector<pair<float, float>> coord = osmGraph.getVerticesCoordinates();
+        vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
+
+        vector<int> nbs({0, 10, 50, 100, 200});
+        vector<float> speeds({30});
+        for (int nb : nbs) {
+            for (float speed_kmh : speeds) {
+                vector<vector<TDEdge>> adjacencyListMulti = adjacencyListTD;
+                int addedLinks = 0;
+                while (addedLinks < nb) {
+                    int boardVertexDown = Random::randomInt(adjacencyListTD.size());
+                    int alightVertexDown = Random::randomInt(adjacencyListTD.size());
+                    if (boardVertexDown == alightVertexDown) continue;
+                    float distance_km = osmGraph.distanceLatLong(coord[boardVertexDown].first, coord[boardVertexDown].second, coord[alightVertexDown].first, coord[alightVertexDown].second);
+                    int time = (int)(3600.0f*distance_km/speed_kmh);
+                    adjacencyListMulti.push_back({});
+                    adjacencyListMulti.push_back({});
+                    int boardVertexUp = adjacencyListMulti.size()-2;
+                    int alightVertexUp = adjacencyListMulti.size()-1;
+                    TDEdge boardEdge(boardVertexUp, TTF::randomTransitTTF(15*60)); // Max waiting time : 15 min
+                    TDEdge hopEdge(alightVertexUp, TTF(time));
+                    TDEdge alightEdge(alightVertexDown, TTF(0));
+                    adjacencyListMulti[boardVertexDown].push_back(boardEdge);
+                    adjacencyListMulti[boardVertexUp].push_back(hopEdge);
+                    adjacencyListMulti[alightVertexUp].push_back(alightEdge);
+                    addedLinks++;
+                }
+                
+                TCH tch(adjacencyListMulti);
+                vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
+                string additionalInfo = "-nb"+std::to_string(nb)+"-s"+std::to_string(speed_kmh);
+                Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListTCH, tch.getPreprocessingTime(), additionalInfo);
+                Benchmark::queryBenchmarkTD(adjacencyListMulti, adjacencyListTCH, PARAMS_NB_RUNS_QUERY_BENCHMARK, additionalInfo);
+            }
+        }
+        
         // GraphUtils::printGraphProperties(adjacencyListTCH);
         // return 0;
 
