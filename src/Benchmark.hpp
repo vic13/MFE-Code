@@ -7,6 +7,8 @@ public:
         auto avgDijkstraCH = 0.0;
         int avgSearchSpaceDijkstra = 0;
         int avgSearchSpaceDijkstraCH = 0;
+        int avgRelaxedDijkstra = 0;
+        int avgRelaxedCH = 0;
 
         for (int i = 0; i<nbRuns; i++) {
             int s = Random::randomInt(adjacencyList.size());
@@ -27,6 +29,8 @@ public:
             avgDijkstraCH += std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
             avgSearchSpaceDijkstra += dijkstra.getSearchSpace();
             avgSearchSpaceDijkstraCH += dijkstraCH.getSearchSpace();
+            avgRelaxedDijkstra += dijkstra.getRelaxedEdges();
+            avgRelaxedCH += dijkstraCH.getRelaxedEdges();
 
             if (dijkstra.getPathWeight() != dijkstraCH.getPathWeight()) {
                 cout << "Wrong for s : " << s << " and t : " << t << " - w1 : " << dijkstra.getPathWeight() << " and w2 : " << dijkstraCH.getPathWeight() << " dw : " << dijkstraCH.getPathWeight()-dijkstra.getPathWeight() << endl;
@@ -42,6 +46,8 @@ public:
         ss << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << endl;
         ss << "Average search space CH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << endl;
         ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
+        ss << "Average relaxed edges Dijkstra : " << (float)avgRelaxedDijkstra/(nbRuns) << endl;
+        ss << "Average relaxed edges CH : " << (float)avgRelaxedCH/(nbRuns) << endl;
         stringstream filePath(stringstream::in | stringstream::out);
         if (PARAMS_QUERY_STALL) {
             filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query" << additionalInfo << BENCHMARKS_EXTENSION;
@@ -59,7 +65,7 @@ public:
         int avgSearchSpaceDijkstraCH = 0;
         int avgRelaxedDijkstra = 0;
         int avgRelaxedCH = 0;
-        int avgSearchSapceBackwardSearch = 0;
+        int avgSearchSpaceBackwardSearch = 0;
 
         for (int i = 0; i<nbRuns; i++) {
             // cout << i << endl;
@@ -87,7 +93,7 @@ public:
             avgSearchSpaceDijkstraCH += dijkstraCH.getSearchSpace();
             avgRelaxedDijkstra += dijkstra.getRelaxedEdges();
             avgRelaxedCH += dijkstraCH.getRelaxedEdges();
-            avgSearchSapceBackwardSearch += backwardSearchSpace;
+            avgSearchSpaceBackwardSearch += backwardSearchSpace;
 
             if (dijkstra.getPathWeight() != dijkstraCH.getPathWeight()) {
                 cout << "Wrong for s : " << s << " and t : " << t << " - w1 : " << dijkstra.getPathWeight() << " and w2 : " << dijkstraCH.getPathWeight() << " dw : " << dijkstraCH.getPathWeight()-dijkstra.getPathWeight() << endl;
@@ -103,7 +109,7 @@ public:
         ss << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
         ss << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << endl;
         ss << "Average search space CH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << endl;
-        ss << "Average backward search space : " << (float)avgSearchSapceBackwardSearch/(nbRuns) << endl;
+        ss << "Average backward search space : " << (float)avgSearchSpaceBackwardSearch/(nbRuns) << endl;
         ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
         ss << "Average relaxed edges Dijkstra : " << (float)avgRelaxedDijkstra/(nbRuns) << endl;
         ss << "Average relaxed edges CH : " << (float)avgRelaxedCH/(nbRuns) << endl;
@@ -158,7 +164,7 @@ public:
         vector<pair<float, float>> coord = osmGraph.getVerticesCoordinates();
 
         vector<int> nbs({0, 10, 50, 100, 200});
-        vector<float> speeds({0.1, 5, 15, 30, 90, 1e10});
+        vector<float> speeds({0.1, 15, 30, 90, 1e10});
         for (int nb : nbs) {
             for (float speed_kmh : speeds) {
                 vector<vector<Edge>> adjacencyListMulti = adjacencyList;

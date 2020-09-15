@@ -1,7 +1,9 @@
 Nb runs : 1000
-Average time dijkstra (ms) : 12.5235
-Average time CH (ms) : 0.28165
-Speed-up : 44.4647
-Average search space dijkstra : 12766
-Average search space CH : 140.729
-Search space factor : 90.7134
+Average time dijkstra (ms) : 14.8301
+Average time CH (ms) : 0.35016
+Speed-up : 42.3522
+Average search space dijkstra : 12564.7
+Average search space CH : 151.319
+Search space factor : 83.0347
+Average relaxed edges Dijkstra : 26897.7
+Average relaxed edges CH : 674.464

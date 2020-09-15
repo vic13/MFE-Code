@@ -46,6 +46,7 @@ public:
 
             for (auto& e : graph[visitedVertexNb]) {
                 if (e.isSameDirection(direction)) {
+                    relaxedEdges++;
                     int neighbourCurrentWeight = (*vertexWeights)[e.getDestinationVertex()];
                     int neighbourNewWeight = visitedVertexWeight + e.getWeight();
                     if ((neighbourCurrentWeight == -1) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
@@ -112,6 +113,10 @@ public:
         return this->searchSpace;
     }
 
+    int getRelaxedEdges() {
+        return this->relaxedEdges;
+    }
+
     vector<int> getPath() {
         // retrace path from end to start
         vector<int> path;
@@ -157,6 +162,7 @@ private:
     int weight_downward_search = 0;
     int d = -1; // best path weight so far (-1 : infinity)
     int searchSpace = 0;
+    int relaxedEdges = 0;
 
     set<pair<int, int>> initVertexSet(int s) {
         set<pair<int, int>> vertexSet;
