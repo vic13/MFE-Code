@@ -27,10 +27,15 @@ public:
         return this->preprocessingTime;
     }
 
+    float getMaxAvgDegree() {
+        return this->maxAvgDegree;
+    }
+
 protected:
     CHGraph<T_Edge, T_CHEdge, T_weight> graph;
     int n;
-    float preprocessingTime;
+    float preprocessingTime = 0;
+    float maxAvgDegree = 0;
     set<pair<float, int>> vertexOrdering;
     vector<int> vertexOrderMap;
     vector<float> vertexOrderingScores; // Used to find elements in vertexOrdering
@@ -99,9 +104,12 @@ protected:
                 updateOrdering(neighbour);
             }
 
+            // Update max avg degree
+            if (g_R.getAverageDegree() > this->maxAvgDegree) this->maxAvgDegree = g_R.getAverageDegree();
+
             // Print progress
             // cout << order << endl;
-            if (100*order/(this->n-1) > 100*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<100*order/(this->n-1)<<" %\r"; cout.flush();}
+            if (1000*order/(this->n-1) > 1000*(order-1)/(this->n-1)) {cout<<"Contraction progress : "<<1000*order/(this->n-1)<<" ‰\r"; cout.flush();}
             order++;
         }
     }

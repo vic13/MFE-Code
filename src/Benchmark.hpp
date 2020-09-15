@@ -117,7 +117,7 @@ public:
     }
 
     template <typename T_Edge, typename T_CHQueryEdge>
-    static void preprocessingBenchmark(vector<vector<T_Edge>> adjacencyList, vector<vector<T_CHQueryEdge>> adjacencyListCH, float preprocessingTime, string additionalInfo = "") {
+    static void preprocessingBenchmark(vector<vector<T_Edge>> adjacencyList, vector<vector<T_CHQueryEdge>> adjacencyListCH, float preprocessingTime, float maxAvgDegree, string additionalInfo = "") {
         int sizeBase = GraphUtils::getSize(adjacencyList);
         int sizeCH = GraphUtils::getSize(adjacencyListCH);
         stringstream ss(stringstream::in | stringstream::out);
@@ -126,6 +126,7 @@ public:
         ss << "Nb edges CH : " << GraphUtils::getNbEdges(adjacencyListCH) << endl;
         ss << "Size base graph (B) : " << sizeBase << endl;
         ss << "Size CH graph (B) : " << sizeCH << endl;
+        ss << "Max avg degree : " << maxAvgDegree << endl;
         ss << "Memory Overhead (B/vertex) : " << (float)(sizeCH-sizeBase)/(float)adjacencyList.size() << endl;
         ss << "Preprossessing time (s) : " << preprocessingTime << endl;
         stringstream filePath(stringstream::in | stringstream::out);
@@ -144,7 +145,7 @@ public:
             CH ch(adjacencyList);
             adjacencyListCH = ch.preprocess();
             if (PARAMS_WRITE_CH_TO_FILE) IO::writeGraphToFile(PATH_CH_GRAPHS PARAMS_GRAPH_NAME CH_GRAPHS_EXTENSION, adjacencyListCH);
-            if (PARAMS_PREPROCESSING_BENCHMARK) Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime());
+            if (PARAMS_PREPROCESSING_BENCHMARK) Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
         }
 
         if (PARAMS_QUERY_BENCHMARK) Benchmark::queryBenchmark(adjacencyList, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
@@ -184,7 +185,7 @@ public:
                 CH ch(adjacencyListMulti);
                 vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
                 string additionalInfo = "-nb"+std::to_string(nb)+"-s"+std::to_string(speed_kmh);
-                Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListCH, ch.getPreprocessingTime(), additionalInfo);
+                Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree(), additionalInfo);
                 Benchmark::queryBenchmark(adjacencyListMulti, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK, additionalInfo);
             }
         }
@@ -198,9 +199,10 @@ public:
         vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
 
         vector<int> nbs({0, 10, 50, 100, 200});
-        vector<float> speeds({30});
+        float speed_kmh = 30;
+        vector<int> ttfTypes({0,1,2,3});  // constant (should be factor above exp2), ttf, ttf_offset, congestion
         for (int nb : nbs) {
-            for (float speed_kmh : speeds) {
+            for (int ttfType : ttfTypes) {
                 vector<vector<TDEdge>> adjacencyListMulti = adjacencyListTD;
                 int addedLinks = 0;
                 while (addedLinks < nb) {
@@ -213,7 +215,11 @@ public:
                     adjacencyListMulti.push_back({});
                     int boardVertexUp = adjacencyListMulti.size()-2;
                     int alightVertexUp = adjacencyListMulti.size()-1;
-                    TDEdge boardEdge(boardVertexUp, TTF::randomTransitTTF(15*60)); // Max waiting time : 15 min
+                    TDEdge boardEdge(boardVertexUp, TTF(0));
+                    if (ttfType==0) boardEdge = TDEdge(boardVertexUp, TTF(0));
+                    if (ttfType==1) boardEdge = TDEdge(boardVertexUp, TTF::randomTransitTTF(15*60)); // Max waiting time : 15 min
+                    if (ttfType==2) boardEdge = TDEdge(boardVertexUp, TTF::randomTransitTTF(15*60, 7*60));
+                    if (ttfType==3) boardEdge = TDEdge(boardVertexUp, TTF::congestionTTF(7*60));
                     TDEdge hopEdge(alightVertexUp, TTF(time));
                     TDEdge alightEdge(alightVertexDown, TTF(0));
                     adjacencyListMulti[boardVertexDown].push_back(boardEdge);
@@ -224,8 +230,8 @@ public:
                 
                 TCH tch(adjacencyListMulti);
                 vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
-                string additionalInfo = "-nb"+std::to_string(nb)+"-s"+std::to_string(speed_kmh);
-                Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListTCH, tch.getPreprocessingTime(), additionalInfo);
+                string additionalInfo = "-nb"+std::to_string(nb)+"-type"+std::to_string(ttfType);
+                Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListTCH, tch.getPreprocessingTime(), tch.getMaxAvgDegree(), additionalInfo);
                 Benchmark::queryBenchmarkTD(adjacencyListMulti, adjacencyListTCH, PARAMS_NB_RUNS_QUERY_BENCHMARK, additionalInfo);
             }
         }

@@ -161,21 +161,36 @@ public:
         return true;
     }
 
-    static TTF randomTransitTTF(int max) {
+    static TTF randomTransitTTF(int max, int offset = 0) {
         vector<pair<int,int>> points;
         int min = 60; // min waiting time : 1min
         int x = 0;
-        points.push_back(make_pair(x,0));
+        points.push_back(make_pair(x,0+offset));
         while (true) {
             int waitingTime = min+Random::randomInt(max-min);
             if (waitingTime > period-x) {
                 waitingTime = period-x;
             }
-            points.push_back(make_pair(x, waitingTime));
-            points.push_back(make_pair(x + waitingTime, 0));
+            points.push_back(make_pair(x, waitingTime+offset));
+            points.push_back(make_pair(x + waitingTime, 0+offset));
             x += waitingTime;
             if (x==period) break;
         }
+        
+        return TTF(points);
+    }
+
+    static TTF congestionTTF(int baseWeight) {
+        vector<pair<int,int>> points;
+        int t1 = period/2;
+        int t2 = t1+(period/20);
+        int t3 = t2+baseWeight;
+        points.push_back(make_pair(0, baseWeight));
+        points.push_back(make_pair(t1, baseWeight));
+        points.push_back(make_pair(t1, 2*baseWeight));
+        points.push_back(make_pair(t2, 2*baseWeight));
+        points.push_back(make_pair(t3, baseWeight));
+        points.push_back(make_pair(period, baseWeight));
         
         return TTF(points);
     }
@@ -188,7 +203,7 @@ public:
         cout << endl << "-----------------" << endl;
     }
 
-    vector<pair<int,int>> getPoints() {
+    vector<pair<int,int>>& getPoints() {
         return this->points;
     }
 
