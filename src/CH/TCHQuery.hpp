@@ -6,11 +6,11 @@ public:
         this->vertexReached = vector<bool>(graph.size(), false);
     }
 
-    int getEdgeWeight(TCHQueryEdge e, int visitedVertexWeight) {
+    int getEdgeWeight(TCHQueryEdge& e, int visitedVertexWeight) {
         return e.evaluate(startingTime + visitedVertexWeight);
     }
 
-    bool relaxingCondition(TCHQueryEdge e) {
+    bool relaxingCondition(TCHQueryEdge& e) {
         return (e.getDirection() || e.isReachable()); // Up or reachable down
     }
 

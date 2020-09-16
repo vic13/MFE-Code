@@ -1,8 +1,0 @@
-Nb vertices : 25548
-Nb edges base graph : 54554
-Nb edges CH : 119444
-Size base graph (B) : 436432
-Size CH graph (B) : 1433328
-Max avg degree : 11.6233
-Memory Overhead (B/vertex) : 39.0205
-Preprossessing time (s) : 26.6709

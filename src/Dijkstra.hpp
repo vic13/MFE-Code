@@ -89,8 +89,8 @@ public:
         GraphUtils::printVector(this->vertexWeights);
     }
 
-    virtual int getEdgeWeight(T e, int visitedVertexWeight) = 0;
-    virtual bool relaxingCondition(T e) = 0;
+    virtual int getEdgeWeight(T& e, int visitedVertexWeight) = 0;
+    virtual bool relaxingCondition(T& e) = 0;
   
 protected:
     int t;
@@ -123,11 +123,11 @@ class Dijkstra : public DijkstraTemplate<Edge> {
 public:
     Dijkstra(vector<vector<Edge>>& graph, int s, int t): DijkstraTemplate<Edge>(graph, s, t) {}
 
-    int getEdgeWeight(Edge e, int visitedVertexWeight) {
+    int getEdgeWeight(Edge& e, int visitedVertexWeight) {
         return e.getWeight();
     }
 
-    bool relaxingCondition(Edge e) {
+    bool relaxingCondition(Edge& e) {
         return true;
     }
 };
@@ -138,11 +138,11 @@ public:
         this->startingTime = startingTime;
     }
 
-    int getEdgeWeight(TDEdge e, int visitedVertexWeight) {
+    int getEdgeWeight(TDEdge& e, int visitedVertexWeight) {
         return e.evaluate(startingTime + visitedVertexWeight);
     }
 
-    bool relaxingCondition(TDEdge e) {
+    bool relaxingCondition(TDEdge& e) {
         return true;
     }
 

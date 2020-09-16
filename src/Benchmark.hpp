@@ -2,7 +2,7 @@
 
 class Benchmark {
 public:
-    static void queryBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns, string additionalInfo = "") {
+    static string queryBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns) {
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
         int avgSearchSpaceDijkstra = 0;
@@ -39,25 +39,18 @@ public:
             
         }
         stringstream ss(stringstream::in | stringstream::out);
-        ss << "Nb runs : " << nbRuns << endl;
-        ss << "Average time dijkstra (ms) : " << avgDijkstra/(1000.0*nbRuns) << endl;
-        ss << "Average time CH (ms) : " << avgDijkstraCH/(1000.0*nbRuns) << endl;
-        ss << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
-        ss << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << endl;
-        ss << "Average search space CH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << endl;
-        ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
-        ss << "Average relaxed edges Dijkstra : " << (float)avgRelaxedDijkstra/(nbRuns) << endl;
-        ss << "Average relaxed edges CH : " << (float)avgRelaxedCH/(nbRuns) << endl;
-        stringstream filePath(stringstream::in | stringstream::out);
-        if (PARAMS_QUERY_STALL) {
-            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query" << additionalInfo << BENCHMARKS_EXTENSION;
-        } else {
-            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query-no_stall" << additionalInfo << BENCHMARKS_EXTENSION;
-        }
-        IO::writeToFile(filePath.str(), ss.str());
+        ss << avgDijkstra/(1000.0*nbRuns) << " ";                                       // Dijkstra time
+        ss << avgDijkstraCH/(1000.0*nbRuns) << " ";                                     // CH time
+        ss << avgDijkstra/avgDijkstraCH << " ";                                         // Speed-up
+        ss << (float)avgSearchSpaceDijkstra/(nbRuns) << " ";                            // Dijkstra Search space
+        ss << (float)avgSearchSpaceDijkstraCH/(nbRuns) << " ";                          // CH Search space
+        ss << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << " ";     // Search space Gain
+        ss << (float)avgRelaxedDijkstra/(nbRuns) << " ";                                // Dijkstra Relaxed edges
+        ss << (float)avgRelaxedCH/(nbRuns) << endl;                                     // CH Relaxed edges
+        return ss.str();
     }
 
-    static void queryBenchmarkTD(vector<vector<TDEdge>> adjacencyList, vector<vector<TCHQueryEdge>> adjacencyListCH, int nbRuns, string additionalInfo = "") {
+    static string queryBenchmarkTD(vector<vector<TDEdge>> adjacencyList, vector<vector<TCHQueryEdge>> adjacencyListCH, int nbRuns) {
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
         auto avgBackwardSearch = 0.0;
@@ -102,59 +95,50 @@ public:
             
         }
         stringstream ss(stringstream::in | stringstream::out);
-        ss << "Nb runs : " << nbRuns << endl;
-        ss << "Average time dijkstra (ms) : " << avgDijkstra/(1000.0*nbRuns) << endl;
-        ss << "Average time CH (ms) : " << avgDijkstraCH/(1000.0*nbRuns) << endl;
-        ss << "Average time backward search (ms) : " << avgBackwardSearch/(1000.0*nbRuns) << endl;
-        ss << "Speed-up : " << avgDijkstra/avgDijkstraCH << endl;
-        ss << "Average search space dijkstra : " << (float)avgSearchSpaceDijkstra/(nbRuns) << endl;
-        ss << "Average search space CH : " << (float)avgSearchSpaceDijkstraCH/(nbRuns) << endl;
-        ss << "Average backward search space : " << (float)avgSearchSpaceBackwardSearch/(nbRuns) << endl;
-        ss << "Search space factor : " << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << endl;
-        ss << "Average relaxed edges Dijkstra : " << (float)avgRelaxedDijkstra/(nbRuns) << endl;
-        ss << "Average relaxed edges CH : " << (float)avgRelaxedCH/(nbRuns) << endl;
-        stringstream filePath(stringstream::in | stringstream::out);
-        if (PARAMS_QUERY_STALL) {
-            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query" << additionalInfo << BENCHMARKS_EXTENSION;
-        } else {
-            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-query-no_stall" << additionalInfo << BENCHMARKS_EXTENSION;
-        }
-        IO::writeToFile(filePath.str(), ss.str());
+        ss << avgDijkstra/(1000.0*nbRuns) << " ";                                           // Dijkstra time
+        ss << avgDijkstraCH/(1000.0*nbRuns) << " ";                                         // CH time
+        ss << avgBackwardSearch/(1000.0*nbRuns) << " ";                                     // Backward search time
+        ss << avgDijkstra/avgDijkstraCH << " ";                                             // Speed-up
+        ss << (float)avgSearchSpaceDijkstra/(nbRuns) << " ";                                // Dijkstra Search space
+        ss << (float)avgSearchSpaceDijkstraCH/(nbRuns) << " ";                              // CH Search space
+        ss << (float)avgSearchSpaceBackwardSearch/(nbRuns) << " ";                          // Backward search search space
+        ss << (float)avgSearchSpaceDijkstra/(float)avgSearchSpaceDijkstraCH << " ";         // Search space Gain
+        ss << (float)avgRelaxedDijkstra/(nbRuns) << " ";                                    // Dijkstra Relaxed edges
+        ss << (float)avgRelaxedCH/(nbRuns) << endl;                                         // CH Relaxed edges
+        return ss.str();
     }
 
     template <typename T_Edge, typename T_CHQueryEdge>
-    static void preprocessingBenchmark(vector<vector<T_Edge>> adjacencyList, vector<vector<T_CHQueryEdge>> adjacencyListCH, float preprocessingTime, float maxAvgDegree, string additionalInfo = "") {
+    static string preprocessingBenchmark(vector<vector<T_Edge>> adjacencyList, vector<vector<T_CHQueryEdge>> adjacencyListCH, float preprocessingTime, float maxAvgDegree) {
         int sizeBase = GraphUtils::getSize(adjacencyList);
         int sizeCH = GraphUtils::getSize(adjacencyListCH);
         stringstream ss(stringstream::in | stringstream::out);
-        ss << "Nb vertices : " << adjacencyList.size() << endl;
-        ss << "Nb edges base graph : " << GraphUtils::getNbEdges(adjacencyList) << endl;
-        ss << "Nb edges CH : " << GraphUtils::getNbEdges(adjacencyListCH) << endl;
-        ss << "Size base graph (B) : " << sizeBase << endl;
-        ss << "Size CH graph (B) : " << sizeCH << endl;
-        ss << "Max avg degree : " << maxAvgDegree << endl;
-        ss << "Memory Overhead (B/vertex) : " << (float)(sizeCH-sizeBase)/(float)adjacencyList.size() << endl;
-        ss << "Preprossessing time (s) : " << preprocessingTime << endl;
-        stringstream filePath(stringstream::in | stringstream::out);
-        filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME "-preprocessing" << additionalInfo << BENCHMARKS_EXTENSION;
-        IO::writeToFile(filePath.str(), ss.str());
+        ss << adjacencyList.size() << " ";                                  // Nb vertices
+        ss << GraphUtils::getNbEdges(adjacencyList) << " ";                 // Nb edges
+        ss << GraphUtils::getNbEdges(adjacencyListCH) << " ";               // Nb edges CH
+        ss << sizeBase << " ";                                              // Size (B)
+        ss << sizeCH << " ";                                                // Size CH (B)
+        ss << maxAvgDegree << " ";                                          // Maximum average degree (CH)
+        ss << (float)(sizeCH-sizeBase)/(float)adjacencyList.size() << " ";  // Memory Overhead
+        ss << preprocessingTime << " ";                                     // Preprocessing time
+        return ss.str();
     }
 
     static void exp1() {
         OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
         vector<vector<Edge>> adjacencyList = osmGraph.build(true);
         osmGraph.printImportStats();
-        vector<vector<CHQueryEdge>> adjacencyListCH;
-        if (PARAMS_READ_CH_FROM_FILE) {
-            adjacencyListCH = IO::readGraphFromFile(PATH_CH_GRAPHS PARAMS_GRAPH_NAME CH_GRAPHS_EXTENSION);
-        } else {
-            CH ch(adjacencyList);
-            adjacencyListCH = ch.preprocess();
-            if (PARAMS_WRITE_CH_TO_FILE) IO::writeGraphToFile(PATH_CH_GRAPHS PARAMS_GRAPH_NAME CH_GRAPHS_EXTENSION, adjacencyListCH);
-            if (PARAMS_PREPROCESSING_BENCHMARK) Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
-        }
 
-        if (PARAMS_QUERY_BENCHMARK) Benchmark::queryBenchmark(adjacencyList, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
+        CH ch(adjacencyList);
+        vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
+
+        stringstream ss(stringstream::in | stringstream::out);
+        ss << "nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH" << endl;
+        ss << Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
+        ss << Benchmark::queryBenchmark(adjacencyList, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
+        stringstream filePath(stringstream::in | stringstream::out);
+        filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME << BENCHMARKS_EXTENSION;
+        IO::writeToFile(filePath.str(), ss.str());
     }
 
     static void exp2() {
@@ -165,8 +149,11 @@ public:
 
         vector<int> nbs({0, 10, 50, 100, 200});
         vector<float> speeds({0.1, 15, 30, 90, 1e10});
-        for (int nb : nbs) {
-            for (float speed_kmh : speeds) {
+        for (float speed_kmh : speeds) {
+            stringstream ss(stringstream::in | stringstream::out);
+            ss << "nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH" << endl;
+            for (int nb : nbs) {
+                cout << "speed : " << speed_kmh << " nb : " << nb << endl;
                 vector<vector<Edge>> adjacencyListMulti = adjacencyList;
                 int addedLinks = 0;
                 while (addedLinks < nb) {
@@ -190,10 +177,12 @@ public:
                 
                 CH ch(adjacencyListMulti);
                 vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
-                string additionalInfo = "-nb"+std::to_string(nb)+"-s"+std::to_string(speed_kmh);
-                Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree(), additionalInfo);
-                Benchmark::queryBenchmark(adjacencyListMulti, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK, additionalInfo);
+                ss << nb << " " << Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
+                ss << Benchmark::queryBenchmark(adjacencyListMulti, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
             }
+            stringstream filePath(stringstream::in | stringstream::out);
+            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME << "-s" << std::to_string(speed_kmh) << BENCHMARKS_EXTENSION;
+            IO::writeToFile(filePath.str(), ss.str());
         }
     }
 
@@ -207,8 +196,11 @@ public:
         vector<int> nbs({0, 10, 50, 100, 200});
         float speed_kmh = 30;
         vector<int> ttfTypes({0,1,2,3});  // constant (should be factor above exp2), ttf, ttf_offset, congestion
-        for (int nb : nbs) {
-            for (int ttfType : ttfTypes) {
+        for (int ttfType : ttfTypes) {
+            stringstream ss(stringstream::in | stringstream::out);
+            ss << "nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-bw q-t-up q-v-dijk q-v-CH q-v-bw q-v-up rel-dijk rel-CH" << endl;
+            for (int nb : nbs) {
+                cout << "type : " << ttfType << " nb : " << nb << endl;
                 vector<vector<TDEdge>> adjacencyListMulti = adjacencyListTD;
                 int addedLinks = 0;
                 while (addedLinks < nb) {
@@ -236,61 +228,13 @@ public:
                 
                 TCH tch(adjacencyListMulti);
                 vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
-                string additionalInfo = "-nb"+std::to_string(nb)+"-type"+std::to_string(ttfType);
-                Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListTCH, tch.getPreprocessingTime(), tch.getMaxAvgDegree(), additionalInfo);
-                Benchmark::queryBenchmarkTD(adjacencyListMulti, adjacencyListTCH, PARAMS_NB_RUNS_QUERY_BENCHMARK, additionalInfo);
+                ss << nb << " " << Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListTCH, tch.getPreprocessingTime(), tch.getMaxAvgDegree());
+                ss << Benchmark::queryBenchmarkTD(adjacencyListMulti, adjacencyListTCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
             }
+            stringstream filePath(stringstream::in | stringstream::out);
+            filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME << "-type" << std::to_string(ttfType) << BENCHMARKS_EXTENSION;
+            IO::writeToFile(filePath.str(), ss.str());
         }
-        
-        // GraphUtils::printGraphProperties(adjacencyListTCH);
-        // return 0;
-
-        // for (int i = 0; i<10; i++) {
-        //     int s = Random::randomInt(adjacencyList.size());
-        //     int t = Random::randomInt(adjacencyList.size());
-        //     float startingTime = TTF::period*Random::random01();
-        //     DijkstraTD dijkstraTD(adjacencyListTD, s, t, startingTime);
-        //     dijkstraTD.compute();
-        //     cout << dijkstraTD.getPathWeight() << endl;
-
-        //     DijkstraTCH dijkstraTCH(adjacencyListTCH, s, t, startingTime);
-        //     dijkstraTCH.markReachable();
-        //     dijkstraTCH.compute();
-        //     cout << dijkstraTCH.getPathWeight() << endl;
-        // }
-        // return 0;
-
-        // int r = 10;
-        // TTF f1({
-        //     make_pair(0,5*10*r),make_pair(100,5*9*r),make_pair(101,5*9.5*r),make_pair(200,5*8*r),make_pair(TTF::period,5*9*r)
-        // });
-        // TTF f2({
-        //     make_pair(0,15*r),make_pair(30,25*r),make_pair(TTF::period,10*r)
-        // });
-        // TTF f1 = TTF::randomTransitTTF();
-        // TTF f2 = TTF::randomTransitTTF();
-        // return 0;
-        
-        // TTF f0 = TTF::randomTransitTTF();
-        // for (int i=0; i<=986; i++) {
-        //     cout << i << " : " << f0.getPoints().size() << endl;
-        //     TTF f1 = TTF::randomTransitTTF();
-        //     if (Random::random01() < 0.5) {
-        //         f1 = TTF(1+Random::randomInt(100));
-        //     }
-        //     float r = Random::random01();
-        //     if (r < 0.3) {
-        //         f0 = TTF::chaining(f0, f1);
-        //     } else if (r<0.6) {
-        //         f0 = TTF::chaining(f1, f0);
-        //     } else {
-        //         f0 = TTF::minimum(f0, f1);
-        //     }
-        // }
-        // TTF f0 = TTF::randomTransitTTF();
-        // cout << f0.evaluate(10) << endl;
-        // View::displayTTF({f0});
-        // return 0;
     }
 
 };

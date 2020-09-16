@@ -64,7 +64,7 @@ public:
         this->destinationVertex = destinationVertex;
     }
 
-    TTF getWeight() {
+    TTF& getWeight() {
         return this->ttf;
     }
 
