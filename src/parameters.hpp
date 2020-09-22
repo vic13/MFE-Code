@@ -12,7 +12,7 @@
 #define GRAPH_NAME_5                                "graph_5_be"            // Not on github because too large
 
 #define PARAMS_GRAPH_NAME                           GRAPH_NAME_3
-#define PARAMS_EXP_NB                               3                       // 1 : single modal, 2 : static multi-modal, 3 : time-dependent 
+#define PARAMS_EXP_NB                               4                       // 1 : single modal, 2 : static multi-modal, 3 : time-dependent 
 #define PARAMS_READ_CH_FROM_FILE                    false
 #define PARAMS_WRITE_CH_TO_FILE                     false                   // Only used if not 'PARAMS_READ_CH_FROM_FILE'
 #define PARAMS_SEED                                 1598118811                      // -1 for random seed

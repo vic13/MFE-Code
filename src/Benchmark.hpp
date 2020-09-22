@@ -2,14 +2,14 @@
 
 class Benchmark {
 public:
-    static string queryBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns) {
+    static string queryBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = PARAMS_NB_RUNS_QUERY_BENCHMARK) {
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
         int avgSearchSpaceDijkstra = 0;
         int avgSearchSpaceDijkstraCH = 0;
         int avgRelaxedDijkstra = 0;
         int avgRelaxedCH = 0;
-
+        
         for (int i = 0; i<nbRuns; i++) {
             int s = Random::randomInt(adjacencyList.size());
             int t = Random::randomInt(adjacencyList.size());
@@ -50,7 +50,7 @@ public:
         return ss.str();
     }
 
-    static string queryBenchmarkTD(vector<vector<TDEdge>> adjacencyList, vector<vector<TCHQueryEdge>> adjacencyListCH, int nbRuns) {
+    static string queryBenchmarkTD(vector<vector<TDEdge>> adjacencyList, vector<vector<TCHQueryEdge>> adjacencyListCH, int nbRuns = PARAMS_NB_RUNS_QUERY_BENCHMARK) {
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
         auto avgBackwardSearch = 0.0;
@@ -135,7 +135,7 @@ public:
         stringstream ss(stringstream::in | stringstream::out);
         ss << "nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH" << endl;
         ss << Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
-        ss << Benchmark::queryBenchmark(adjacencyList, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
+        ss << Benchmark::queryBenchmark(adjacencyList, adjacencyListCH);
         stringstream filePath(stringstream::in | stringstream::out);
         filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME << BENCHMARKS_EXTENSION;
         IO::writeToFile(filePath.str(), ss.str());
@@ -145,7 +145,7 @@ public:
         OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
         vector<vector<Edge>> adjacencyList = osmGraph.build(false);
         osmGraph.printImportStats();
-        vector<pair<float, float>> coord = osmGraph.getVerticesCoordinates();
+        vector<pair<float, float>> coords = osmGraph.getVerticesCoordinates();
 
         vector<int> nbs({0, 10, 50, 100, 200});
         vector<float> speeds({0.1, 15, 30, 90, 1e10});
@@ -160,7 +160,7 @@ public:
                     int boardVertexDown = Random::randomInt(adjacencyList.size());
                     int alightVertexDown = Random::randomInt(adjacencyList.size());
                     if (boardVertexDown == alightVertexDown) continue;
-                    float distance_km = osmGraph.distanceLatLong(coord[boardVertexDown].first, coord[boardVertexDown].second, coord[alightVertexDown].first, coord[alightVertexDown].second);
+                    float distance_km = osmGraph.distanceLatLong(coords[boardVertexDown].first, coords[boardVertexDown].second, coords[alightVertexDown].first, coords[alightVertexDown].second);
                     int time = (int)(3600.0f*distance_km/speed_kmh);
                     adjacencyListMulti.push_back({});
                     adjacencyListMulti.push_back({});
@@ -178,7 +178,7 @@ public:
                 CH ch(adjacencyListMulti);
                 vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
                 ss << nb << " " << Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
-                ss << Benchmark::queryBenchmark(adjacencyListMulti, adjacencyListCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
+                ss << Benchmark::queryBenchmark(adjacencyListMulti, adjacencyListCH);
             }
             stringstream filePath(stringstream::in | stringstream::out);
             filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME << "-s" << std::to_string(speed_kmh) << BENCHMARKS_EXTENSION;
@@ -190,7 +190,7 @@ public:
         OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
         vector<vector<Edge>> adjacencyList = osmGraph.build(false);
         osmGraph.printImportStats();
-        vector<pair<float, float>> coord = osmGraph.getVerticesCoordinates();
+        vector<pair<float, float>> coords = osmGraph.getVerticesCoordinates();
         vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
 
         vector<int> nbs({0, 10, 50, 100, 200});
@@ -207,7 +207,7 @@ public:
                     int boardVertexDown = Random::randomInt(adjacencyListTD.size());
                     int alightVertexDown = Random::randomInt(adjacencyListTD.size());
                     if (boardVertexDown == alightVertexDown) continue;
-                    float distance_km = osmGraph.distanceLatLong(coord[boardVertexDown].first, coord[boardVertexDown].second, coord[alightVertexDown].first, coord[alightVertexDown].second);
+                    float distance_km = osmGraph.distanceLatLong(coords[boardVertexDown].first, coords[boardVertexDown].second, coords[alightVertexDown].first, coords[alightVertexDown].second);
                     int time = (int)(3600.0f*distance_km/speed_kmh);
                     adjacencyListMulti.push_back({});
                     adjacencyListMulti.push_back({});
@@ -229,12 +229,65 @@ public:
                 TCH tch(adjacencyListMulti);
                 vector<vector<TCHQueryEdge>> adjacencyListTCH = tch.preprocess();
                 ss << nb << " " << Benchmark::preprocessingBenchmark(adjacencyListMulti, adjacencyListTCH, tch.getPreprocessingTime(), tch.getMaxAvgDegree());
-                ss << Benchmark::queryBenchmarkTD(adjacencyListMulti, adjacencyListTCH, PARAMS_NB_RUNS_QUERY_BENCHMARK);
+                ss << Benchmark::queryBenchmarkTD(adjacencyListMulti, adjacencyListTCH);
             }
             stringstream filePath(stringstream::in | stringstream::out);
             filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME << "-type" << std::to_string(ttfType) << BENCHMARKS_EXTENSION;
             IO::writeToFile(filePath.str(), ss.str());
         }
+    }
+
+    static void exp4() {
+        OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
+        vector<vector<Edge>> adjacencyList = osmGraph.build(false);
+        osmGraph.printImportStats();
+        vector<pair<float, float>> coords = osmGraph.getVerticesCoordinates();
+
+        // Get stations coordinates and compute closest vertices
+        vector<pair<float, float>> villoCoords = osmGraph.getVilloStationsCoordinates();
+        vector<bool> villoVertices = vector<bool>(adjacencyList.size(), false);
+        for (auto& villoCoord : villoCoords) {
+            int closest = -1;
+            float closestDistance = -1;
+            for (int v = 0; v<coords.size(); v++) {
+                float distance = osmGraph.distanceLatLong(coords[v].first, coords[v].second, villoCoord.first, villoCoord.second);
+                if (distance < closestDistance || closest == -1) {
+                    closestDistance = distance;
+                    closest = v;
+                }
+            }
+            villoVertices[closest] = true;
+        }
+
+        // Duplicate walk graph, change weights to match bike speeds
+        int n = adjacencyList.size();
+        for (int v = 0; v<n; v++) {
+            auto& edges = adjacencyList[v];
+            vector<Edge> bikeEdges;
+            for (auto& edge : edges) {
+                bikeEdges.push_back(Edge(edge.getDestinationVertex() + n, edge.getWeight()/3));
+            }
+            adjacencyList.push_back(bikeEdges);
+        }
+        
+        // Add board and alight edges
+        for (int v = 0; v<n; v++) {
+            if (villoVertices[v]) {
+                adjacencyList[v].push_back(Edge(v+n, 60)); // board
+                adjacencyList[v+n].push_back(Edge(v, 60)); // alight
+            }
+        }
+
+        // Benchmark
+        CH ch(adjacencyList);
+        vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
+        stringstream ss(stringstream::in | stringstream::out);
+        ss << "nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH" << endl;
+        ss << Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
+        ss << Benchmark::queryBenchmark(adjacencyList, adjacencyListCH);
+        stringstream filePath(stringstream::in | stringstream::out);
+        filePath << PATH_BENCHMARKS << PARAMS_EXP_NB << "/" << PARAMS_GRAPH_NAME << BENCHMARKS_EXTENSION;
+        IO::writeToFile(filePath.str(), ss.str());
     }
 
 };

@@ -48,6 +48,8 @@ int main() {
         Benchmark::exp2();
     } else if (PARAMS_EXP_NB==3) {
         Benchmark::exp3();
+    } else if (PARAMS_EXP_NB==4) {
+        Benchmark::exp4();
     }
     
     clock.lap(true);

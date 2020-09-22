@@ -13,7 +13,7 @@ public:
     }
 
     vector<vector<Edge>> build(bool car) {
-        json j = importJson();
+        json j = importJson(this->osmFilePath);
         json features = j["features"];
 
         // Get number of vertices + coordinates (used to display graph)
@@ -196,6 +196,16 @@ public:
         return distance(p1, p2);
     }
 
+    vector<pair<float, float>> getVilloStationsCoordinates() {
+        vector<pair<float, float>> villoCoordinates;
+        json j = importJson(PATH_OSM_GRAPHS "villo.json");
+        json features = j["features"];
+        for (auto& feature : features) {
+            villoCoordinates.push_back(make_pair(feature["geometry"]["coordinates"][1], feature["geometry"]["coordinates"][0]));
+        }
+        return villoCoordinates;
+    }
+
 private:
     const char* osmFilePath;
     vector<pair<float, float>> verticesCoordinates; // for displaying graph; order : lat, long
@@ -209,7 +219,7 @@ private:
     int finalGraphVertices = 0;
     float connectedRatio = 0;
     
-    json importJson() {
+    json importJson(const char* osmFilePath) {
         ifstream jsonFile(osmFilePath);
         json j;
         jsonFile >> j;
