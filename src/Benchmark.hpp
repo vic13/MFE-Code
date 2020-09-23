@@ -136,7 +136,7 @@ public:
         vector<vector<CHQueryEdge>> adjacencyListCH = ch.preprocess();
 
         stringstream ss(stringstream::in | stringstream::out);
-        ss << "nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH" << endl;
+        ss << "nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH" << endl;
         ss << Benchmark::preprocessingBenchmark(adjacencyList, adjacencyListCH, ch.getPreprocessingTime(), ch.getMaxAvgDegree());
         ss << Benchmark::queryBenchmark(adjacencyList, adjacencyListCH);
         stringstream filePath(stringstream::in | stringstream::out);

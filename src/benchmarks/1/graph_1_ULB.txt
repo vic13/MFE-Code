@@ -1,2 +1,2 @@
-nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH
+nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH
 149 349 635 2792 7620 3.38095 32.4027 0.037685 0.06117 0.019212 3.18395 74.81 19.167 3.90306 180.948 38.151
