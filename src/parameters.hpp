@@ -11,9 +11,9 @@
 #define GRAPH_NAME_4                                "graph_4_be_ctr"        // Center of Belgium (Not on github because too large)
 #define GRAPH_NAME_5                                "graph_5_be"            // Belgium (Not on github because too large)
 
-#define PARAMS_GRAPH_NAME                           GRAPH_NAME_1            // Graph used during the experiments
-#define PARAMS_EXP_NB                               3                       // Between 1 and 4. (Cf. Readme.md for details)
-#define PARAMS_SEED                                 1598118811              // -1 for changing seed (based on system time)
+#define PARAMS_GRAPH_NAME                           GRAPH_NAME_3            // Graph used during the experiments
+#define PARAMS_EXP_NB                               2                       // Between 1 and 4. (Cf. Readme.md for details)
+#define PARAMS_SEED                                 123                     // -1 for changing seed (based on system time)
 #define PARAMS_PREPROCESSING_BENCHMARK              true                    // Set to 'true' to run preprocessing benchmark and save results to file
 #define PARAMS_QUERY_BENCHMARK                      true                    // Set to 'true' to run query benchmark and save results to file
 #define PARAMS_QUERY_STALL                          true                    // Set to 'true' to apply Stall-on-Demand during CH querying
