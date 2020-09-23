@@ -6,14 +6,15 @@ public:
         this->vertexReached = vector<bool>(graph.size(), false);
     }
 
-    int getEdgeWeight(TCHQueryEdge& e, int visitedVertexWeight) {
-        return e.evaluate(startingTime + visitedVertexWeight);
+    int getEdgeWeight(TCHQueryEdge& e, int scannedVertexWeight) {
+        return e.evaluate(startingTime + scannedVertexWeight);
     }
 
     bool relaxingCondition(TCHQueryEdge& e) {
         return (e.getDirection() || e.isReachable()); // Up or reachable down
     }
 
+    /// Implement first phase of TCH query : mark all edges that are reachable from destination vertex 't'
     int markReachable() {
         vertexReached[t] = true;
         queue<int> q({t});

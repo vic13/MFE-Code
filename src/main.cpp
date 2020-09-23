@@ -4,7 +4,6 @@
 #include <set>
 #include <queue>
 
-
 using std::cout;
 using std::endl;
 using std::vector;
@@ -23,8 +22,6 @@ using std::queue;
 #include "Utils/IO.hpp"
 #include "Dijkstra.hpp"
 #include "Graph_Generation/OSMGraph.hpp"
-#include "Graph_Generation/BarabasiAlbertGraph.hpp"
-#include "Graph_Generation/ErdosRenye.hpp"
 #if (PARAMS_VIEW)
     #include "View.hpp"
 #endif
@@ -50,8 +47,9 @@ int main() {
         Benchmark::exp3();
     } else if (PARAMS_EXP_NB==4) {
         Benchmark::exp4();
+    } else {
+        cout << "Invalid experiment number" << endl;
     }
     
     clock.lap(true);
 }
-

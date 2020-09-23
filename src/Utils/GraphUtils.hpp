@@ -1,5 +1,6 @@
 class GraphUtils {
 public:
+    /// Convert the specified graph to a time-dependent graph, by replacing edge weights by constant TTFs
     static vector<vector<TDEdge>> convertToTDGraph(vector<vector<Edge>> graph) {
         vector<vector<TDEdge>> tdGraph;
         for (auto& edges : graph) {
@@ -12,6 +13,7 @@ public:
         return tdGraph;
     }
 
+    /// Print the first few vertices of the specified graph
     template <typename T>
     static void printNetwork(vector<vector<T>> graph, int nbVertices) {
         for (int a=0; a<nbVertices; a++) {
@@ -24,6 +26,7 @@ public:
         }
     }
 
+    /// Return the size of the specified graph (in Bytes)
     template <typename T>
     static int getSize(vector<vector<T>> graph) {
         int size = 0;
@@ -62,6 +65,7 @@ public:
         return nbEdges;
     }
 
+    /// Return the reversed graph of the specified graph
     static vector<vector<Edge>> reverseGraph(vector<vector<Edge>>& graph) {
         vector<vector<Edge>> reversedGraph(graph.size(), vector<Edge>());
         for (int source = 0; source<graph.size(); source++) {

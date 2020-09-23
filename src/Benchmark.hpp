@@ -2,6 +2,7 @@
 
 class Benchmark {
 public:
+    /// Perform the specified number of random queries, both with Dijkstra's algorithm and CH query algorithm. Verify if both give the same path cost. Return the averaged results.
     static string queryBenchmark(vector<vector<Edge>> adjacencyList, vector<vector<CHQueryEdge>> adjacencyListCH, int nbRuns = PARAMS_NB_RUNS_QUERY_BENCHMARK) {
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
@@ -50,6 +51,7 @@ public:
         return ss.str();
     }
 
+    /// Perform the specified number of random queries, both with Dijkstra's time-dependent algorithm and TCH query algorithm. Verify if both give the same path cost. Return the averaged results.
     static string queryBenchmarkTD(vector<vector<TDEdge>> adjacencyList, vector<vector<TCHQueryEdge>> adjacencyListCH, int nbRuns = PARAMS_NB_RUNS_QUERY_BENCHMARK) {
         auto avgDijkstra = 0.0;
         auto avgDijkstraCH = 0.0;
@@ -61,7 +63,6 @@ public:
         int avgSearchSpaceBackwardSearch = 0;
 
         for (int i = 0; i<nbRuns; i++) {
-            // cout << i << endl;
             int s = Random::randomInt(adjacencyList.size());
             int t = Random::randomInt(adjacencyList.size());
             int startingTime = Random::randomInt(TTF::period);
@@ -108,6 +109,7 @@ public:
         return ss.str();
     }
 
+    /// Compile the preprocessing results based on the input graph and the results of CH preprocessing
     template <typename T_Edge, typename T_CHQueryEdge>
     static string preprocessingBenchmark(vector<vector<T_Edge>> adjacencyList, vector<vector<T_CHQueryEdge>> adjacencyListCH, float preprocessingTime, float maxAvgDegree) {
         int sizeBase = GraphUtils::getSize(adjacencyList);
@@ -124,6 +126,7 @@ public:
         return ss.str();
     }
 
+    /// Perform the first experiment (on a single-modal car network). Import the OSM graph, build the CH, run the benchmarking, and save results on file.
     static void exp1() {
         OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
         vector<vector<Edge>> adjacencyList = osmGraph.build(true);
@@ -141,14 +144,15 @@ public:
         IO::writeToFile(filePath.str(), ss.str());
     }
 
+    /// Perform the second experiment (on multi-modal public transport networks). For each parameter configuration : construct the graph, build the CH, run the benchmarking, and save results on file.
     static void exp2() {
         OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
         vector<vector<Edge>> adjacencyList = osmGraph.build(false);
         osmGraph.printImportStats();
         vector<pair<float, float>> coords = osmGraph.getVerticesCoordinates();
 
-        vector<int> nbs({0, 10, 50, 100, 200});
-        vector<float> speeds({0.1, 15, 30, 90, 1e10});
+        vector<int> nbs({0, 10, 50, 100, 200});             // Number of added lines
+        vector<float> speeds({0.1, 15, 30, 90, 1e10});      // Speed of the "hop" edges
         for (float speed_kmh : speeds) {
             stringstream ss(stringstream::in | stringstream::out);
             ss << "nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-up q-v-dijk q-v-CH q-v-up rel-dijk rel-CH" << endl;
@@ -186,6 +190,7 @@ public:
         }
     }
 
+    /// Perform the third experiment (on multi-modal time-dependent public transport networks). For each parameter configuration : construct the graph, build the CH, run the benchmarking, and save results on file.
     static void exp3() {
         OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
         vector<vector<Edge>> adjacencyList = osmGraph.build(false);
@@ -193,9 +198,9 @@ public:
         vector<pair<float, float>> coords = osmGraph.getVerticesCoordinates();
         vector<vector<TDEdge>> adjacencyListTD = GraphUtils::convertToTDGraph(adjacencyList);
 
-        vector<int> nbs({0, 10, 50, 100, 200});
+        vector<int> nbs({0, 10, 50, 100, 200});     // Number of added lines
         float speed_kmh = 30;
-        vector<int> ttfTypes({0,1,2,3});  // constant (should be factor above exp2), ttf, ttf_offset, congestion
+        vector<int> ttfTypes({0,1});                // Weight type for the board edge : 0 -> constant (null), 1 -> waiting times TTF
         for (int ttfType : ttfTypes) {
             stringstream ss(stringstream::in | stringstream::out);
             ss << "nb nb-vertices nb-edges nb-edges-CH size size_CH max-avg-d m-ovhd pr-t q-t-dijk q-t-CH q-t-bw q-t-up q-v-dijk q-v-CH q-v-bw q-v-up rel-dijk rel-CH" << endl;
@@ -214,10 +219,7 @@ public:
                     int boardVertexUp = adjacencyListMulti.size()-2;
                     int alightVertexUp = adjacencyListMulti.size()-1;
                     TDEdge boardEdge(boardVertexUp, TTF(0));
-                    if (ttfType==0) boardEdge = TDEdge(boardVertexUp, TTF(0));
                     if (ttfType==1) boardEdge = TDEdge(boardVertexUp, TTF::randomTransitTTF(15*60)); // Max waiting time : 15 min
-                    if (ttfType==2) boardEdge = TDEdge(boardVertexUp, TTF::randomTransitTTF(15*60, 7*60));
-                    if (ttfType==3) boardEdge = TDEdge(boardVertexUp, TTF::congestionTTF(7*60));
                     TDEdge hopEdge(alightVertexUp, TTF(time));
                     TDEdge alightEdge(alightVertexDown, TTF(0));
                     adjacencyListMulti[boardVertexDown].push_back(boardEdge);
@@ -237,6 +239,7 @@ public:
         }
     }
 
+    /// Perform the fourth experiment (on multi-modal station-based network). Construct the graph, build the CH, run the benchmarking, and save results on file.
     static void exp4() {
         OSMGraph osmGraph(PATH_OSM_GRAPHS PARAMS_GRAPH_NAME OSM_GRAPHS_EXTENSION);
         vector<vector<Edge>> adjacencyList = osmGraph.build(false);

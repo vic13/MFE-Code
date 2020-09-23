@@ -3,6 +3,7 @@
 template <class T>
 class DijkstraTemplate {
 public:
+    /// Initialize Dijkstra's algorithm based on the specified graph, source vertex 's' and destination vertex 't'
     DijkstraTemplate(vector<vector<T>>& graph, int s, int t) {
         this->graph = graph;
         this->t = t;
@@ -12,24 +13,25 @@ public:
         this->vertexParents = initVertexParents();
     }
 
+    /// Implement Dijkstra's algorithm. Return 'true' if a solution exists.
     bool compute() {
         while (!vertexSet.empty()) {
             searchSpace++;
             // pop first vertex in the set
-            pair<int, int> visitedVertex = *(vertexSet.begin());
+            pair<int, int> scannedVertex = *(vertexSet.begin());
             vertexSet.erase(vertexSet.begin());
-            int visitedVertexWeight = visitedVertex.first;
-            int visitedVertexNb = visitedVertex.second;
+            int scannedVertexWeight = scannedVertex.first;
+            int scannedVertexNb = scannedVertex.second;
 
-            if (visitedVertexNb == t) {
+            if (scannedVertexNb == t) {
                 // finished
                 return true;
             } else {
-                for (auto& e : graph[visitedVertexNb]) {
+                for (auto& e : graph[scannedVertexNb]) {
                     if (!relaxingCondition(e)) continue;
                     relaxedEdges++;
                     int neighbourCurrentWeight = vertexWeights[e.getDestinationVertex()];
-                    int neighbourNewWeight = visitedVertexWeight + getEdgeWeight(e, visitedVertexWeight);
+                    int neighbourNewWeight = scannedVertexWeight + getEdgeWeight(e, scannedVertexWeight);
                     if ((neighbourCurrentWeight == -1) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
                         if (neighbourCurrentWeight != -1) {                                                              
                             // if current weight not infinite : vertex already in queue : DELETE before inserting the updated vertex
@@ -41,7 +43,7 @@ public:
                         vertexSet.insert(newNeighbour);
                         // UPDATE weight + parent
                         vertexWeights[e.getDestinationVertex()] = neighbourNewWeight;
-                        vertexParents[e.getDestinationVertex()] = visitedVertexNb;
+                        vertexParents[e.getDestinationVertex()] = scannedVertexNb;
                     }
                 }
             }
@@ -66,6 +68,7 @@ public:
         return this->relaxedEdges;
     }
 
+    /// Return the sequence of vertices defining the computed shortest path
     vector<int> getPath() {
         // retrace path from end to start
         vector<int> path;
@@ -89,7 +92,7 @@ public:
         GraphUtils::printVector(this->vertexWeights);
     }
 
-    virtual int getEdgeWeight(T& e, int visitedVertexWeight) = 0;
+    virtual int getEdgeWeight(T& e, int scannedVertexWeight) = 0;
     virtual bool relaxingCondition(T& e) = 0;
   
 protected:
@@ -123,7 +126,7 @@ class Dijkstra : public DijkstraTemplate<Edge> {
 public:
     Dijkstra(vector<vector<Edge>>& graph, int s, int t): DijkstraTemplate<Edge>(graph, s, t) {}
 
-    int getEdgeWeight(Edge& e, int visitedVertexWeight) {
+    int getEdgeWeight(Edge& e, int scannedVertexWeight) {
         return e.getWeight();
     }
 
@@ -132,14 +135,15 @@ public:
     }
 };
 
+/// Implement time-dependent Dijkstra, by redifining the edge weight evaluation based on current time
 class DijkstraTD : public DijkstraTemplate<TDEdge> {
 public:
     DijkstraTD(vector<vector<TDEdge>>& graph, int s, int t, int startingTime): DijkstraTemplate<TDEdge>(graph, s, t) {
         this->startingTime = startingTime;
     }
 
-    int getEdgeWeight(TDEdge& e, int visitedVertexWeight) {
-        return e.evaluate(startingTime + visitedVertexWeight);
+    int getEdgeWeight(TDEdge& e, int scannedVertexWeight) {
+        return e.evaluate(startingTime + scannedVertexWeight);
     }
 
     bool relaxingCondition(TDEdge& e) {

@@ -4,6 +4,7 @@ namespace plt = matplotlibcpp;
 
 class View {
 public:
+    /// Plot the specified network, using the specified vertices coordinates
     template <typename TEdge>
     static void displayNetwork(vector<vector<TEdge>> adjacencyList, vector<pair<float, float>> verticesCoordinates) {
         plt::figure_size(700, 700);
@@ -40,6 +41,7 @@ public:
         plt::show();
     }
 
+    /// Plot the specified network, path, starting vertex 's' and destination vertex 't'
     template <typename TEdge>
     static void displayPath(vector<vector<TEdge>> adjacencyList, vector<int> path, vector<pair<float, float>> verticesCoordinates, int s, int t) {
          // Display shortest path
@@ -66,8 +68,8 @@ public:
         displayNetwork(adjacencyList, verticesCoordinates);
     }
 
+    /// Plot the specified TTFs
     static void displayTTF(vector<TTF> ttfs) {
-        
         plt::figure_size(700, 400);
         int max = -1;
         int min = -1;

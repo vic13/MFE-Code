@@ -2,12 +2,15 @@
 #include <math.h>
 #include <cmath>
 
+/// Define the pairwise substraction
 pair<int, int> operator -(const std::pair<int, int>& x, const std::pair<int, int>& y) {
     return make_pair(x.first - y.first, x.second - y.second);
 }
+/// Define the pairwise addition
 pair<int, int> operator +(const std::pair<int, int>& x, const std::pair<int, int>& y) {
     return make_pair(x.first + y.first, x.second + y.second);
 }
+/// Define the multiplication of a pair by a scalar
 pair<int, int> operator *(const int x, const std::pair<int, int>& y) {
     return make_pair(x*y.first, x*y.second);
 }
@@ -16,16 +19,19 @@ class TTF {
 public:
     inline constexpr static int period = 60*60*24; // 1 day in seconds
 
+    /// Initialize a TTF from a sequence of points
     TTF(vector<pair<int,int>> points) {
         this->points = points;
         setExtrema();
     }
 
+    /// Initialize a TTF from a constant weight
     TTF(int weight) {
         this->points = {make_pair(0, weight), make_pair(period, weight)};
         setExtrema();
     }
 
+    /// Implement the 'evaluate' operation : return the weight of the TTF at the specified time 't'
     int evaluate(int t) {
         t = fmod(t, period);
         // logarithmic search
@@ -43,6 +49,7 @@ public:
         return result;
     }
 
+     /// Implement the 'chaining' operation : return the TTF corresponding to the subsequent evaluation of the specified TTFs
     static TTF chaining(TTF f1, TTF f2) {
         vector<pair<int,int>> points;
         TTF f(points);
@@ -70,7 +77,7 @@ public:
                 if (p.first != previous_p.first) {
                     double m = (p.first+p.second-previous_p.first-previous_p.second)/(p.first-previous_p.first);
                     double bend_x_double = (1/m)*(q.first+lap*TTF::period - previous_p.first - previous_p.second) + previous_p.first;
-                    bend_x = correctFloat(bend_x_double);
+                    bend_x = correctDouble(bend_x_double);
                 } else {
                     bend_x = previous_p.first;
                 }
@@ -82,7 +89,7 @@ public:
                 double m = (q.second - previous_q.second)/(q.first - previous_q.first);
                 bend_x = p.first;
                 double bend_y_double = previous_q.second + m*(p.first + p.second - previous_q.first - lap*period) + p.second;
-                bend_y = correctFloat(bend_y_double);
+                bend_y = correctDouble(bend_y_double);
                 j++;
             }
             f.tryToAddPoint(make_pair(modulo(bend_x, period), bend_y));
@@ -93,11 +100,7 @@ public:
         return f;
     }
 
-    static int modulo(int a, int b) {
-        if (a==b) return a;
-        return a % b;
-    }
-
+    /// Implement the 'minimum' operation : return the pointwise minimum of the specified TTFs
     static TTF minimum(TTF f1, TTF f2) {
         vector<pair<int,int>> points;
         TTF f(points);
@@ -141,6 +144,7 @@ public:
         return f;
     }
 
+    /// Check if the TTF respect the FIFO property, i.e.: its slope is never lower than -1
     bool respectsFIFO() {
         int previous_first = -1;
         int previous_second = -1;
@@ -161,36 +165,22 @@ public:
         return true;
     }
 
-    static TTF randomTransitTTF(int max, int offset = 0) {
+    /// Generate a TTF representing waiting times. Random waiting times are generated between 60 seconds and the specified maximum value.
+    static TTF randomTransitTTF(int max) {
         vector<pair<int,int>> points;
         int min = 60; // min waiting time : 1min
         int x = 0;
-        points.push_back(make_pair(x,0+offset));
+        points.push_back(make_pair(x,0));
         while (true) {
             int waitingTime = min+Random::randomInt(max-min);
             if (waitingTime > period-x) {
                 waitingTime = period-x;
             }
-            points.push_back(make_pair(x, waitingTime+offset));
-            points.push_back(make_pair(x + waitingTime, 0+offset));
+            points.push_back(make_pair(x, waitingTime));
+            points.push_back(make_pair(x + waitingTime, 0));
             x += waitingTime;
             if (x==period) break;
         }
-        
-        return TTF(points);
-    }
-
-    static TTF congestionTTF(int baseWeight) {
-        vector<pair<int,int>> points;
-        int t1 = period/2;
-        int t2 = t1+(period/20);
-        int t3 = t2+baseWeight;
-        points.push_back(make_pair(0, baseWeight));
-        points.push_back(make_pair(t1, baseWeight));
-        points.push_back(make_pair(t1, 2*baseWeight));
-        points.push_back(make_pair(t2, 2*baseWeight));
-        points.push_back(make_pair(t3, baseWeight));
-        points.push_back(make_pair(period, baseWeight));
         
         return TTF(points);
     }
@@ -220,6 +210,7 @@ private:
     int minima = -1;
     int maxima = -1;
 
+    /// Add the specified point if it satisfies validity constraints
     void tryToAddPoint(pair<int,int> p) {
         if (p.first<0 || p.second<0) {
             cout << "problem0 : " << p.first << " : " << p.second << endl;
@@ -238,6 +229,7 @@ private:
         addPoint(p);
     }
 
+    /// Add the specified point to the list of points composing the TTF. If the point is colinear with the last two points, first remove the last point.
     void addPoint(pair<int,int> p) {
         if (points.size()>=2 && colinear(points[points.size()-2], points[points.size()-1], p)) points.pop_back();
         points.push_back(p);
@@ -252,6 +244,7 @@ private:
         if (p.second < minima || minima == -1) minima = p.second;
     }
 
+    /// Check if the 3 specified points are colinear
     static bool colinear(pair<int,int> p1, pair<int,int> p2, pair<int,int> p3) {
         return ((p2.second-p1.second)*(p3.first-p2.first) == (p3.second-p2.second)*(p2.first-p1.first));
     }
@@ -260,15 +253,17 @@ private:
         return (p.first == q.first && p.second == q.second);
     }
 
+    /// Return the linear interpolation at the specified time, considering the line segment passing by the two specified points
     static int interpolation(pair<int,int> p1, pair<int,int> p2, int t) {
         int distance_down = (t - p1.first);
         int distance_up = (p2.first - t);
         int value_down = p1.second;
         int value_up = p2.second;
         double result = (double)(distance_down * value_up + distance_up * value_down) / (double)(distance_down + distance_up);
-        return correctFloat(result);
+        return correctDouble(result);
     }
     
+    /// Return the intersection between the two line segments defined by the 4 specified points
     static pair<int,int> intersection(pair<int,int> p, pair<int,int> p2, pair<int,int> q, pair<int,int> q2) {
         pair<int,int> r = p2 - p;
         pair<int,int> s = q2 - q;
@@ -281,7 +276,7 @@ private:
             if (t>= 0 && t<= 1 && u>= 0 && u<= 1) {
                 double x_first = p.first + (t*r.first);
                 double x_second = p.second + (t*r.second);
-                pair<int,int> x_correct = make_pair(correctFloat(x_first), correctFloat(x_second));
+                pair<int,int> x_correct = make_pair(correctDouble(x_first), correctDouble(x_second));
                 return x_correct;                       // Intersection
             } else {
                 return make_pair(-1,-1);                // No intersection
@@ -289,7 +284,8 @@ private:
         }
     }
 
-    static int correctFloat(double a) {
+    /// Check if the specified double is close enough to an integer value, and if yes return this integer.
+    static int correctDouble(double a) {
         double deltaInt = a - (int)a;
         if (deltaInt != 0) {
             double eps = 1.0e-10;
@@ -313,7 +309,13 @@ private:
         return a;
     }
 
-    static int cross(pair<int,int> v1, pair<int,int> v2) { // Returns the 2D cross product of the 2 specified vectors
+    static int modulo(int a, int b) {
+        if (a==b) return a;
+        return a % b;
+    }
+
+    /// Returns the 2D cross product of the 2 specified vectors
+    static int cross(pair<int,int> v1, pair<int,int> v2) { 
         return (v1.first * v2.second - v1.second * v2.first);
     }
 };

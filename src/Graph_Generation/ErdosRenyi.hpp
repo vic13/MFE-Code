@@ -1,13 +1,15 @@
 
-class ErdosRenye {
+class ErdosRenyi {
 public:
-    ErdosRenye(int n, int k) {
+    /// Initialize the graph based on the specified number of vertices 'n' and number of edges 'k'
+    ErdosRenyi(int n, int k) {
         this->n = n;
         this->k = k;
         this->adjacencyMatrix = vector<vector<bool>>(n, vector<bool>(n, false));
         this->degrees = vector<int>(n, 0);
     }
 
+    /// Build a random graph using the Erdos-Renyi procedure, and return it as an adjacency list
     vector<vector<Edge>> build() {
         // Add edges until k edges
         int numberOfEdges = 0;
@@ -48,6 +50,7 @@ private:
         degrees[v2]++;
     }
 
+    /// Convert the adjacency matrix to an adjacency list
     vector<vector<Edge>> asAdjacencyList() {
         vector<vector<Edge>> adjacencyList(n, vector<Edge>());
         for (int vertex = 0; vertex < n; vertex++) {

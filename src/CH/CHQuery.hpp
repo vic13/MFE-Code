@@ -20,6 +20,7 @@ public:
         this->stallingDistances = &stallingDistances_up;
     }
 
+    /// Perform the CH query algorithm. Return 'true' if a solution exists.
     bool compute() {
         while (!vertexSet_up.empty() || !vertexSet_down.empty()) {
             searchSpace++;
@@ -27,28 +28,28 @@ public:
             setDirection();
 
             // pop first vertex in the set
-            pair<int, int> visitedVertex = *(vertexSet->begin());
+            pair<int, int> scannedVertex = *(vertexSet->begin());
             vertexSet->erase(vertexSet->begin());
-            int visitedVertexWeight = visitedVertex.first;
-            int visitedVertexNb = visitedVertex.second;
-            updateD(visitedVertexNb);
+            int scannedVertexWeight = scannedVertex.first;
+            int scannedVertexNb = scannedVertex.second;
+            updateD(scannedVertexNb);
 
-            // Check for stopping criteria
-            if (checkStoppingCriteria(visitedVertexWeight)) {
+            // Check for stopping criterion
+            if (checkStoppingCriterion(scannedVertexWeight)) {
                 return true;
             }
 
             // Stall-on-demand
             #if (PARAMS_QUERY_STALL) 
-                stallOnDemand(visitedVertexNb, visitedVertexWeight);
-                if ((*stallingDistances)[visitedVertexNb] != -1) continue;
+                stallOnDemand(scannedVertexNb, scannedVertexWeight);
+                if ((*stallingDistances)[scannedVertexNb] != -1) continue;
             #endif
 
-            for (auto& e : graph[visitedVertexNb]) {
+            for (auto& e : graph[scannedVertexNb]) {
                 if (e.isSameDirection(direction)) {
                     relaxedEdges++;
                     int neighbourCurrentWeight = (*vertexWeights)[e.getDestinationVertex()];
-                    int neighbourNewWeight = visitedVertexWeight + e.getWeight();
+                    int neighbourNewWeight = scannedVertexWeight + e.getWeight();
                     if ((neighbourCurrentWeight == -1) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
                         (*stallingDistances)[e.getDestinationVertex()] = -1; // Unstall
                         if (neighbourCurrentWeight != -1) {                                                              
@@ -61,7 +62,7 @@ public:
                         vertexSet->insert(newNeighbour);
                         // UPDATE weight + parent
                         (*vertexWeights)[e.getDestinationVertex()] = neighbourNewWeight;
-                        (*vertexParents)[e.getDestinationVertex()] = visitedVertexNb;
+                        (*vertexParents)[e.getDestinationVertex()] = scannedVertexNb;
                     }
                 }
             }
@@ -70,6 +71,7 @@ public:
         return (d != -1);
     }
 
+    /// Implement Stall-on-Demand
     void stallOnDemand(int u, int du) {
         if ((*stallingDistances)[u] == -1) {
             for (auto& e : graph[u]) {
@@ -86,6 +88,7 @@ public:
         }
     }
 
+    /// Implement Stall-on-Demand propagation (not used in the experiments due to poor results)
     void stallPropagate(int u) {
         queue<int> q({u});
         while (!q.empty()) {
@@ -117,6 +120,7 @@ public:
         return this->relaxedEdges;
     }
 
+    /// Return the sequence of vertices defining the computed shortest path (the path may contain shortcuts)
     vector<int> getPath() {
         // retrace path from end to start
         vector<int> path;
@@ -180,18 +184,20 @@ private:
         return vector<int>(graph.size(), -1); // -1 corresponds to no parent
     }
 
-    bool checkStoppingCriteria(int visitedWeight) {
+    /// Implement CH stopping criterion
+    bool checkStoppingCriterion(int scannedWeight) {
         // Check min queue weight
         if (this->direction) {
-            weight_upward_search = visitedWeight;
+            weight_upward_search = scannedWeight;
         } else {
-            weight_downward_search = visitedWeight;
+            weight_downward_search = scannedWeight;
         }
 
         int minQueueWeight = fmin(weight_downward_search, weight_upward_search);
         return (this->d != -1 && this->d <= minQueueWeight); // No possible better path can be found
     }
 
+    /// Switch to opposite search if it is not empty
     void setDirection() {
         if (this->direction && !this->vertexSet_down.empty()) {
             // Switch down
@@ -210,9 +216,10 @@ private:
         }
     }
 
-    void updateD(int visitedVertexNb) {
-        int weight_up = this->vertexWeights_up[visitedVertexNb];
-        int weight_down = this->vertexWeights_down[visitedVertexNb];
+    /// Update the distance of the shortest path found so far if the scanned vertex leads to a shorter path
+    void updateD(int scannedVertexNb) {
+        int weight_up = this->vertexWeights_up[scannedVertexNb];
+        int weight_down = this->vertexWeights_down[scannedVertexNb];
         if (weight_up != -1 && weight_down != -1) { // vertex reached in both direction
             if (weight_up + weight_down < this->d || this->d == -1) {
                 this->d = weight_up + weight_down;

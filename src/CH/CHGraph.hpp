@@ -4,6 +4,7 @@ using std::unordered_set;
 template <class T_Edge, class T_CHEdge, class T_weight>
 class CHGraph {
 public:
+    /// Build a CHGraph from the input graph. CHGraph is the graph structure used by the remaining graph and the Contraction Hierarchy during CH preprocessing
     CHGraph(vector<vector<T_Edge>> inputGraph) {
         this->incidenceList = vector<pair<vector<T_CHEdge*>, vector<T_CHEdge*>>>(inputGraph.size(), make_pair(vector<T_CHEdge*>(), vector<T_CHEdge*>()));
         for (int sourceVertex = 0; sourceVertex<inputGraph.size(); sourceVertex++) {
@@ -19,6 +20,7 @@ public:
         this->remainingVerticesNb = inputGraph.size();
     }
 
+    /// Return the edges leaving the specified vertex
     vector<T_CHEdge> getOutgoingEdges(int vertex) {
         vector<T_CHEdge> result;
         for (auto& edgePtr : this->incidenceList[vertex].first) {
@@ -27,6 +29,7 @@ public:
         return result;
     }
 
+    /// Return the edges arriving to the specified vertex
     vector<T_CHEdge> getIngoingEdges(int vertex) {
         vector<T_CHEdge> result;
         for (auto& edgePtr : this->incidenceList[vertex].second) {
@@ -35,6 +38,7 @@ public:
         return result;
     }
 
+    /// Return the neighbour vertices of the specified vertex
     unordered_set<int> getNeighbours(int vertex) {
         unordered_set<int> neighbours;
         for (auto& edgePtr : this->incidenceList[vertex].first) {
@@ -50,8 +54,8 @@ public:
         return this->incidenceList;
     }
 
+    /// Removes the pointers to edges incident to the given vertex
     void removeVertex(int vertex) {
-        /* Removes the pointers to edges incident to the given vertex */
         for (auto& edgePtr : this->incidenceList[vertex].first) { // outgoing edges
             int destinationVertex = edgePtr->getDestinationVertex();
             for (int edgeIndex = 0; edgeIndex<this->incidenceList[destinationVertex].second.size(); edgeIndex++) {
@@ -75,6 +79,7 @@ public:
         this->remainingVerticesNb--;
     }
 
+    /// Remove the specified edge
     void removeEdge(T_CHEdge* edgePtr) {
         // Detach from source
         int sourceVertex = edgePtr->getSourceVertex();
@@ -95,6 +100,7 @@ public:
         this->remainingEdgesNb--;
     }
 
+    /// Update the weight of the specified edge if it exists, return 'false' otherwise
     bool updateEdge(int u, int v, T_weight newWeight) {
         bool alreadyEdge = false;
         for (auto& edgePtr : this->incidenceList[u].first) { // outgoing from u
@@ -107,12 +113,14 @@ public:
         return alreadyEdge;
     }
 
+    /// Add the specified edge by adding a reference at its source vertex and destination vertex
     void addEdge(T_CHEdge* edgePtr) {
         this->incidenceList[edgePtr->getSourceVertex()].first.push_back(edgePtr); // outgoing from u
         this->incidenceList[edgePtr->getDestinationVertex()].second.push_back(edgePtr); // ingoing to v
         this->remainingEdgesNb++;
     }
 
+    /// Return the average degree of the graph
     float getAverageDegree() {
         return (float)remainingEdgesNb/(float)remainingVerticesNb;
     }

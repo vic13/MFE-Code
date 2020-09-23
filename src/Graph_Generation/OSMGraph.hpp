@@ -12,6 +12,7 @@ public:
         this->osmFilePath = osmFilePath;
     }
 
+    /// Build a graph from OSM data and transform it to a strongly-connected simple graph. If 'car' is true, the edge weights are computed based on estimated car speeds. Otherwise, a walking speed of 5km/h is used.
     vector<vector<Edge>> build(bool car) {
         json j = importJson(this->osmFilePath);
         json features = j["features"];
@@ -104,63 +105,7 @@ public:
 
         return connectedGraph;
     }
-
-    vector<vector<Edge>> transformToStronglyConnectedGraph(vector<vector<Edge>>& graph, int s) {
-        vector<vector<Edge>> stronglyConnectedGraph;
-
-        Dijkstra fromS(graph, s, -1); // t set to -1 to disable stopping criteria
-        fromS.compute();
-        vector<int> weightsFromS = fromS.getWeights();
-        vector<vector<Edge>> reversedGraph = GraphUtils::reverseGraph(graph);
-        Dijkstra toS(reversedGraph, s, -1); // t set to -1 to disable stopping criteria
-        toS.compute();
-        vector<int> weightsToS = toS.getWeights();
-
-        vector<bool> verticesToKeep(graph.size(), true);
-        vector<int> offsets;
-        int offset = 0;
-        for (int vertex=0; vertex<graph.size(); vertex++) {
-            if (weightsFromS[vertex] == -1 || weightsToS[vertex] == -1) {
-                verticesToKeep[vertex] = false;
-                offset++;
-            }
-            offsets.push_back(offset);
-        }
-        vector<pair<float, float>> newCoordinates;
-        for (int v = 0; v<graph.size(); v++) {
-            if (verticesToKeep[v]) {
-                vector<Edge> edges;
-                for (auto& edge : graph[v]) {
-                    if (verticesToKeep[edge.getDestinationVertex()]) {
-                        edges.push_back(Edge(edge.getDestinationVertex()-offsets[edge.getDestinationVertex()], edge.getWeight()));
-                    }
-                }
-                stronglyConnectedGraph.push_back(edges);
-                newCoordinates.push_back(this->verticesCoordinates[v]);
-            }
-        }
-        this->verticesCoordinates = newCoordinates;
-
-        return stronglyConnectedGraph;
-    }
-
-    void addEdge(vector<vector<Edge>>& adjacencyList, int u, int v, int newWeight) {
-        bool alreadyEdge = false;
-        for (auto& edge : adjacencyList[u]) {
-            if (edge.getDestinationVertex() == v) {
-                // There exists a u-v edge : it should be replaced by minimum weight
-                alreadyEdge = true;
-                edge.setMinWeight(newWeight);
-            }
-        }
-        if (!alreadyEdge) {
-            // Add edge
-            Edge edge(v, (int)newWeight);
-            adjacencyList[u].push_back(edge);
-        }
-        this->nbParallelEdges += alreadyEdge;
-    }
-
+    
     vector<pair<float, float>> getVerticesCoordinates() {
         return this->verticesCoordinates;
     }
@@ -178,7 +123,7 @@ public:
     }
 
     /*
-    Returns the distance (in km) between two points expressed by their latitude and longitude. 
+    Return the distance (in km) between two points expressed by their latitude and longitude. 
     It computes the euclidean distance between the two points, which is a good approx if the points are reasonably close (compared to the scale of the earth).
     */
     float distanceLatLong(float lat1, float long1, float lat2, float long2) {
@@ -196,6 +141,7 @@ public:
         return distance(p1, p2);
     }
 
+    /// Parse the OSM file containing all Villo stations in Brussels, and return the corresponding list of coordinates
     vector<pair<float, float>> getVilloStationsCoordinates() {
         vector<pair<float, float>> villoCoordinates;
         json j = importJson(PATH_OSM_GRAPHS "villo.json");
@@ -218,6 +164,66 @@ private:
     int finalGraphEdges = 0;
     int finalGraphVertices = 0;
     float connectedRatio = 0;
+
+    /// Return the biggest strongly connected subgraph containing specified vertex 's'
+    vector<vector<Edge>> transformToStronglyConnectedGraph(vector<vector<Edge>>& graph, int s) {
+        vector<vector<Edge>> stronglyConnectedGraph;
+        // Search all vertices reachable by 's'
+        Dijkstra fromS(graph, s, -1); // t set to -1 to disable stopping criterion
+        fromS.compute();
+        vector<int> weightsFromS = fromS.getWeights();
+        // Search all vertices that can reach 's'
+        vector<vector<Edge>> reversedGraph = GraphUtils::reverseGraph(graph);
+        Dijkstra toS(reversedGraph, s, -1); // t set to -1 to disable stopping criterion
+        toS.compute();
+        vector<int> weightsToS = toS.getWeights();
+        // Intersect both vertices sets
+        vector<bool> verticesToKeep(graph.size(), true);
+        vector<int> offsets;
+        int offset = 0;
+        for (int vertex=0; vertex<graph.size(); vertex++) {
+            if (weightsFromS[vertex] == -1 || weightsToS[vertex] == -1) {
+                verticesToKeep[vertex] = false;
+                offset++;
+            }
+            offsets.push_back(offset);
+        }
+        // Build induced subgraph
+        vector<pair<float, float>> newCoordinates;
+        for (int v = 0; v<graph.size(); v++) {
+            if (verticesToKeep[v]) {
+                vector<Edge> edges;
+                for (auto& edge : graph[v]) {
+                    if (verticesToKeep[edge.getDestinationVertex()]) {
+                        edges.push_back(Edge(edge.getDestinationVertex()-offsets[edge.getDestinationVertex()], edge.getWeight()));
+                    }
+                }
+                stronglyConnectedGraph.push_back(edges);
+                newCoordinates.push_back(this->verticesCoordinates[v]);
+            }
+        }
+        this->verticesCoordinates = newCoordinates;
+
+        return stronglyConnectedGraph;
+    }
+
+    /// Add the specified edge. If a parallel edge already exists, replace it with the edge of minimum weight.
+    void addEdge(vector<vector<Edge>>& adjacencyList, int u, int v, int newWeight) {
+        bool alreadyEdge = false;
+        for (auto& edge : adjacencyList[u]) {
+            if (edge.getDestinationVertex() == v) {
+                // There exists a u-v edge : it should be replaced by minimum weight
+                alreadyEdge = true;
+                edge.setMinWeight(newWeight);
+            }
+        }
+        if (!alreadyEdge) {
+            // Add edge
+            Edge edge(v, (int)newWeight);
+            adjacencyList[u].push_back(edge);
+        }
+        this->nbParallelEdges += alreadyEdge;
+    }
     
     json importJson(const char* osmFilePath) {
         ifstream jsonFile(osmFilePath);
@@ -227,6 +233,7 @@ private:
         return j;
     }
 
+    /// Estimate the speed limit based on the route type
     float estimateMaxSpeed(string highwayType) {
         // No maxspeed available : estimate with highway type
         nbEdgesWithoutMaxSpeed++;
@@ -247,6 +254,7 @@ private:
         float z;
     } CartesianCoordinate;
 
+    /// Compute the 3D euclidean distance between the 2 specified coordinates
     float distance(CartesianCoordinate p1, CartesianCoordinate p2) {
         return sqrt(pow(p1.x-p2.x, 2) + pow(p1.y-p2.y, 2) + pow(p1.z-p2.z, 2));
     }

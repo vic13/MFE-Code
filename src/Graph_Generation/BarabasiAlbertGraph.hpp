@@ -1,6 +1,7 @@
 
 class BarabasiAlbertGraph {
 public:
+    /// Initialize the graph based on the specified number of vertices 'n' and initial number of connected vertices 'm'
     BarabasiAlbertGraph(int n, int m) {
         this->n = n;
         this->m = m;
@@ -8,6 +9,7 @@ public:
         this->degrees = vector<int>(n, 0);
     }
 
+    /// Build a scale-free graph using the Barabasi-Albert procedure, and return it as an adjacency list
     vector<vector<Edge>> build() {
         // Start with m connected vertices
         for (int i=0; i<m; i++) {
@@ -35,8 +37,8 @@ public:
     }
     
 private:
-    int n;
-    int m;
+    int n; // number of vertices
+    int m; // number of edges
     vector<vector<bool>> adjacencyMatrix;
     vector<int> degrees;
     int degreeSum;
@@ -66,6 +68,7 @@ private:
         degreeSum+=2;
     }
 
+    /// Convert the adjacency matrix to an adjacency list
     vector<vector<Edge>> asAdjacencyList() {
         vector<vector<Edge>> adjacencyList(n, vector<Edge>());
         for (int vertex = 0; vertex < n; vertex++) {

@@ -3,6 +3,7 @@ class CH : public CHTemplate<Edge, CHEdge, CHQueryEdge, int> {
 public:
     CH(vector<vector<Edge>> inputGraph) : CHTemplate<Edge, CHEdge, CHQueryEdge, int>(inputGraph) {}
 
+    /// Contract or simulate the contraction of the specified vertex. If 'simulation' is 'true' (used for vertex ordering), do not actually add shortcuts. Return the number of added shortcuts and the total search space (indicating the cost of the contraction).
     vector<int> contractVertex(int vertexNb, bool simulation) {
         int addedShortcuts = 0;
         int searchSpace = 0;
@@ -52,6 +53,7 @@ public:
         return vector<int>({addedShortcuts, searchSpace});
     }
 
+    /// Implement the Local Search : run a dijkstra search from 's' until all t's are scanned, or the hop limit is reached. Perform on-the-fly edge reduction. Return the computed distance to all t's and the search space.
     pair<vector<int>, int> dijkstraCH(int s, vector<int> t_list, int stoppingDistance, int ignoreVertex) {
         // Init
         set<pair<int, int>> vertexSet;
@@ -61,31 +63,31 @@ public:
         vertexWeights[s] = 0;
 
         vector<int> results = vector<int>(t_list.size(), -1);
-        int visitedCount = 0;
+        int scannedCount = 0;
         int searchSpace = 0;
 
         while (!vertexSet.empty()) {
             searchSpace++;
             // pop first vertex in the set
-            pair<int, int> visitedVertex = *(vertexSet.begin());
+            pair<int, int> scannedVertex = *(vertexSet.begin());
             vertexSet.erase(vertexSet.begin());
-            int visitedVertexWeight = visitedVertex.first;
-            int visitedVertexNb = visitedVertex.second;
+            int scannedVertexWeight = scannedVertex.first;
+            int scannedVertexNb = scannedVertex.second;
 
-            // update visited t count
+            // update scanned t count
             for (auto& t : t_list) {
-                if (visitedVertexNb == t) {
-                    visitedCount++;
+                if (scannedVertexNb == t) {
+                    scannedCount++;
                 }
             }
-            if ((visitedCount == t_list.size()) || (visitedVertexWeight > stoppingDistance)) { // if all t's visited or if no more possible shortest path
+            if ((scannedCount == t_list.size()) || (scannedVertexWeight > stoppingDistance)) { // if all t's scanned or if no more possible shortest path
                 break;
             } else {
-                if (hops[visitedVertexNb] > hopLimits[hopIndex]) continue;
-                for (auto& e : g_R.getIncidenceList()[visitedVertexNb].first) {
+                if (hops[scannedVertexNb] > hopLimits[hopIndex]) continue;
+                for (auto& e : g_R.getIncidenceList()[scannedVertexNb].first) {
                     if (e->getDestinationVertex() == ignoreVertex) continue;  // Ignore the vertex that will be removed in the graph
                     int neighbourCurrentWeight = vertexWeights[e->getDestinationVertex()];
-                    int neighbourNewWeight = visitedVertexWeight + e->getWeight();
+                    int neighbourNewWeight = scannedVertexWeight + e->getWeight();
                     if ((neighbourCurrentWeight == -1) || (neighbourNewWeight < neighbourCurrentWeight)) {    // if smaller weight was found
                         if (neighbourCurrentWeight != -1) {                                                              
                             // if current weight not infinite : vertex already in queue : DELETE before inserting the updated vertex
@@ -97,7 +99,7 @@ public:
                         vertexSet.insert(newNeighbour);
                         // UPDATE weight
                         vertexWeights[e->getDestinationVertex()] = neighbourNewWeight;
-                        hops[e->getDestinationVertex()] = hops[visitedVertexNb] + 1;
+                        hops[e->getDestinationVertex()] = hops[scannedVertexNb] + 1;
                     }
                 }
             }
@@ -120,6 +122,7 @@ public:
         return make_pair(results, searchSpace);
     }
 
+    /// Build the search graph from the Contraction Hierarchy, by reversing downward edges
     vector<vector<CHQueryEdge>> convertToSearchGraph(CHGraph<Edge, CHEdge, int> g_H) {
         vector<vector<CHQueryEdge>> g_star = vector<vector<CHQueryEdge>>(this->n, vector<CHQueryEdge>());
         for (int u = 0; u<n; u++) {
