@@ -15,7 +15,6 @@ using std::queue;
 
 #include "parameters.hpp"
 #include "Utils/Random.hpp"
-#include "Utils/Clock.hpp"
 #include "TTF.hpp"
 #include "Edge.hpp"
 #include "Utils/GraphUtils.hpp"
@@ -37,7 +36,6 @@ int main() {
     cout << endl << "Hello world !" << endl << endl;
     Random::initRandom();
     cout << std::setprecision(9) << endl;
-    Clock clock("Program duration", false);
 
     if (PARAMS_EXP_NB==1) {
         Benchmark::exp1();
@@ -51,5 +49,4 @@ int main() {
         cout << "Invalid experiment number" << endl;
     }
     
-    clock.lap(true);
 }

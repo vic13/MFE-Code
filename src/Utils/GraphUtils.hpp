@@ -1,3 +1,6 @@
+
+#include <iterator>
+
 class GraphUtils {
 public:
     /// Convert the specified graph to a time-dependent graph, by replacing edge weights by constant TTFs
