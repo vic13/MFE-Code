@@ -62,12 +62,17 @@ protected:
     }
 
     /// Re-compute the priority score of the specified vertex and update the vertex ordering accordingly. Return 'true' if the vertex is now the first in the ordering
-    bool updateOrdering(int vertexNb) {   // Update ordering for the specified vertex, and returns true if it is on top of the queue
-        pair<float, int> current = make_pair(vertexOrderingScores[vertexNb], vertexNb);
-        vertexOrdering.erase(vertexOrdering.find(current));
-        float priorityScore = calcPriorityScore(vertexNb);
-        vertexOrderingScores[vertexNb] = priorityScore;
-        return (vertexOrdering.insert(make_pair(priorityScore, vertexNb)).first == vertexOrdering.begin());
+    bool updateOrdering(int vertexNb) {
+        float previousScore = vertexOrderingScores[vertexNb];
+        float newScore = calcPriorityScore(vertexNb);
+        pair<float, int> previousElem = make_pair(previousScore, vertexNb);
+        pair<float, int> newElem = make_pair(newScore, vertexNb);
+        if (newScore != previousScore) {
+            vertexOrdering.erase(vertexOrdering.find(previousElem));
+            vertexOrdering.insert(newElem);
+            vertexOrderingScores[vertexNb] = newScore;
+        }
+        return (vertexOrdering.find(newElem) == vertexOrdering.begin());
     }
 
     /// Calculate the priority score of the specified vertex by simulating its contraction
